@@ -9,6 +9,7 @@ services:
   - type: web
     name: influberry-app
     runtime: python
+    pythonVersion: "3.11"
     plan: free  # 開始時無料プラン（後でProfessional移行）
     branch: main
     repo: https://github.com/kurinobu/influberry
