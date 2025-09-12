@@ -1,0 +1,1 @@
+0 * * * * cd /Users/kurinobu/projects/influberry_v2 && ./database_safety_monitor.sh

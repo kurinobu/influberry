@@ -1,0 +1,92 @@
+<script setup>
+import { onMounted } from 'vue'
+import { useAuthStore } from './stores/auth.js'
+import { useProjectsStore } from './stores/projects.js'
+import LoginForm from './components/LoginForm.vue'
+import ProjectList from './components/ProjectList.vue'
+
+// 認証ストア
+const authStore = useAuthStore()
+// プロジェクト管理ストア
+const projectsStore = useProjectsStore()
+
+// アプリ初期化時に認証状態チェック
+onMounted(async () => {
+  await authStore.checkAuthStatus()
+  // ログイン済みの場合、プロジェクト一覧取得
+  if (authStore.isLoggedIn) {
+    await projectsStore.fetchProjects()
+  }
+})
+
+// ログアウト処理
+const handleLogout = async () => {
+  const result = await authStore.logout()
+  if (result.success) {
+    console.log('ログアウト完了')
+  }
+}
+</script>
+
+<template>
+  <!-- 未認証時: ログインフォーム表示 -->
+  <LoginForm v-if="!authStore.isLoggedIn" />
+  
+  <!-- 認証済み時: メイン管理画面 -->
+  <div v-else class="min-h-screen bg-gray-50">
+    <!-- ヘッダー -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <!-- InfluBerry ロゴ -->
+          <div class="flex items-center">
+            <h1 class="text-xl font-bold text-gray-900">
+              🍓 InfluBerry
+            </h1>
+            <span class="ml-2 text-sm text-gray-500">
+              案件管理システム
+            </span>
+          </div>
+          
+          <!-- ユーザー情報・ログアウト -->
+          <div class="flex items-center space-x-4">
+            <span class="text-sm text-gray-700">
+              こんにちは、{{ authStore.userName }}さん
+            </span>
+            <button
+              @click="handleLogout"
+              :disabled="authStore.isLoading"
+              class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+            >
+              {{ authStore.isLoading ? '処理中...' : 'ログアウト' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+<main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <div class="px-4 py-6 sm:px-0">
+    <!-- Project管理UI -->
+    <ProjectList />
+  </div>
+</main>
+  </div>
+</template>
+
+<style scoped>
+/* InfluBerry カスタムスタイル */
+header {
+  backdrop-filter: blur(10px);
+}
+
+/* スムーズなトランジション */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+</style>

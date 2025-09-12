@@ -1,0 +1,57 @@
+"""
+Authentication Blueprint - Flask-Login認証
+InfluBerry v2
+"""
+
+from flask import Blueprint, request, jsonify
+from flask_login import login_user, logout_user, current_user, login_required
+from werkzeug.security import check_password_hash
+
+auth_bp = Blueprint('auth', __name__)
+
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    """ユーザーログイン（Flask-Login）"""
+    try:
+        data = request.get_json()
+        if not data or not data.get('email') or not data.get('password'):
+            return jsonify({'error': 'メールアドレスとパスワードが必要です'}), 400
+        
+        # TODO: User モデル実装後に有効化
+        
+        
+        # 
+        
+        
+        # 仮実装：開発用
+        # return jsonify({
+        #    'message': '仮実装：ログイン機能',
+        #    'status': 'User モデル実装待ち'
+        #}), 200
+        
+    except Exception as e:
+        return jsonify({'error': 'ログイン処理エラー'}), 500
+
+@auth_bp.route('/logout', methods=['POST'])
+@login_required
+def logout():
+    """ユーザーログアウト"""
+    logout_user()
+    return jsonify({'message': 'ログアウトしました'}), 200
+
+@auth_bp.route('/me', methods=['GET'])
+@login_required
+def get_current_user():
+    """現在のユーザー情報取得"""
+    if current_user.is_authenticated:
+        return jsonify({'user': current_user.to_dict()}), 200
+    return jsonify({'error': 'ユーザーが認証されていません'}), 401
+
+@auth_bp.route('/test', methods=['GET'])
+def auth_test():
+    """認証システムテスト"""
+    return jsonify({
+        'message': 'Flask-Login認証システムテスト',
+        'authenticated': current_user.is_authenticated,
+        'user_id': current_user.get_id() if current_user.is_authenticated else None
+    }), 200

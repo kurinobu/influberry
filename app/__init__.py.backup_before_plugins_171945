@@ -1,0 +1,61 @@
+"""
+Flask application factory
+InfluBerry v2 - シンプル構成版（Flask-Login認証）
+"""
+
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_login import LoginManager
+from flask_cors import CORS
+from config import config
+
+# Extension instances
+db = SQLAlchemy()
+migrate = Migrate()
+login_manager = LoginManager()
+
+def create_app(config_name='development'):
+    """Flask application factory"""
+    
+    app = Flask(__name__)
+    
+    # Configuration
+    app.config.from_object(config[config_name])
+    
+    # Initialize extensions
+    db.init_app(app)
+    migrate.init_app(app, db)
+    login_manager.init_app(app)
+    
+    # CORS Configuration
+    CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True)
+    
+    # Flask-Login Configuration
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'ログインが必要です。'
+    login_manager.login_message_category = 'info'
+    
+    # User loader for Flask-Login
+    from app.models.user import User
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+    
+    # Register Blueprints
+    from app.blueprints.auth import auth_bp
+    from app.blueprints.projects import projects_bp
+    from app.blueprints.users import users_bp
+    from app.blueprints.main import main_bp
+    
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp, url_prefix='/api/auth')
+    app.register_blueprint(users_bp, url_prefix='/api/users')
+    app.register_blueprint(projects_bp, url_prefix='/api/projects')
+    
+    # Health check endpoint
+    @app.route('/health')
+    def health_check():
+        return {'status': 'ok', 'message': 'InfluBerry v2 API is running'}, 200
+    
+    return app

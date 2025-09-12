@@ -1,0 +1,54 @@
+# InfluBerry Render.com デプロイ設定
+# 作成日: 2025年9月12日
+# 対象: PostgreSQL移行・本番環境構築
+
+version: "1"
+
+services:
+  # Webアプリケーション（Flask + Vue.js統合）
+  - type: web
+    name: influberry-app
+    runtime: python
+    plan: free  # 開始時無料プラン（後でProfessional移行）
+    branch: main
+    repo: https://github.com/kurinobu/influberry
+    
+    # ビルドコマンド（Backend + Frontend統合ビルド）
+    buildCommand: |
+      echo "=== InfluBerry 統合ビルド開始 ==="
+      pip install -r requirements.txt
+      echo "=== Frontend ビルド開始 ==="
+      cd frontend && npm install && npm run build
+      echo "=== 静的ファイル統合 ==="
+      cd .. && mkdir -p app/static && cp -r frontend/dist/* app/static/
+      echo "=== ビルド完了 ==="
+    
+    # 起動コマンド
+    startCommand: gunicorn wsgi:app
+    
+    # 環境変数
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: influberry-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://influberry.onrender.com
+    
+    # ヘルスチェック
+    healthCheckPath: /api/auth/me
+
+  # PostgreSQL データベース
+  - type: pgsql
+    name: influberry-db
+    plan: free  # 開始時無料プラン
+    databaseName: influberry_prod
+    user: influberry_user
+    
+    # データベース初期化（オプション）
+    initCommand: |
+      echo "PostgreSQL データベース初期化完了"

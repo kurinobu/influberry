@@ -1,0 +1,457 @@
+<template>
+  <div v-if="isOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <!-- ヘッダー -->
+      <div class="sticky top-0 bg-gradient-to-r from-purple-600 to-pink-600 p-6 rounded-t-2xl">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="bg-white bg-opacity-20 rounded-full p-2">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-white">
+              請求書を編集
+            </h2>
+          </div>
+          <button
+            @click="closeModal"
+            class="text-white hover:text-pink-200 transition-colors duration-200"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <p class="text-purple-100 mt-2">{{ formData.invoice_number }}</p>
+      </div>
+
+      <!-- フォーム本体 -->
+      <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
+        <!-- エラー表示 -->
+        <div v-if="formError" class="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-red-700 font-medium">{{ formError }}</p>
+          </div>
+        </div>
+
+        <!-- 顧客名 -->
+        <div class="space-y-2">
+          <label for="customer_name" class="block text-sm font-bold text-gray-700">
+            顧客名 <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="customer_name"
+            v-model="formData.customer_name"
+            type="text"
+            required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+            placeholder="例: 株式会社サンプル"
+            :class="{ 'border-red-500': errors.customer_name }"
+          />
+          <p v-if="errors.customer_name" class="text-red-500 text-sm">{{ errors.customer_name }}</p>
+        </div>
+
+        <!-- 税抜金額 -->
+        <div class="space-y-2">
+          <label for="amount" class="block text-sm font-bold text-gray-700">
+            税抜金額 <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-3 text-gray-500 font-medium">¥</span>
+            <input
+              id="amount"
+              v-model="formData.amount"
+              type="number"
+              min="1"
+              step="1"
+              required
+              class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+              placeholder="50000"
+              :class="{ 'border-red-500': errors.amount }"
+              @input="calculateTotalAmount"
+            />
+          </div>
+          <p v-if="errors.amount" class="text-red-500 text-sm">{{ errors.amount }}</p>
+        </div>
+
+        <!-- 消費税率 -->
+        <div class="space-y-2">
+          <label for="tax_rate" class="block text-sm font-bold text-gray-700">
+            消費税率 (%)
+          </label>
+          <input
+            id="tax_rate"
+            v-model="formData.tax_rate"
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+            placeholder="10.0"
+            @input="calculateTotalAmount"
+          />
+        </div>
+
+        <!-- 金額サマリー -->
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
+          <h3 class="text-sm font-bold text-gray-700 mb-3">金額計算</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <p class="text-gray-600">税抜金額</p>
+              <p class="text-lg font-bold text-gray-900">{{ formatAmount(formData.amount) }}</p>
+            </div>
+            <div>
+              <p class="text-gray-600">消費税</p>
+              <p class="text-lg font-bold text-gray-900">{{ formatAmount(calculatedTaxAmount) }}</p>
+            </div>
+            <div>
+              <p class="text-gray-600">請求合計</p>
+              <p class="text-xl font-bold text-purple-600">{{ formatAmount(calculatedTotalAmount) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ステータス -->
+        <div class="space-y-2">
+          <label for="status" class="block text-sm font-bold text-gray-700">
+            ステータス
+          </label>
+          <select
+            id="status"
+            v-model="formData.status"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+          >
+            <option value="draft">下書き</option>
+            <option value="sent">送信済み</option>
+            <option value="paid">支払済み</option>
+            <option value="overdue">期限超過</option>
+            <option value="cancelled">キャンセル</option>
+          </select>
+        </div>
+
+        <!-- 支払期限 -->
+        <div class="space-y-2">
+          <label for="due_date" class="block text-sm font-bold text-gray-700">
+            支払期限
+          </label>
+          <input
+            id="due_date"
+            v-model="formData.due_date"
+            type="date"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+            :class="{ 'border-red-500': errors.due_date }"
+          />
+          <p v-if="errors.due_date" class="text-red-500 text-sm">{{ errors.due_date }}</p>
+        </div>
+
+        <!-- 説明・備考 -->
+        <div class="space-y-2">
+          <label for="description" class="block text-sm font-bold text-gray-700">
+            説明・備考 <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            id="description"
+            v-model="formData.description"
+            required
+            rows="4"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none"
+            placeholder="請求書の詳細を入力してください..."
+            :class="{ 'border-red-500': errors.description }"
+          ></textarea>
+          <p v-if="errors.description" class="text-red-500 text-sm">{{ errors.description }}</p>
+        </div>
+
+        <!-- 支払済みの場合の追加情報 -->
+        <div v-if="formData.status === 'paid'" class="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+          <h3 class="text-sm font-bold text-green-800">支払情報</h3>
+          
+          <!-- 支払日 -->
+          <div class="space-y-2">
+            <label for="payment_date" class="block text-sm font-medium text-green-700">
+              支払日
+            </label>
+            <input
+              id="payment_date"
+              v-model="formData.payment_date"
+              type="date"
+              class="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+            />
+          </div>
+
+          <!-- 支払方法 -->
+          <div class="space-y-2">
+            <label for="payment_method" class="block text-sm font-medium text-green-700">
+              支払方法
+            </label>
+            <select
+              id="payment_method"
+              v-model="formData.payment_method"
+              class="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+            >
+              <option value="">選択してください</option>
+              <option value="bank_transfer">銀行振込</option>
+              <option value="credit_card">クレジットカード</option>
+              <option value="cash">現金</option>
+              <option value="other">その他</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- フォームボタン -->
+        <div class="flex space-x-4 pt-4">
+          <button
+            type="button"
+            @click="closeModal"
+            class="flex-1 py-3 px-6 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-all duration-200"
+            :disabled="isSubmitting"
+          >
+            キャンセル
+          </button>
+          <button
+            type="submit"
+            class="flex-1 py-3 px-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="isSubmitting"
+          >
+            <span v-if="isSubmitting" class="flex items-center justify-center">
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              更新中...
+            </span>
+            <span v-else>
+              更新する
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, computed, watch } from 'vue'
+import { useInvoicesStore } from '../stores/invoices.js'
+
+// Props
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: false
+  },
+  invoice: {
+    type: Object,
+    default: null
+  }
+})
+
+// Emits
+const emit = defineEmits(['close', 'success'])
+
+// Store
+const invoicesStore = useInvoicesStore()
+
+// Reactive data
+const formData = reactive({
+  invoice_number: '',
+  customer_name: '',
+  amount: '',
+  tax_rate: 10.0,
+  status: 'draft',
+  due_date: '',
+  description: '',
+  payment_date: '',
+  payment_method: ''
+})
+
+const errors = reactive({
+  customer_name: '',
+  amount: '',
+  due_date: '',
+  description: ''
+})
+
+const isSubmitting = ref(false)
+const formError = ref('')
+
+// Computed
+const calculatedTaxAmount = computed(() => {
+  const amount = parseFloat(formData.amount) || 0
+  const taxRate = parseFloat(formData.tax_rate) || 0
+  return Math.round(amount * (taxRate / 100))
+})
+
+const calculatedTotalAmount = computed(() => {
+  const amount = parseFloat(formData.amount) || 0
+  return amount + calculatedTaxAmount.value
+})
+
+// Methods
+const closeModal = () => {
+  emit('close')
+  resetForm()
+}
+
+const resetForm = () => {
+  formData.invoice_number = ''
+  formData.customer_name = ''
+  formData.amount = ''
+  formData.tax_rate = 10.0
+  formData.status = 'draft'
+  formData.due_date = ''
+  formData.description = ''
+  formData.payment_date = ''
+  formData.payment_method = ''
+  
+  Object.keys(errors).forEach(key => {
+    errors[key] = ''
+  })
+  formError.value = ''
+  isSubmitting.value = false
+}
+
+const calculateTotalAmount = () => {
+  // リアクティブに計算されるため、特別な処理は不要
+}
+
+const formatAmount = (amount) => {
+  return new Intl.NumberFormat('ja-JP', {
+    style: 'currency',
+    currency: 'JPY'
+  }).format(amount || 0)
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  return new Date(dateString).toISOString().split('T')[0]
+}
+
+const validateForm = () => {
+  let isValid = true
+  
+  // エラーリセット
+  Object.keys(errors).forEach(key => {
+    errors[key] = ''
+  })
+  formError.value = ''
+
+  // 顧客名バリデーション
+  if (!formData.customer_name.trim()) {
+    errors.customer_name = '顧客名は必須です'
+    isValid = false
+  } else if (formData.customer_name.trim().length < 2) {
+    errors.customer_name = '顧客名は2文字以上である必要があります'
+    isValid = false
+  }
+
+  // 金額バリデーション
+  if (!formData.amount || formData.amount <= 0) {
+    errors.amount = '金額は1円以上である必要があります'
+    isValid = false
+  } else if (formData.amount > 100000000) {
+    errors.amount = '金額は1億円以下である必要があります'
+    isValid = false
+  }
+
+  // 支払期限バリデーション
+  if (formData.due_date) {
+    const dueDateObj = new Date(formData.due_date)
+    const issueDate = new Date(props.invoice.issue_date || new Date())
+    
+    if (dueDateObj < issueDate) {
+      errors.due_date = '支払期限は発行日以降である必要があります'
+      isValid = false
+    }
+  }
+
+  // 説明バリデーション
+  if (!formData.description.trim()) {
+    errors.description = '説明は必須です'
+    isValid = false
+  } else if (formData.description.trim().length < 5) {
+    errors.description = '説明は5文字以上である必要があります'
+    isValid = false
+  }
+
+  return isValid
+}
+
+const handleSubmit = async () => {
+  if (!validateForm()) {
+    return
+  }
+
+  isSubmitting.value = true
+  formError.value = ''
+
+  try {
+    const submitData = {
+      customer_name: formData.customer_name.trim(),
+      amount: parseFloat(formData.amount),
+      tax_rate: parseFloat(formData.tax_rate),
+      status: formData.status,
+      description: formData.description.trim()
+    }
+
+    // 支払期限が設定されている場合
+    if (formData.due_date) {
+      submitData.due_date = formData.due_date
+    }
+
+    // 支払済みの場合の追加情報
+    if (formData.status === 'paid') {
+      if (formData.payment_date) {
+        submitData.payment_date = formData.payment_date
+      }
+      if (formData.payment_method) {
+        submitData.payment_method = formData.payment_method
+      }
+    }
+
+    const result = await invoicesStore.updateInvoice(props.invoice.id, submitData)
+
+    if (result) {
+      emit('success', {
+        message: '請求書を更新しました',
+        invoice: result
+      })
+      closeModal()
+    } else {
+      formError.value = invoicesStore.error || '更新に失敗しました'
+    }
+  } catch (error) {
+    console.error('請求書更新エラー:', error)
+    formError.value = '予期しないエラーが発生しました'
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+// Watch for invoice changes
+watch(() => props.invoice, (newInvoice) => {
+  if (newInvoice) {
+    formData.invoice_number = newInvoice.invoice_number || ''
+    formData.customer_name = newInvoice.customer_name || ''
+    formData.amount = newInvoice.amount || ''
+    formData.tax_rate = newInvoice.tax_rate || 10.0
+    formData.status = newInvoice.status || 'draft'
+    formData.due_date = formatDate(newInvoice.due_date)
+    formData.description = newInvoice.description || ''
+    formData.payment_date = formatDate(newInvoice.payment_date)
+    formData.payment_method = newInvoice.payment_method || ''
+  }
+}, { immediate: true })
+
+// Watch for modal close
+watch(() => props.isOpen, (isOpen) => {
+  if (!isOpen) {
+    resetForm()
+  }
+})
+</script>

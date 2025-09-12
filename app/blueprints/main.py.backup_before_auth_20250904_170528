@@ -1,0 +1,29 @@
+"""
+Main Blueprint - メインページ・基本API
+InfluBerry v2
+"""
+
+from flask import Blueprint, jsonify
+
+main_bp = Blueprint('main', __name__)
+
+@main_bp.route('/')
+def index():
+    """ルートエンドポイント"""
+    return jsonify({
+        'message': 'InfluBerry v2 API',
+        'version': '2.0.0',
+        'status': 'running'
+    })
+
+@main_bp.route('/api')
+def api_info():
+    """API情報エンドポイント"""
+    return jsonify({
+        'api_version': '2.0.0',
+        'endpoints': {
+            'auth': '/api/auth',
+            'health': '/health'
+        },
+        'authentication': 'Flask-Login (Session-based)'
+    })
