@@ -52,6 +52,19 @@ def create_app(config_name='development'):
     from app.blueprints.invoices import invoices_bp
     from app.plugins.manager import plugin_manager
     
+    # Static file serving for Vue.js frontend
+    from flask import send_from_directory
+    @app.route('/')
+    def serve_frontend():
+        return send_from_directory('static', 'index.html')
+    
+    @app.route('/<path:filename>')
+    def serve_static_files(filename):
+        try:
+            return send_from_directory('static', filename)
+        except FileNotFoundError:
+            return send_from_directory('static', 'index.html')
+            
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(users_bp, url_prefix='/api/users')
