@@ -7,14 +7,7 @@ from flask import Blueprint, jsonify
 
 main_bp = Blueprint('main', __name__)
 
-@main_bp.route('/')
-def index():
-    """ルートエンドポイント"""
-    return jsonify({
-        'message': 'InfluBerry v2 API',
-        'version': '2.0.0',
-        'status': 'running'
-    })
+
 
 @main_bp.route('/api')
 @main_bp.route('/api/')
