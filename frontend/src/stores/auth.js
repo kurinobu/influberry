@@ -7,6 +7,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 
 // Axios基本設定
+axios.defaults.baseURL = 'https://influberry-app.onrender.com'
 axios.defaults.baseURL = 'http://127.0.0.1:5001'
 axios.defaults.withCredentials = true // Cookie認証有効化
 axios.defaults.headers.common['Content-Type'] = 'application/json'
