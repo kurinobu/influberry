@@ -27,15 +27,8 @@ class Config:
     # CORS Configuration
     # REST API CORS Configuration (Backend分離対応)
     CORS_ORIGINS = [
-        os.environ.get('FRONTEND_URL', 'http://localhost:3000'),
-        'http://localhost:5001',
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'http://127.0.0.1:5001',
-        'http://127.0.0.1:5173',
-        # 本番環境用（将来追加）
-        'https://influberry.jp',
-        'https://app.influberry.jp'
+    'https://influberry-app.onrender.com',
+    'https://influberry.jp'
     ]
     
     # Development Configuration
