@@ -32,10 +32,12 @@ def create_app(config_name='development'):
     # CORS Configuration
     CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True)
     
-    # Flask-Login Configuration
-    login_manager.login_view = 'auth.login'
-    login_manager.login_message = 'ログインが必要です。'
-    login_manager.login_message_category = 'info'
+    # Flask-Login Configuration for JSON API
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        return jsonify({'error': '認証が必要です', 'code': 'UNAUTHORIZED'}), 401
+        
+    # Remove HTML redirect configuration for JSON API compatibility
     
     # User loader for Flask-Login
     from app.models.user import User
@@ -64,7 +66,7 @@ def create_app(config_name='development'):
             return send_from_directory('static', filename)
         except FileNotFoundError:
             return send_from_directory('static', 'index.html')
-            
+
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(users_bp, url_prefix='/api/users')
