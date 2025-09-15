@@ -63,10 +63,22 @@ def create_app(config_name='development'):
     
     @app.route('/<path:filename>')
     def serve_static_files(filename):
-        try:
-            return send_from_directory('static', filename)
-        except FileNotFoundError:
-            return send_from_directory('static', 'index.html')
+        # Root files (favicon.ico, robots.txt, etc.)
+        if '.' in filename and '/' not in filename:
+            try:
+                return send_from_directory('static', filename)
+            except FileNotFoundError:
+                pass
+        
+        # Assets directory (CSS, JS, images)
+        if filename.startswith('assets/'):
+            try:
+                return send_from_directory('static', filename)
+            except FileNotFoundError:
+                pass
+        
+        # Everything else -> SPA (Vue Router handles it)
+        return send_from_directory('static', 'index.html')
 
     app.register_blueprint(domain_redirect_bp)
     app.register_blueprint(main_bp)

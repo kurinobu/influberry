@@ -273,7 +273,7 @@ const getStatusColor = (status) => {
           :key="project.id"
           class="p-6 hover:bg-gray-50 transition-colors"
         >
-          <div class="flex flex-col space-y-4">
+          <div class="flex items-center justify-between">
             <div class="flex-1 min-w-0">
               <div class="flex items-center space-x-3">
                 <h4 class="text-sm font-medium text-gray-900 truncate">
@@ -316,7 +316,7 @@ const getStatusColor = (status) => {
               </p>
             </div>
             
-            <div class="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+            <div class="flex space-x-2 ml-4">
               <button @click="openEditForm(project)" class="text-blue-600 hover:text-blue-800 text-sm">
                 📝 編集
               </button>
