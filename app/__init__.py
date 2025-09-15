@@ -52,6 +52,7 @@ def create_app(config_name='development'):
     from app.blueprints.plugins import plugins_bp
     from app.blueprints.main import main_bp
     from app.blueprints.invoices import invoices_bp
+    from app.blueprints.domain_redirect import domain_redirect_bp
     from app.plugins.manager import plugin_manager
     
     # Static file serving for Vue.js frontend
@@ -67,6 +68,7 @@ def create_app(config_name='development'):
         except FileNotFoundError:
             return send_from_directory('static', 'index.html')
 
+    app.register_blueprint(domain_redirect_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(users_bp, url_prefix='/api/users')
