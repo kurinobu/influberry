@@ -252,19 +252,46 @@ const formatDate = (dateString) => {
 
     <!-- 金額サマリー -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-sm p-6 text-white">
-        <h3 class="text-lg font-medium">💰 総請求額</h3>
-        <p class="text-2xl font-bold">{{ formatAmount(totalAmount) }}</p>
+          <div class="bg-white rounded-lg shadow-sm p-4">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+            <span class="text-sm">💰</span>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">総請求額</p>
+          <p class="text-xl font-semibold text-gray-900">{{ formatAmount(totalAmount) }}</p>
+        </div>
+      </div>
+    </div>
+      
+      <div class="bg-white rounded-lg shadow-sm p-4">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <span class="text-sm">✨</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">支払済み</p>
+            <p class="text-xl font-semibold text-gray-900">{{ formatAmount(paidAmount) }}</p>
+          </div>
+        </div>
       </div>
       
-      <div class="bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg shadow-sm p-6 text-white">
-        <h3 class="text-lg font-medium">✨ 支払済み</h3>
-        <p class="text-2xl font-bold">{{ formatAmount(paidAmount) }}</p>
-      </div>
-      
-      <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-lg shadow-sm p-6 text-white">
-        <h3 class="text-lg font-medium">📊 未収金額</h3>
-        <p class="text-2xl font-bold">{{ formatAmount(unpaidAmount) }}</p>
+      <div class="bg-white rounded-lg shadow-sm p-4">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+              <span class="text-sm">📊</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">未収金額</p>
+            <p class="text-xl font-semibold text-gray-900">{{ formatAmount(unpaidAmount) }}</p>
+          </div>
+        </div>
       </div>
     </div>
 
