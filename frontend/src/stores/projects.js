@@ -6,7 +6,7 @@ import axios from 'axios'
 import { useAuthStore } from './auth.js'
 
 // Axios設定（auth.jsと同一設定）
-axios.defaults.baseURL = 'https://influberry-app.onrender.com'
+axios.defaults.baseURL = 'https://influberry.jp'
 axios.defaults.withCredentials = true
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 

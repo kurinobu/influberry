@@ -10,7 +10,7 @@ import { ref, computed } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from './auth'
 
-axios.defaults.baseURL = 'https://influberry-app.onrender.com'
+axios.defaults.baseURL = 'https://influberry.jp'
 
 export const useInvoicesStore = defineStore('invoices', () => {
   // State
