@@ -2,14 +2,7 @@
   <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 px-4">
     <div class="max-w-md w-full space-y-8">
       <!-- InfluBerry ロゴ・タイトル -->
-      <div class="text-center">
-        <h2 class="mt-6 text-3xl font-bold text-gray-900">
-          🍓 InfluBerry
-        </h2>
-        <p class="mt-2 text-sm text-gray-600">
-          Z世代インフルエンサーのための案件管理ツール
-        </p>
-      </div>
+      
 
       <!-- ログインフォーム -->
       <form @submit.prevent="handleLogin" class="mt-8 space-y-6">
