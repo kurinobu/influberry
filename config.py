@@ -47,7 +47,7 @@ class DevelopmentConfig(Config):
     # Development用Cookie設定（HTTP対応）
     SESSION_COOKIE_SECURE = False  # HTTP接続でもCookie有効
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'None'
 
 class ProductionConfig(Config):
     """Production configuration"""
@@ -57,7 +57,7 @@ class ProductionConfig(Config):
     # Production用により強固な設定
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'None'
 
 class TestConfig(Config):
     """Test configuration"""
