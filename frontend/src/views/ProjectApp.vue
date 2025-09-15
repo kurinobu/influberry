@@ -26,14 +26,6 @@ onMounted(async () => {
 const backToDashboard = () => {
   router.push('/dashboard')
 }
-
-// ログアウト処理
-const handleLogout = async () => {
-  const result = await authStore.logout()
-  if (result.success) {
-    router.push('/')
-  }
-}
 </script>
 
 <template>
@@ -56,18 +48,11 @@ const handleLogout = async () => {
             </h1>
           </div>
           
-          <!-- ユーザー情報・ログアウト -->
-          <div class="flex items-center space-x-4">
+          <!-- ユーザー情報 -->
+          <div class="flex items-center">
             <span class="text-sm text-white font-poppins">
               {{ authStore.userName }}さん
             </span>
-            <button
-              @click="handleLogout"
-              :disabled="authStore.isLoading"
-              class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-            >
-              {{ authStore.isLoading ? '処理中...' : 'ログアウト' }}
-            </button>
           </div>
         </div>
       </div>
