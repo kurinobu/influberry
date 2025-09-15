@@ -276,12 +276,14 @@ const getStatusColor = (status) => {
           <div class="flex flex-col space-y-4">
             <div class="flex-1 min-w-0">
               <div class="flex items-center space-x-3">
+                <div class="space-y-1">
                 <h4 class="text-sm font-medium text-gray-900 truncate">
                   {{ project.company_name }}
                 </h4>
-                <div v-if="project.project_name">
+                <div v-if="project.project_name" class="text-sm text-gray-600">
                   {{ project.project_name }}
                 </div>
+              </div>
                 <span
                   :class="[
                     'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',

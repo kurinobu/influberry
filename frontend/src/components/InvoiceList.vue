@@ -338,8 +338,8 @@ const formatDate = (dateString) => {
           :key="invoice.id"
           class="p-6 hover:bg-gray-50 transition-colors"
         >
-          <div class="flex items-center justify-between">
-            <div class="flex-1">
+          <div class="flex flex-col space-y-4">
+            <div class="flex-1 min-w-0">
               <div class="flex items-center space-x-3">
                 <h4 class="text-lg font-medium text-gray-900">
                   {{ invoice.invoice_number }}
@@ -355,9 +355,14 @@ const formatDate = (dateString) => {
               </div>
               
               <div class="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                <div>
-                  <span class="font-medium">顧客:</span>
-                  {{ invoice.company_name || '-' }}
+                <div class="space-y-1">
+                  <div>
+                    <span class="font-medium">顧客:</span>
+                    {{ invoice.company_name || '-' }}
+                  </div>
+                  <div v-if="invoice.project_name" class="text-sm text-gray-600">
+                    {{ invoice.project_name }}
+                  </div>
                 </div>
                 <div>
                   <span class="font-medium">発行日:</span>
@@ -368,10 +373,8 @@ const formatDate = (dateString) => {
                   {{ formatDate(invoice.due_date) }}
                 </div>
               </div>
-            </div>
-            
-            <div class="flex items-center space-x-4">
-              <div class="text-right">
+              
+              <div class="mt-2 text-right">
                 <p class="text-lg font-bold text-gray-900">
                   {{ formatAmount(invoice.total_amount) }}
                 </p>
@@ -379,17 +382,17 @@ const formatDate = (dateString) => {
                   (税抜: {{ formatAmount(invoice.amount) }})
                 </p>
               </div>
-              
-              <div class="flex space-x-2">
-                <button @click="showInvoiceEdit(invoice)" class="text-blue-600 hover:text-blue-800 text-sm">
-                  📝 編集
-                </button>
-                <button 
-                  @click="showInvoiceDetail(invoice)"
-                  class="text-green-600 hover:text-green-800 text-sm">
-                  👁️ 詳細
-                </button>
-              </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+              <button @click="showInvoiceEdit(invoice)" class="text-blue-600 hover:text-blue-800 text-sm">
+                📝 編集
+              </button>
+              <button 
+                @click="showInvoiceDetail(invoice)"
+                class="text-green-600 hover:text-green-800 text-sm">
+                👁️ 詳細
+              </button>
             </div>
           </div>
         </div>
