@@ -72,7 +72,7 @@ const toggleSettings = () => {
         <div class="flex justify-between items-center h-16">
           <!-- InfluBerry ロゴ -->
           <div class="flex items-center">
-            <h1 class="text-xl font-bold text-white font-poppins">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
               🍓 InfluBerry
             </h1>
             <span class="ml-2 text-sm text-white/80 font-noto">
