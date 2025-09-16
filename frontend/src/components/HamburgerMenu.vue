@@ -161,10 +161,11 @@ const handleOverlayClick = (event) => {
     <div
       v-if="isOpen"
       class="fixed inset-0 z-40 bg-black bg-opacity-50 menu-overlay"
+      style="background-color: rgba(0, 0, 0, 0.5) !important;"
       @click="handleOverlayClick"
     >
       <!-- メニューパネル -->
-      <div class="fixed top-0 right-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-50 menu-panel">
+      <div class="fixed top-0 right-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-50 menu-panel" style="background-color: #ffffff !important; background-image: none !important;">
         <!-- メニューヘッダー -->
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           <div class="flex items-center">
