@@ -80,27 +80,36 @@ const toggleSettings = () => {
           
           <!-- ユーザー情報・設定・ログアウト -->
           <div class="flex items-center space-x-4">
-            <span class="text-sm text-white font-poppins">
-              こんにちは、{{ authStore.userName }}さん ✨
-            </span>
+            
             <button
               @click="toggleSettings"
               class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-500 hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
             >
               ⚙️ 設定
             </button>
-            <button
-              @click="handleLogout"
-              :disabled="authStore.isLoading"
-              class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-            >
-              {{ authStore.isLoading ? '処理中...' : 'ログアウト' }}
-            </button>
+            
           </div>
         </div>
       </div>
     </header>
 
+<!-- ユーザー情報バー -->
+    <div class="bg-white/10 backdrop-blur-sm border-b border-white/20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-3">
+          <span class="text-sm text-white font-poppins">
+            こんにちは、{{ authStore.userName }}さん ✨
+          </span>
+          <button
+            @click="handleLogout"
+            :disabled="authStore.isLoading"
+            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs leading-4 font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+          >
+            {{ authStore.isLoading ? '処理中...' : 'ログアウト' }}
+          </button>
+        </div>
+      </div>
+    </div>
     <!-- メインコンテンツ -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-6 sm:px-0">
