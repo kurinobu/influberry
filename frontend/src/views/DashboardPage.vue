@@ -72,7 +72,7 @@ const toggleSettings = () => {
         <div class="flex justify-between items-center h-16">
           <!-- InfluBerry ロゴ -->
           <div class="flex items-center">
-            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
+            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
               🍓 InfluBerry
             </h1>
             
@@ -94,10 +94,10 @@ const toggleSettings = () => {
     </header>
 
 <!-- ユーザー情報バー -->
-    <div class="bg-white/10 backdrop-blur-sm border-b border-white/20">
+    <div class="bg-white/90 backdrop-blur-sm border-b border-gray-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-3">
-          <span class="text-sm text-white font-poppins">
+          <span class="text-sm text-gray-800 font-poppins">
             こんにちは、{{ authStore.userName }}さん ✨
           </span>
           <button
