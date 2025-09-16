@@ -39,7 +39,7 @@ const handleAuthSuccess = () => {
     <div class="max-w-md w-full space-y-4 p-4">
       <!-- InfluBerry ロゴ・ブランディング -->
       <div class="text-center">
-        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins mt-0 mb-0">
+        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins mt-0 mb-0 leading-none">
           🍓 InfluBerry
         </h1>
         <p class="mt-2 text-gray-600 font-noto">
