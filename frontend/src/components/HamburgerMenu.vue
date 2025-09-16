@@ -267,10 +267,18 @@ const handleOverlayClick = (event) => {
 </template>
 
 <style scoped>
-/* メニューパネル背景色強制指定 */
+/* メニューパネル背景色強制指定 - Tailwind v4対応 */
 .menu-panel {
   background-color: #ffffff !important;
   background-image: none !important;
+  background: solid #ffffff !important;
+  backdrop-filter: none !important;
+}
+
+/* オーバーレイ背景確実指定 - Tailwind v4対応 */
+.menu-overlay {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  background: rgba(0, 0, 0, 0.5) !important;
 }
 
 /* オーバーレイ背景確実指定 */
