@@ -36,7 +36,7 @@ const handleAuthSuccess = () => {
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center">
-    <div class="max-w-md w-full space-y-4 p-8">
+    <div class="max-w-md w-full space-y-4 p-4">
       <!-- InfluBerry ロゴ・ブランディング -->
       <div class="text-center">
         <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
