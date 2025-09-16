@@ -160,11 +160,11 @@ const handleOverlayClick = (event) => {
     <!-- メニューオーバーレイ -->
     <div
       v-if="isOpen"
-      class="fixed inset-0 z-40 bg-black bg-opacity-50"
+      class="fixed inset-0 z-40 bg-black bg-opacity-50 menu-overlay"
       @click="handleOverlayClick"
     >
       <!-- メニューパネル -->
-      <div class="fixed top-0 right-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-50">
+      <div class="fixed top-0 right-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-50 menu-panel">
         <!-- メニューヘッダー -->
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           <div class="flex items-center">
@@ -266,6 +266,17 @@ const handleOverlayClick = (event) => {
 </template>
 
 <style scoped>
+/* メニューパネル背景色強制指定 */
+.menu-panel {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+/* オーバーレイ背景確実指定 */
+.menu-overlay {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
 /* スムーズなアニメーション */
 .transition-transform {
   transition-property: transform;
