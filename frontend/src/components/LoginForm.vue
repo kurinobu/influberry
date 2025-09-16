@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex items-start justify-center bg-gradient-to-br from-pink-50 to-purple-50 px-4 pt-8">
+  <div class="min-h-fit flex items-start justify-center bg-gradient-to-br from-pink-50 to-purple-50 px-4 pt-8 pb-4">
     <div class="max-w-md w-full space-y-8">
       <!-- InfluBerry ロゴ・タイトル -->
       
