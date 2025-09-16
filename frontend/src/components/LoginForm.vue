@@ -5,7 +5,7 @@
       
 
       <!-- ログインフォーム -->
-      <form @submit.prevent="handleLogin" class="mt-8 space-y-6">
+      <form @submit.prevent="handleLogin" class="mt-4 space-y-6">
         <!-- エラーメッセージ -->
         <div v-if="authStore.error" class="bg-red-50 border border-red-200 rounded-md p-3">
           <div class="text-sm text-red-600">
@@ -79,7 +79,8 @@
           </button>
         </div>
 
-        <!-- テスト用ユーザー情報 -->
+        <!-- テスト用ユーザー情報 - 本番環境では非表示 -->
+        <!--
         <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
           <h3 class="text-sm font-medium text-blue-800 mb-2">テスト用アカウント</h3>
           <div class="text-xs text-blue-600 space-y-1">
@@ -95,6 +96,7 @@
             テストアカウントを入力
           </button>
         </div>
+        -->
         <!-- 新規登録ページへのリンク -->
         <div class="text-center">
           <p class="text-sm text-gray-600">
