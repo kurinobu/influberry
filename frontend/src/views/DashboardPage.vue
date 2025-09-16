@@ -70,39 +70,41 @@ const toggleSettings = () => {
     <header class="shadow-lg border-b-2" style="background: linear-gradient(to right, var(--influberry-pink-light), var(--influberry-lavender-light)); border-color: var(--influberry-pink);">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
-          <!-- InfluBerry ロゴ -->
           <div class="flex items-center">
             <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
               🍓 InfluBerry
             </h1>
-            <span class="ml-2 text-sm text-white/80 font-noto">
-              メインダッシュボード
-            </span>
           </div>
           
-          <!-- ユーザー情報・設定・ログアウト -->
-          <div class="flex items-center space-x-4">
-            <span class="text-sm text-white font-poppins">
-              こんにちは、{{ authStore.userName }}さん ✨
-            </span>
+          <div class="flex items-center">
             <button
               @click="toggleSettings"
               class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-500 hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
             >
               ⚙️ 設定
             </button>
-            <button
-              @click="handleLogout"
-              :disabled="authStore.isLoading"
-              class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-            >
-              {{ authStore.isLoading ? '処理中...' : 'ログアウト' }}
-            </button>
           </div>
         </div>
-      </div>
     </header>
 
+<!-- ユーザー情報バー -->
+    <div class="bg-white/10 backdrop-blur-sm border-b border-white/20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-3">
+          <span class="text-sm text-white font-poppins">
+            こんにちは、{{ authStore.userName }}さん ✨
+          </span>
+          <button
+            @click="handleLogout"
+            :disabled="authStore.isLoading"
+            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs leading-4 font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+          >
+            {{ authStore.isLoading ? '処理中...' : 'ログアウト' }}
+          </button>
+        </div>
+      </div>
+    </div>
+    
     <!-- メインコンテンツ -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-6 sm:px-0">
@@ -249,11 +251,6 @@ header {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   
-  .flex.items-center.space-x-4 {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.5rem;
-  }
 }
 
 @media (max-width: 480px) {
