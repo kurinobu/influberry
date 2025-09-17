@@ -132,11 +132,7 @@ header {
     gap: 0.5rem;
   }
   
-  .flex.items-center.justify-between {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
+  
 }
 
 @media (max-width: 480px) {
