@@ -72,7 +72,7 @@ const backToDashboard = () => {
                   プロジェクトから自動請求書生成・編集・管理を行います
                 </p>
               </div>
-              <div class="flex items-center space-x-4">
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="text-center">
                   <div class="text-2xl font-bold text-purple-600">{{ invoicesStore.invoices?.length || 0 }}</div>
                   <div class="text-xs text-gray-500">総請求書数</div>
