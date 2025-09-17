@@ -149,11 +149,11 @@ header {
     padding-right: 1rem;
   }
   
-  .flex.items-center.space-x-4 {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.5rem;
-  }
+  .grid.grid-cols-2.md\\:grid-cols-4 .flex.items-center.space-x-4 {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
   
   
 }
