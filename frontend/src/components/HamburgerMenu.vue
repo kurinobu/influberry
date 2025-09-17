@@ -267,23 +267,29 @@ const handleOverlayClick = (event) => {
 </template>
 
 <style scoped>
-/* メニューパネル背景色強制指定 - Tailwind v4対応 */
+/* HamburgerMenu限定根本解決 - Tailwind依存排除 */
 .menu-panel {
-  background-color: #ffffff !important;
+  background: solid white !important;
+  background-color: white !important;
   background-image: none !important;
-  background: solid #ffffff !important;
-  backdrop-filter: none !important;
+  opacity: 1 !important;
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  height: 100vh !important;
+  width: 320px !important;
+  z-index: 46 !important;
 }
 
-/* オーバーレイ背景確実指定 - Tailwind v4対応 */
 .menu-overlay {
-  background-color: rgba(0, 0, 0, 0.5) !important;
   background: rgba(0, 0, 0, 0.5) !important;
-}
-
-/* オーバーレイ背景確実指定 */
-.menu-overlay {
   background-color: rgba(0, 0, 0, 0.5) !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 45 !important;
 }
 
 /* スムーズなアニメーション */
