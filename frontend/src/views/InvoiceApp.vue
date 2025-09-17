@@ -24,23 +24,25 @@ onMounted(async () => {
   await invoicesStore.fetchInvoices()
 })
 
+// 設定モーダル表示状態
+const showSettings = ref(false)
+
+// 設定モーダル切り替え
+const toggleSettings = () => {
+  showSettings.value = !showSettings.value
+}
+
 // ダッシュボードに戻る
 const backToDashboard = () => {
   router.push('/dashboard')
 }
-// 設定モーダル表示状態（DashboardPageと統一）
-const showSettings = ref(false)
 
-// 設定モーダル表示切り替え
-const toggleSettings = () => {
-  showSettings.value = !showSettings.value
-}
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- ヘッダー -->
-    <header class="shadow-lg border-b-2" style="background: linear-gradient(to right, var(--influberry-pink-light), var(--influberry-lavender-light)); border-color: var(--influberry-lavender);">
+    <header class="shadow-lg border-b-2" style="background: linear-gradient(to right, var(--influberry-pink-light), var(--influberry-lavender-light)); border-color: var(--influberry-pink);">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <!-- InfluBerry ロゴ -->
@@ -49,7 +51,7 @@ const toggleSettings = () => {
               🍓 InfluBerry
             </h1>
           </div>
-
+          
           <!-- ハンバーガーメニュー -->
           <HamburgerMenu @openSettings="toggleSettings" />
         </div>
@@ -103,20 +105,9 @@ const toggleSettings = () => {
 
       </div>
     </main>
+    <!-- ユーザー設定モーダル -->
+    <UserSettings v-if="showSettings" @close="showSettings = false" />
   </div>
-  <!-- 設定モーダル（DashboardPageと統一） -->
-    <div v-if="showSettings" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="showSettings = false">
-      <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white" @click.stop>
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold">⚙️ ユーザー設定</h3>
-          <button @click="showSettings = false" class="text-gray-400 hover:text-gray-600">
-            <span class="sr-only">閉じる</span>
-            ✕
-          </button>
-        </div>
-        <UserSettings />
-      </div>
-    </div>
 </template>
 
 <style scoped>
