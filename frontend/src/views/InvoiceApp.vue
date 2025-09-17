@@ -1,9 +1,11 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import { useInvoicesStore } from '../stores/invoices.js'
 import InvoiceList from '../components/InvoiceList.vue'
+import HamburgerMenu from '../components/HamburgerMenu.vue'
+import UserSettings from '../components/UserSettings.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -26,7 +28,13 @@ onMounted(async () => {
 const backToDashboard = () => {
   router.push('/dashboard')
 }
+// 設定モーダル表示状態（DashboardPageと統一）
+const showSettings = ref(false)
 
+// 設定モーダル表示切り替え
+const toggleSettings = () => {
+  showSettings.value = !showSettings.value
+}
 </script>
 
 <template>
@@ -35,26 +43,15 @@ const backToDashboard = () => {
     <header class="shadow-lg border-b-2" style="background: linear-gradient(to right, var(--influberry-pink-light), var(--influberry-lavender-light)); border-color: var(--influberry-lavender);">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
-          <!-- ナビゲーション -->
-          <div class="flex items-center space-x-4">
-            <button
-              @click="backToDashboard"
-              class="inline-flex items-center px-3 py-2 text-sm font-medium text-white hover:text-purple-200 transition-colors"
-            >
-              ← ダッシュボード
-            </button>
-            <div class="h-6 w-px bg-white/30"></div>
-            <h1 class="text-xl font-bold text-white font-poppins">
-              📋 請求書管理
+          <!-- InfluBerry ロゴ -->
+          <div class="flex items-center">
+            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
+              🍓 InfluBerry
             </h1>
           </div>
-          
-          <!-- ユーザー情報 -->
-          <div class="flex items-center">
-            <span class="text-sm text-white font-poppins">
-              {{ authStore.userName }}さん
-            </span>
-          </div>
+
+          <!-- ハンバーガーメニュー -->
+          <HamburgerMenu @openSettings="toggleSettings" />
         </div>
       </div>
     </header>
@@ -107,6 +104,19 @@ const backToDashboard = () => {
       </div>
     </main>
   </div>
+  <!-- 設定モーダル（DashboardPageと統一） -->
+    <div v-if="showSettings" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="showSettings = false">
+      <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white" @click.stop>
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">⚙️ ユーザー設定</h3>
+          <button @click="showSettings = false" class="text-gray-400 hover:text-gray-600">
+            <span class="sr-only">閉じる</span>
+            ✕
+          </button>
+        </div>
+        <UserSettings />
+      </div>
+    </div>
 </template>
 
 <style scoped>
