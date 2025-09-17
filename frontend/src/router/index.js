@@ -6,6 +6,12 @@ import AuthPage from '../views/AuthPage.vue'
 import DashboardPage from '../views/DashboardPage.vue'
 import ProjectApp from '../views/ProjectApp.vue'
 import InvoiceApp from '../views/InvoiceApp.vue'
+// 法的ページコンポーネント
+import AboutPage from '../views/legal/AboutPage.vue'
+import PrivacyPage from '../views/legal/PrivacyPage.vue'
+import TermsPage from '../views/legal/TermsPage.vue'
+import CompanyPage from '../views/legal/CompanyPage.vue'
+import TokushoPage from '../views/legal/TokushoPage.vue'
 
 // ルート定義（3層分離アーキテクチャ）
 const routes = [
@@ -51,6 +57,53 @@ const routes = [
     }
   },
   
+  // 法的ページ（認証不要・独立ページ）
+  {
+    path: '/about',
+    name: 'About',
+    component: AboutPage,
+    meta: { 
+      requiresAuth: false,  // 認証不要（法的要件）
+      title: 'InfluBerry - アプリ説明'
+    }
+  },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    component: PrivacyPage,
+    meta: { 
+      requiresAuth: false,  // 認証不要（法的要件）
+      title: 'InfluBerry - プライバシーポリシー'
+    }
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: TermsPage,
+    meta: { 
+      requiresAuth: false,  // 認証不要（法的要件）
+      title: 'InfluBerry - ご利用規約'
+    }
+  },
+  {
+    path: '/company',
+    name: 'Company',
+    component: CompanyPage,
+    meta: { 
+      requiresAuth: false,  // 認証不要（法的要件）
+      title: 'InfluBerry - 運営会社情報'
+    }
+  },
+  {
+    path: '/tokusho',
+    name: 'Tokusho',
+    component: TokushoPage,
+    meta: { 
+      requiresAuth: false,  // 認証不要（法的要件）
+      title: 'InfluBerry - 特定商取引法に基づく表記'
+    }
+  },
+
   // 将来プラグイン用のルート（予約）
   {
     path: '/apps/calendar',
