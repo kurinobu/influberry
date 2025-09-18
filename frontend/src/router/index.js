@@ -202,6 +202,13 @@ router.beforeEach(async (to, from, next) => {
 // ナビゲーション後の処理
 router.afterEach((to, from) => {
   console.log(`ルート遷移完了: ${from.path} → ${to.path}`)
+  
+  // Google Analytics (GA4) ページビュー追跡
+  if (typeof gtag !== 'undefined') {
+    gtag('config', 'G-4WJZ9XQKJH', {
+      page_path: to.path
+    })
+  }
 })
 
 export default router
