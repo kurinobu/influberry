@@ -10,7 +10,7 @@ import { ref, computed } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from './auth'
 
-axios.defaults.baseURL = 'https://influberry.jp'
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://influberry.jp'
 
 export const useInvoicesStore = defineStore('invoices', () => {
   // State

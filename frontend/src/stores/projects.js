@@ -6,7 +6,7 @@ import axios from 'axios'
 import { useAuthStore } from './auth.js'
 
 // Axios設定（auth.jsと同一設定）
-axios.defaults.baseURL = 'https://influberry.jp'
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://influberry.jp'
 axios.defaults.withCredentials = true
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 
