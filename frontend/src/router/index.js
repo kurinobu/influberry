@@ -205,7 +205,9 @@ router.afterEach((to, from) => {
   
   // Google Analytics (GA4) ページビュー追跡
   if (typeof gtag !== 'undefined') {
-    gtag('config', 'G-4WJZ9XQKJH', {
+    gtag('event', 'page_view', {
+      page_title: to.name || document.title,
+      page_location: window.location.href,
       page_path: to.path
     })
   }
