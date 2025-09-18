@@ -91,7 +91,7 @@ const menuItems = [
   }
 ]
 
-const settingsItems = [
+const settingsItems = ref([
   {
     icon: '⚙️',
     name: '設定',
@@ -103,11 +103,21 @@ const settingsItems = [
     action: 'plan'
   },
   {
+    icon: '📱',
+    name: 'アプリ説明',
+    action: 'about'
+  },
+  {
+    icon: '📋',
+    name: '基本データ',
+    action: 'basicData'
+  },
+  {
     icon: '🚪',
     name: 'ログアウト',
     action: 'logout'
   }
-]
+])
 
 // アクション処理
 const handleAction = (action) => {
@@ -122,6 +132,16 @@ const handleAction = (action) => {
       console.log('プラン管理（未実装）')
       closeMenu()
       break
+    case 'about':
+      // アプリ説明ページへ直接リンク
+      window.open('/about', '_blank')
+      closeMenu()
+      break
+    case 'basicData':
+      // 基本データモーダル表示（親コンポーネントに通知）
+      emit('openBasicData')
+      closeMenu()
+      break
     case 'logout':
       handleLogout()
       break
@@ -129,7 +149,7 @@ const handleAction = (action) => {
 }
 
 // 親コンポーネントへのイベント通知
-const emit = defineEmits(['openSettings'])
+const emit = defineEmits(['openSettings', 'openBasicData'])
 
 // 現在のページかどうかの判定
 const isCurrentPage = (path) => {
