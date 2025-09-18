@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth.js'
 import { useProjectsStore } from '../stores/projects.js'
 import { useInvoicesStore } from '../stores/invoices.js'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
+import BasicDataModal from '../components/BasicDataModal.vue'
 import UserSettings from '../components/UserSettings.vue'
 
 const router = useRouter()
@@ -14,6 +15,7 @@ const invoicesStore = useInvoicesStore()
 
 // 設定モーダル表示状態
 const showSettings = ref(false)
+const showBasicData = ref(false)
 
 // 統計データ計算
 const stats = computed(() => {
@@ -57,6 +59,11 @@ const navigateToApp = (appName) => {
 const toggleSettings = () => {
   showSettings.value = !showSettings.value
 }
+
+// 基本データモーダル表示切り替え
+const toggleBasicData = () => {
+  showBasicData.value = !showBasicData.value
+}
 </script>
 
 <template>
@@ -73,7 +80,7 @@ const toggleSettings = () => {
           </div>
           
           <!-- ハンバーガーメニュー -->
-          <HamburgerMenu @openSettings="toggleSettings" />
+          <HamburgerMenu @openSettings="toggleSettings" @openBasicData="toggleBasicData" />
         </div>
       </div>
     </header>
@@ -197,6 +204,8 @@ const toggleSettings = () => {
         </div>
       </div>
     </div>
+    <!-- 基本データモーダル -->
+    <BasicDataModal :show="showBasicData" @close="showBasicData = false" />
 
   </div>
 </template>

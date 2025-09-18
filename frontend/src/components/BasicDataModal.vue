@@ -60,7 +60,7 @@ const dataItems = [
   <!-- モーダルオーバーレイ -->
   <div
     v-if="show"
-    class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+    class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[60]"
     @click="handleOverlayClick"
   >
     <!-- モーダルコンテンツ -->

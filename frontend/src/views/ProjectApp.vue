@@ -6,6 +6,7 @@ import { useProjectsStore } from '../stores/projects.js'
 import ProjectList from '../components/ProjectList.vue'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
 import UserSettings from '../components/UserSettings.vue'
+import BasicDataModal from '../components/BasicDataModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -26,10 +27,16 @@ onMounted(async () => {
 
 // 設定モーダル表示状態
 const showSettings = ref(false)
+const showBasicData = ref(false)
 
 // 設定モーダル切り替え
 const toggleSettings = () => {
   showSettings.value = !showSettings.value
+}
+
+// 基本データモーダル切り替え
+const toggleBasicData = () => {
+  showBasicData.value = !showBasicData.value
 }
 // ダッシュボードに戻る
 const backToDashboard = () => {
@@ -52,7 +59,7 @@ const backToDashboard = () => {
           </div>
           
           <!-- ハンバーガーメニュー -->
-          <HamburgerMenu @openSettings="toggleSettings" />
+          <HamburgerMenu @openSettings="toggleSettings" @openBasicData="toggleBasicData" />
         </div>
       </div>
     </header>
@@ -117,6 +124,8 @@ const backToDashboard = () => {
       </div>
     </div>
   </div>
+  <!-- 基本データモーダル -->
+    <BasicDataModal :show="showBasicData" @close="showBasicData = false" />
 </template>
 
 <style scoped>
