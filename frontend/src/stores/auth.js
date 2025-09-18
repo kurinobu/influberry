@@ -7,7 +7,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 
 // Axios基本設定
-axios.defaults.baseURL = 'https://influberry.jp'
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://influberry.jp'
 axios.defaults.withCredentials = true // Cookie認証有効化
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 
