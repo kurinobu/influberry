@@ -14,7 +14,7 @@ class Config:
     """Base configuration class"""
     
     # Flask Core Configuration
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'influberry-secret-key-2025-change-in-production'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'cI9s1nvJ78D6x5UNXXd0KJiOOe09dtn4mQ05eHDX2sqNzH3vPOY3Kyy0ImB0RBYsJ12bFGfvsCbyDWAIiSWUeQ'
     
     # Database Configuration
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///instance/influberry_dev.db'
@@ -29,7 +29,13 @@ class Config:
     CORS_ORIGINS = [
     'https://influberry-app.onrender.com',
     'https://influberry.jp',
+<<<<<<< Updated upstream
     'http://127.0.0.1:5173'
+=======
+    'https://influberry-staging.onrender.com',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5001'
+>>>>>>> Stashed changes
     ]
     
     # Development Configuration
