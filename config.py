@@ -71,11 +71,14 @@ class StagingConfig(Config):
     DEBUG = False
     SQLALCHEMY_ECHO = False
     
+    # Railway PostgreSQL接続（環境変数優先）
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///instance/influberry_dev.db'
+
     # Staging用Cookie設定（本番同等）
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'None'
-    
+
 # Configuration mapping
 config = {
     'development': DevelopmentConfig,
