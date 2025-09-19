@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
+import { useUIStore } from '../stores/ui.js'
 import { useProjectsStore } from '../stores/projects.js'
 import { useInvoicesStore } from '../stores/invoices.js'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
@@ -12,10 +13,10 @@ const router = useRouter()
 const authStore = useAuthStore()
 const projectsStore = useProjectsStore()
 const invoicesStore = useInvoicesStore()
+const uiStore = useUIStore()
 
 // 設定モーダル表示状態
-const showSettings = ref(false)
-const showBasicData = ref(false)
+
 
 // 統計データ計算
 const stats = computed(() => {
@@ -55,15 +56,7 @@ const navigateToApp = (appName) => {
   router.push(`/apps/${appName}`)
 }
 
-// 設定モーダル表示切り替え
-const toggleSettings = () => {
-  showSettings.value = !showSettings.value
-}
 
-// 基本データモーダル表示切り替え
-const toggleBasicData = () => {
-  showBasicData.value = !showBasicData.value
-}
 </script>
 
 <template>
@@ -80,7 +73,7 @@ const toggleBasicData = () => {
           </div>
           
           <!-- ハンバーガーメニュー -->
-          <HamburgerMenu @openSettings="toggleSettings" @openBasicData="toggleBasicData" />
+          <HamburgerMenu />
         </div>
       </div>
     </header>
@@ -187,13 +180,13 @@ const toggleBasicData = () => {
     </main>
 
     <!-- 設定モーダル -->
-    <div v-if="showSettings" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="showSettings = false">
+    <div v-if="uiStore.showSettings" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="uiStore.closeSettings()">
       <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full" @click.stop>
           <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg leading-6 font-medium text-gray-900">設定</h3>
-              <button @click="showSettings = false" class="text-gray-400 hover:text-gray-600">
+              <button @click="uiStore.closeSettings()" class="text-gray-400 hover:text-gray-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -205,7 +198,7 @@ const toggleBasicData = () => {
       </div>
     </div>
     <!-- 基本データモーダル -->
-    <BasicDataModal :show="showBasicData" @close="showBasicData = false" />
+    <BasicDataModal />
 
   </div>
 </template>
