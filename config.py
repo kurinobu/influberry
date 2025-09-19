@@ -29,6 +29,7 @@ class Config:
     CORS_ORIGINS = [
     'https://influberry-app.onrender.com',
     'https://influberry.jp',
+    'https://influberry-staging.onrender.com',
     'http://127.0.0.1:5173'
     ]
     
@@ -66,10 +67,24 @@ class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
 
+class StagingConfig(Config):
+    """Staging configuration"""
+    DEBUG = False
+    SQLALCHEMY_ECHO = False
+    
+    # Railway PostgreSQL接続（環境変数優先）
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///instance/influberry_dev.db'
+
+    # Staging用Cookie設定（本番同等）
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'None'
+
 # Configuration mapping
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
+    'staging': StagingConfig,
     'testing': TestConfig,
     'default': DevelopmentConfig
 }

@@ -1,3 +1,6 @@
+# 開発フローテスト - 2025年9月19日13:45
+# feature→staging→main フロー確認用テストコメント
+# 本番機能への影響: なし（コメントのみ）
 """
 Flask application factory
 InfluBerry v2 - シンプル構成版（Flask-Login認証）
