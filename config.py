@@ -29,6 +29,7 @@ class Config:
     CORS_ORIGINS = [
     'https://influberry-app.onrender.com',
     'https://influberry.jp',
+    'https://influberry-staging.onrender.com',
     'http://127.0.0.1:5173'
     ]
     
