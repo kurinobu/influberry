@@ -66,10 +66,21 @@ class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
 
+class StagingConfig(Config):
+    """Staging configuration"""
+    DEBUG = False
+    SQLALCHEMY_ECHO = False
+    
+    # Staging用Cookie設定（本番同等）
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'None'
+    
 # Configuration mapping
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
+    'staging': StagingConfig,
     'testing': TestConfig,
     'default': DevelopmentConfig
 }
