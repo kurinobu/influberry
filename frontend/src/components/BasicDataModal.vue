@@ -1,17 +1,11 @@
 <script setup>
-// モーダル表示制御
-const props = defineProps({
-  show: {
-    type: Boolean,
-    default: false
-  }
-})
+import { useUIStore } from '../stores/ui.js'
+// UIストア使用（Store直接操作）
+const uiStore = useUIStore()
 
-const emit = defineEmits(['close'])
-
-// モーダルを閉じる
+// モーダルを閉じる（Store直接操作）
 const closeModal = () => {
-  emit('close')
+  uiStore.closeBasicData()
 }
 
 // 外部ページを開く
@@ -59,7 +53,7 @@ const dataItems = [
 <template>
   <!-- モーダルオーバーレイ -->
   <div
-    v-if="show"
+    v-if="uiStore.showBasicData"
     class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[60]"
     @click="handleOverlayClick"
   >

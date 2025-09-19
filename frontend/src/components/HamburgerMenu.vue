@@ -2,10 +2,12 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
+import { useUIStore } from '../stores/ui.js'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const uiStore = useUIStore()
 
 // メニュー開閉状態
 const isOpen = ref(false)
@@ -123,10 +125,10 @@ const settingsItems = ref([
 const handleAction = (action) => {
   switch (action) {
     case 'settings':
-      // 設定モーダル表示（親コンポーネントに通知）
-      emit('openSettings')
-      closeMenu()
-      break
+    // 設定モーダル表示（Store直接操作）
+    uiStore.openSettings()
+    closeMenu()
+    break
     case 'plan':
       // プラン管理ページへ（将来実装）
       console.log('プラン管理（未実装）')
@@ -138,10 +140,10 @@ const handleAction = (action) => {
       closeMenu()
       break
     case 'basicData':
-      // 基本データモーダル表示（親コンポーネントに通知）
-      emit('openBasicData')
-      closeMenu()
-      break
+    // 基本データモーダル表示（Store直接操作）
+    uiStore.openBasicData()
+    closeMenu()
+    break
     case 'logout':
       handleLogout()
       break
@@ -149,7 +151,7 @@ const handleAction = (action) => {
 }
 
 // 親コンポーネントへのイベント通知
-const emit = defineEmits(['openSettings', 'openBasicData'])
+
 
 // 現在のページかどうかの判定
 const isCurrentPage = (path) => {
