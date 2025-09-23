@@ -38,6 +38,14 @@ class Project(db.Model):
     # New extensible fields (拡張可能フィールド)
     project_name = db.Column(db.String(255), nullable=True)
     notes = db.Column(db.Text, nullable=True)
+    # BerryDo Todo拡張フィールド（PostgreSQLスキーマと整合）
+    is_todo = db.Column(db.Boolean, default=False, nullable=True)
+    todo_title = db.Column(db.String(255), nullable=True)
+    todo_description = db.Column(db.Text, nullable=True)
+    todo_due_date = db.Column(db.Date, nullable=True)
+    todo_priority = db.Column(db.String(10), nullable=True)
+    todo_importance = db.Column(db.Integer, nullable=True)
+    todo_status = db.Column(db.String(20), nullable=True)
     
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
