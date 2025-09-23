@@ -55,6 +55,7 @@ def create_app(config_name='development'):
     from app.blueprints.plugins import plugins_bp
     from app.blueprints.main import main_bp
     from app.blueprints.invoices import invoices_bp
+    from app.blueprints.todos import todos_bp
     from app.blueprints.domain_redirect import domain_redirect_bp
     from app.plugins.manager import plugin_manager
     
@@ -90,6 +91,7 @@ def create_app(config_name='development'):
     app.register_blueprint(plugins_bp, url_prefix='/api/plugins')
     app.register_blueprint(projects_bp, url_prefix='/api/projects')
     app.register_blueprint(invoices_bp, url_prefix='/api/invoices')
+    app.register_blueprint(todos_bp, url_prefix='/api/todos')
     # Plugin System Integration
     try:
         plugin_manager.initialize_plugins()

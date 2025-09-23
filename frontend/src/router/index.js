@@ -6,6 +6,7 @@ import AuthPage from '../views/AuthPage.vue'
 import DashboardPage from '../views/DashboardPage.vue'
 import ProjectApp from '../views/ProjectApp.vue'
 import InvoiceApp from '../views/InvoiceApp.vue'
+import TodoApp from '../views/TodoApp.vue'
 // 法的ページコンポーネント
 import AboutPage from '../views/legal/AboutPage.vue'
 import PrivacyPage from '../views/legal/PrivacyPage.vue'
@@ -54,6 +55,17 @@ const routes = [
     meta: { 
       requiresAuth: true,   // 認証必須
       title: 'InfluBerry - 請求書管理'
+    }
+  },
+  
+  // BerryDo｜タスク管理アプリ
+  {
+    path: '/berry-do',
+    name: 'TodoApp',
+    component: TodoApp,
+    meta: { 
+      requiresAuth: true,
+      title: 'BerryDo｜タスク管理 - InfluBerry'
     }
   },
   

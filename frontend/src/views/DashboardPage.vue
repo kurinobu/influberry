@@ -52,7 +52,11 @@ onMounted(async () => {
 
 // プラグインアプリへの遷移
 const navigateToApp = (appName) => {
-  router.push(`/apps/${appName}`)
+  if (appName === 'berry-do') {
+    router.push('/berry-do')  // BerryDo専用ルート
+  } else {
+    router.push(`/apps/${appName}`)  // 既存projects/invoices
+  }
 }
 
 // 設定モーダル表示切り替え
@@ -155,6 +159,26 @@ const toggleBasicData = () => {
                 <div class="text-right">
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                     {{ stats.totalInvoices }} 件
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- BerryDo｜タスク管理アプリ -->
+            <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer" @click="navigateToApp('berry-do')">
+              <div class="p-6">
+                <div class="flex items-center mb-4">
+                  <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-2xl">
+                    ✅
+                  </div>
+                  <div class="ml-4">
+                    <h3 class="text-lg font-semibold text-gray-900">BerryDo｜タスク管理</h3>
+                    <p class="text-sm text-gray-600">タスク・Todo管理・優先度設定</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    準備完了
                   </span>
                 </div>
               </div>
