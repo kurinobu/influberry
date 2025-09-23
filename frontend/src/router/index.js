@@ -57,6 +57,17 @@ const routes = [
     }
   },
   
+  // BerryDo｜タスク管理アプリ
+  {
+    path: '/apps/berry-do',
+    name: 'BerryDo',
+    component: () => import('../views/TodoApp.vue'),
+    meta: { 
+      requiresAuth: true,
+      title: 'InfluBerry - BerryDo｜タスク管理'
+    }
+  },
+  
   // 法的ページ（認証不要・独立ページ）
   {
     path: '/about',

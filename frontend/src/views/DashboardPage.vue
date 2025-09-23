@@ -153,6 +153,26 @@ const navigateToApp = (appName) => {
               </div>
             </div>
 
+            <!-- BerryDo｜タスク管理アプリ -->
+            <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer" @click="navigateToApp('berry-do')">
+              <div class="p-6">
+                <div class="flex items-center mb-4">
+                  <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-2xl">
+                    ✅
+                  </div>
+                  <div class="ml-4">
+                    <h3 class="text-lg font-semibold text-gray-900">BerryDo｜タスク管理</h3>
+                    <p class="text-sm text-gray-600">タスク管理・案件連動</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    準備完了
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <!-- 将来プラグイン（予定） -->
             <div class="bg-gray-100 rounded-lg shadow cursor-not-allowed opacity-75">
               <div class="p-6">
