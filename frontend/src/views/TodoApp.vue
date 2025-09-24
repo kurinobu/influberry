@@ -31,6 +31,9 @@ const createNewTodo = async () => {
       todo_importance: parseInt(newTodo.value.importance),
       todo_due_date: newTodo.value.due_date || null
     })
+
+    // 最新データ再取得で表示問題根本解決
+    await todosStore.fetchTodos()
     
     // フォームリセット
     newTodo.value = {
