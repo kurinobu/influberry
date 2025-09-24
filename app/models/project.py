@@ -47,6 +47,24 @@ class Project(db.Model):
     todo_importance = db.Column(db.Integer, nullable=True)
     todo_status = db.Column(db.String(20), nullable=True)
     
+    def __init__(self, **kwargs):
+        """Project初期化メソッド - Todo拡張フィールド対応"""
+        super(Project, self).__init__(**kwargs)
+        
+        # Todo拡張フィールドの明示的設定
+        if 'is_todo' in kwargs:
+            self.is_todo = kwargs['is_todo']
+        if 'todo_title' in kwargs:
+            self.todo_title = kwargs['todo_title']
+        if 'todo_description' in kwargs:
+            self.todo_description = kwargs['todo_description']
+        if 'todo_priority' in kwargs:
+            self.todo_priority = kwargs['todo_priority']
+        if 'todo_importance' in kwargs:
+            self.todo_importance = kwargs['todo_importance']
+        if 'todo_status' in kwargs:
+            self.todo_status = kwargs['todo_status']
+
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
     updated_at = db.Column(

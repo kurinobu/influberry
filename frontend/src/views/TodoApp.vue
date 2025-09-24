@@ -219,8 +219,8 @@ const backToDashboard = () => {
               <div v-for="todo in todosStore.sortedTodos || []" :key="todo.id" class="border border-gray-200 rounded-lg p-4">
                 <div class="flex items-center justify-between">
                   <div>
-                    <h3 class="text-sm font-medium text-gray-900">{{ todo.todo_title || 'タイトルなし' }}</h3>
-                    <p class="text-sm text-gray-500 mt-1">{{ todo.todo_description || '説明なし' }}</p>
+                    <h3 class="text-sm font-medium text-gray-900">{{ todo.todo_title }}</h3>
+                    <p class="text-sm text-gray-500 mt-1" v-if="todo.todo_description">{{ todo.todo_description }}</p>
                     <div class="mt-2 flex items-center space-x-4 text-xs text-gray-500">
                       <span>優先度: {{ todo.todo_priority || 'medium' }}</span>
                       <span>重要度: {{ todo.todo_importance || 3 }}</span>
