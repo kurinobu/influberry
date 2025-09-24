@@ -91,7 +91,7 @@ export const useTodosStore = defineStore('todos', {
       
       try {
         const response = await axios.get('/api/todos/')
-        this.todos = response.data || []
+        this.todos = response.data.todos || []
         
         // 統計データ同時取得
         await this.fetchStats()
