@@ -49,7 +49,7 @@ class DevelopmentConfig(Config):
     # Development用Cookie設定（HTTP対応）
     SESSION_COOKIE_SECURE = False  # HTTP接続でもCookie有効
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_SAMESITE = 'Lax' 
 
 class ProductionConfig(Config):
     """Production configuration"""
