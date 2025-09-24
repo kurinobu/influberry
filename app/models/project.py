@@ -49,6 +49,14 @@ class Project(db.Model):
     
     def __init__(self, **kwargs):
         """Project初期化メソッド - Todo拡張フィールド対応"""
+        
+        # Todo用の場合、必須フィールドにデフォルト値設定
+        if kwargs.get('is_todo'):
+            kwargs.setdefault('company_name', 'その他')
+            kwargs.setdefault('amount', 0)
+            kwargs.setdefault('deadline', datetime.now().date())
+            kwargs.setdefault('description', '')
+        
         super(Project, self).__init__(**kwargs)
         
         # Todo拡張フィールドの明示的設定
