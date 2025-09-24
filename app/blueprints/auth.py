@@ -3,7 +3,7 @@ Authentication Blueprint - Flask-Login認証
 InfluBerry v2
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.security import check_password_hash
 
@@ -41,6 +41,7 @@ def logout():
     """ユーザーログアウト"""
     try:
         logout_user()
+        # session.clear()  # セッション完全削除
         return jsonify({'message': 'ログアウトしました'}), 200
     except Exception as e:
         return jsonify({'error': 'ログアウト処理エラー'}), 500
