@@ -47,31 +47,7 @@ class Project(db.Model):
     todo_importance = db.Column(db.Integer, nullable=True)
     todo_status = db.Column(db.String(20), nullable=True)
     
-    def __init__(self, **kwargs):
-        """Project初期化メソッド - Todo拡張フィールド対応"""
-        
-        # Todo用の場合、必須フィールドにデフォルト値設定
-        if kwargs.get('is_todo'):
-            kwargs.setdefault('company_name', 'その他')
-            kwargs.setdefault('amount', 0)
-            kwargs.setdefault('deadline', datetime.now().date())
-            kwargs.setdefault('description', '')
-        
-        super(Project, self).__init__(**kwargs)
-        
-        # Todo拡張フィールドの明示的設定
-        if 'is_todo' in kwargs:
-            self.is_todo = kwargs['is_todo']
-        if 'todo_title' in kwargs:
-            self.todo_title = kwargs['todo_title']
-        if 'todo_description' in kwargs:
-            self.todo_description = kwargs['todo_description']
-        if 'todo_priority' in kwargs:
-            self.todo_priority = kwargs['todo_priority']
-        if 'todo_importance' in kwargs:
-            self.todo_importance = kwargs['todo_importance']
-        if 'todo_status' in kwargs:
-            self.todo_status = kwargs['todo_status']
+    
 
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
@@ -83,19 +59,26 @@ class Project(db.Model):
     )
     
     def __init__(self, user_id, company_name, amount, deadline, description, **kwargs):
-        """コンストラクタ"""
+        """統一Project初期化メソッド - Project/Todo両対応"""
         self.user_id = user_id
         self.company_name = company_name
-        self.amount = Decimal(str(amount))  # Decimal型で精度保証
+        self.amount = Decimal(str(amount))
         self.deadline = deadline if isinstance(deadline, date) else datetime.strptime(deadline, '%Y-%m-%d').date()
         self.description = description
         
-        # 新フィールド追加
-        self.project_name = kwargs.get('project_name', company_name)  # デフォルト値で安全性確保
+        # ProjectApp互換フィールド
+        self.project_name = kwargs.get('project_name', company_name)
         self.notes = kwargs.get('notes', '')
-        
-        # オプション引数
         self.status = kwargs.get('status', 'proposed')
+        
+        # TodoApp拡張フィールド
+        self.is_todo = kwargs.get('is_todo', False)
+        self.todo_title = kwargs.get('todo_title')
+        self.todo_description = kwargs.get('todo_description')
+        self.todo_due_date = kwargs.get('todo_due_date')
+        self.todo_priority = kwargs.get('todo_priority')
+        self.todo_importance = kwargs.get('todo_importance')
+        self.todo_status = kwargs.get('todo_status')
     
     def to_dict(self):
         """辞書形式でプロジェクト情報を返す"""
