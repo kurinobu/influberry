@@ -72,7 +72,6 @@ const lastUpdated = '2025年9月17日'
                 <div class="space-y-2 text-sm text-gray-700">
                   <p><strong>本社所在地:</strong><br>〒652-0804<br>神戸市兵庫区西出町２−３−２３</p>
                   <p><strong>電話番号:</strong> お問い合わせフォームにて承ります</p>
-                  <p><strong>営業時間:</strong> 平日 9:00-18:00</p>
                 </div>
               </div>
             </div>
@@ -91,7 +90,7 @@ const lastUpdated = '2025年9月17日'
                 <h3 class="font-bold text-gray-800 mb-2">栗原伸行（代表）</h3>
                 <div class="text-gray-700 leading-relaxed space-y-3">
                   <p>InfluBerryをご利用いただき、ありがとうございます。</p>
-                  <p>私たちAir Edisonは、Z世代のクリエイターが活動しやすい環境を作ることを使命として、InfluBerryを開発しました。初心者の方でも簡単に案件管理ができ、クリエイティブな活動に集中できるツールを目指しています。</p>
+                  <p>私たちAir Edisonは、インフルエンサーやクリエイターが活動しやすい環境を作ることを使命として、InfluBerryを開発しました。初心者の方でも簡単に案件管理ができ、クリエイティブな活動に集中できるツールを目指しています。</p>
                   <p>ユーザーの皆様からのご意見を大切にしながら、継続的にサービスを改善してまいります。何かご不明な点やご要望がございましたら、お気軽にお問い合わせください。</p>
                 </div>
               </div>
@@ -135,7 +134,7 @@ const lastUpdated = '2025年9月17日'
             </div>
             <div class="bg-white p-4 rounded-lg border border-gray-200">
               <h3 class="font-semibold text-gray-800 mb-2">Q. スマートフォンでも使えますか？</h3>
-              <p class="text-sm text-gray-600">A. はい、レスポンシブデザインでスマートフォンからでも快適にご利用いただけます。</p>
+              <p class="text-sm text-gray-600">A. はい、スマートフォンのご利用を前提に開発しました。逆にPCでもご利用できます。</p>
             </div>
           </div>
         </section>

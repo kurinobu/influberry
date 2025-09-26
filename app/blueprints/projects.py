@@ -219,3 +219,18 @@ def get_project_stats():
         
     except Exception as e:
         return jsonify({'error': '統計情報取得エラー'}), 500
+    
+@projects_bp.route('/options', methods=['GET'])
+@login_required
+def get_project_options():
+    """Todo連動用プロジェクト選択肢取得"""
+    try:
+        projects = Project.query.filter_by(
+            user_id=current_user.id,
+            is_todo=False  # Todo以外のプロジェクトのみ
+        ).order_by(Project.created_at.desc()).all()
+        
+        return jsonify([project.to_dict() for project in projects]), 200
+        
+    except Exception as e:
+        return jsonify({'error': 'プロジェクト選択肢取得エラー'}), 500

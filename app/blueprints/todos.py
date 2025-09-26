@@ -212,7 +212,7 @@ def update_todo(todo_id):
         todo.updated_at = datetime.utcnow()
         db.session.commit()
         
-        return jsonify({'message': 'Todo更新成功'})
+        return jsonify(todo.to_dict())
         
     except Exception as e:
         db.session.rollback()

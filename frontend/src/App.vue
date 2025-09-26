@@ -2,11 +2,16 @@
 // 3層分離アーキテクチャ実装完了
 // App.vue は純粋なルーターアウトレットとして機能
 // 各ページコンポーネントが責務を持つ
+import FixedFooter from '@/components/FixedFooter.vue'
+
 </script>
 
 <template>
   <!-- ルーターアウトレット（ページコンポーネント表示） -->
   <router-view />
+
+  <!-- 固定フッター（Z世代向けナビゲーション） -->
+  <FixedFooter />
 </template>
 
 <style>

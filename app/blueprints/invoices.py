@@ -416,3 +416,17 @@ def get_overdue_invoices():
             'success': False,
             'message': f'期限超過請求書取得エラー: {str(e)}'
         }), 500
+    
+@invoices_bp.route('/options', methods=['GET'])
+@login_required
+def get_invoice_options():
+    """Todo連動用請求書選択肢取得"""
+    try:
+        invoices = Invoice.query.filter_by(
+            user_id=current_user.id
+        ).order_by(Invoice.created_at.desc()).all()
+        
+        return jsonify([invoice.to_dict() for invoice in invoices]), 200
+        
+    except Exception as e:
+        return jsonify({'error': '請求書選択肢取得エラー'}), 500

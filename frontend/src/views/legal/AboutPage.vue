@@ -18,7 +18,7 @@ const features = [
   {
     icon: '📋',
     title: '請求書自動生成',
-    description: '案件情報から請求書を自動作成。面倒な事務作業はInfluBerryにお任せ！'
+    description: '案件情報から請求書を自動作成。近い将来、PDF印刷、会計ソフト連携予定！'
   },
   {
     icon: '📊',
@@ -71,7 +71,7 @@ const comingSoonFeatures = [
       <!-- ヒーローセクション -->
       <section class="text-center mb-16">
         <h2 class="text-4xl font-bold text-gray-900 mb-4">
-          Z世代インフルエンサーのための
+          インフルエンサーのための
           <br>
           <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
             オールインワンツール

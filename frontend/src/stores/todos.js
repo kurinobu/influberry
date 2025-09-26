@@ -218,7 +218,7 @@ export const useTodosStore = defineStore('todos', {
     // ProjectApp連動選択肢取得
     async fetchProjectOptions() {
       try {
-        const response = await axios.get('/api/todos/project-options')
+        const response = await axios.get('/api/projects/options')
         this.projectOptions = response.data || []
       } catch (error) {
         console.error('プロジェクト選択肢取得エラー:', error)
@@ -229,7 +229,7 @@ export const useTodosStore = defineStore('todos', {
     // InvoiceApp連動選択肢取得
     async fetchInvoiceOptions() {
       try {
-        const response = await axios.get('/api/todos/invoice-options')
+        const response = await axios.get('/api/invoices/options')
         this.invoiceOptions = response.data || []
       } catch (error) {
         console.error('請求書選択肢取得エラー:', error)
