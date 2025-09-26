@@ -890,4 +890,18 @@ p, span, div {
   font-size: 0.875rem !important;
   font-weight: 600 !important;
 }
+
+/* ヘッダータイトル強制カラフル表示 */
+h1.text-2xl.font-bold {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+/* 3並びフィールド着色統一 */
+select[v-model="editForm.priority"] {
+  background: linear-gradient(135deg, #fef3c7, #fbbf24) !important;
+  border-color: #f59e0b !important;
+}
 </style>
