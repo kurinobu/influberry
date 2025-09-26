@@ -482,158 +482,412 @@ const getStatusColor = (status) => {
 </template>
 
 <style scoped>
-/* Phase 4 デザインシステム完全実装 */
+/* === Phase 4 パイロットデザインUI/UX完全実装 === */
+/* Z世代女子向けデザイン・Instagram/TikTokライク */
 
 /* ヘッダー */
 .berry-header {
-  @apply bg-gradient-to-r from-pink-50 via-white to-purple-50 backdrop-blur-sm;
-  @apply border-b border-pink-100 shadow-sm;
+  background: linear-gradient(to right, #fdf2f8, #ffffff, #f3e8ff);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #f9a8d4;
+  box-shadow: 0 1px 3px rgba(244, 114, 182, 0.1);
 }
 
 /* ナビゲーションボタン */
 .berry-nav-button {
-  @apply px-4 py-2 text-sm font-medium text-gray-700;
-  @apply bg-white rounded-xl border border-gray-200;
-  @apply hover:bg-pink-50 hover:text-pink-600 hover:border-pink-300;
-  @apply transition-all duration-200 transform hover:scale-105;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+  transform: scale(1);
+}
+
+.berry-nav-button:hover {
+  background: #fdf2f8;
+  color: #ec4899;
+  border-color: #f9a8d4;
+  transform: scale(1.05);
 }
 
 .berry-icon-button {
-  @apply p-2 text-gray-600 bg-white rounded-xl border border-gray-200;
-  @apply hover:bg-pink-50 hover:text-pink-600 hover:border-pink-300;
-  @apply transition-all duration-200 transform hover:scale-105;
+  padding: 0.5rem;
+  color: #6b7280;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+  transform: scale(1);
 }
 
-/* カードシステム */
+.berry-icon-button:hover {
+  background: #fdf2f8;
+  color: #ec4899;
+  border-color: #f9a8d4;
+  transform: scale(1.05);
+}
+
+/* === Z世代向けカードベースUI === */
 .berry-card-form {
-  @apply bg-gradient-to-br from-pink-50 to-purple-50;
-  @apply rounded-2xl shadow-lg hover:shadow-xl;
-  @apply border border-pink-100 p-8;
-  @apply transition-all duration-300;
+  background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(244, 114, 182, 0.15);
+  border: 2px solid #f9a8d4;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.berry-card-form:hover {
+  box-shadow: 0 20px 40px rgba(244, 114, 182, 0.2);
+  transform: translateY(-2px);
 }
 
 .berry-card-header {
-  @apply mb-6 pb-4 border-b border-pink-200;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f9a8d4;
 }
 
-.berry-todo-card {
-  @apply bg-gradient-to-br rounded-2xl shadow-lg hover:shadow-xl;
-  @apply border border-pink-100 p-6;
-  @apply transition-all duration-300 transform hover:scale-[1.02];
+.berry-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(244, 114, 182, 0.12);
+  border: 2px solid #f9a8d4;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  margin-bottom: 1rem;
 }
 
-/* 入力要素 */
+.berry-card:hover {
+  box-shadow: 0 12px 30px rgba(244, 114, 182, 0.2);
+  transform: scale(1.02) translateY(-2px);
+}
+
+/* === 入力フィールド（視認性最優先） === */
 .berry-input-group {
-  @apply space-y-2;
+  margin-bottom: 1.5rem;
 }
 
 .berry-label {
-  @apply block text-sm font-bold text-gray-700;
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+  text-shadow: none;
 }
 
 .berry-input {
-  @apply w-full px-4 py-3 rounded-xl border border-pink-200;
-  @apply bg-white/80 backdrop-blur-sm;
-  @apply focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent;
-  @apply placeholder-gray-400 transition-all duration-200;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 2px solid #f9a8d4;
+  background: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+}
+
+.berry-input:focus {
+  outline: none;
+  border-color: #ec4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+  background: #ffffff;
+}
+
+.berry-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
 }
 
 .berry-select {
-  @apply w-full px-4 py-3 rounded-xl border border-pink-200;
-  @apply bg-white/80 backdrop-blur-sm;
-  @apply focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent;
-  @apply transition-all duration-200;
+  width: 100%;
+  min-width: 12rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 2px solid #f9a8d4;
+  background: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111827;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
-/* ボタンシステム */
-.berry-primary-button {
-  @apply flex items-center px-6 py-3 rounded-xl font-bold text-white;
-  @apply bg-gradient-to-r from-pink-400 to-purple-500;
-  @apply hover:from-pink-500 hover:to-purple-600;
-  @apply transform hover:scale-105 transition-all duration-200;
-  @apply shadow-lg hover:shadow-xl;
+.berry-select:focus {
+  outline: none;
+  border-color: #ec4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+}
+
+/* === ボタンデザイン（Instagram/TikTokライク） === */
+.berry-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(45deg, #ec4899, #be185d);
+  border: none;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  transform: scale(1);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  cursor: pointer;
+}
+
+.berry-button:hover {
+  background: linear-gradient(45deg, #be185d, #9d174d);
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
 }
 
 .berry-secondary-button {
-  @apply px-4 py-2 rounded-xl font-medium text-gray-700;
-  @apply bg-white border border-gray-300;
-  @apply hover:bg-gray-50 hover:border-gray-400;
-  @apply transition-all duration-200;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  background: #ffffff;
+  border: 2px solid #d1d5db;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
-/* 完了ボタン（大型化・タップ体験向上） */
-.berry-complete-button {
-  @apply flex items-center justify-center w-12 h-12 rounded-full;
-  @apply transition-all duration-300 transform hover:scale-110;
-  @apply shadow-md hover:shadow-lg;
+.berry-secondary-button:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #111827;
 }
 
-.berry-complete-button.completed {
-  @apply bg-gradient-to-br from-green-400 to-emerald-500 text-white;
-  @apply shadow-green-200;
-}
-
-.berry-complete-button.pending {
-  @apply bg-white border-2 border-gray-300;
-  @apply hover:border-pink-400 hover:bg-pink-50;
-}
-
-/* アクションボタン（モダン化・ホバーエフェクト） */
+/* === アクションボタン（丸型・TikTokライク） === */
 .berry-action-button {
-  @apply p-3 rounded-xl transition-all duration-200;
-  @apply transform hover:scale-110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.berry-action-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.berry-action-button.complete {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.berry-action-button.incomplete {
+  background: #ffffff;
+  border-color: #d1d5db;
+  color: #6b7280;
+}
+
+.berry-action-button.incomplete:hover {
+  border-color: #ec4899;
+  background: #fdf2f8;
+  color: #ec4899;
 }
 
 .berry-action-button.edit {
-  @apply text-blue-600 bg-blue-50 hover:bg-blue-100;
-  @apply border border-blue-200 hover:border-blue-300;
+  color: #3b82f6;
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.berry-action-button.edit:hover {
+  background: #bfdbfe;
+  border-color: #60a5fa;
 }
 
 .berry-action-button.delete {
-  @apply text-red-600 bg-red-50 hover:bg-red-100;
-  @apply border border-red-200 hover:border-red-300;
+  color: #ef4444;
+  background: #fef2f2;
+  border-color: #fca5a5;
 }
 
-/* バッジ */
+.berry-action-button.delete:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+}
+
+/* === バッジ・ステータス表示 === */
 .berry-badge {
-  @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold text-white;
-  @apply shadow-sm;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* 空状態 */
+/* === 空状態・エラー表示 === */
 .berry-empty-state {
-  @apply bg-gradient-to-br from-pink-50 to-purple-50;
-  @apply rounded-2xl border border-pink-100;
+  background: linear-gradient(135deg, #fdf2f8, #f3e8ff);
+  border-radius: 1rem;
+  border: 2px solid #f9a8d4;
+  padding: 3rem 2rem;
+  text-align: center;
 }
 
 .berry-empty-icon {
-  @apply text-6xl mb-6 opacity-60;
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.6;
+  color: #ec4899;
 }
 
-/* ローディング */
 .berry-loading {
-  @apply text-center;
+  text-align: center;
+  color: #ec4899;
+  font-weight: 600;
 }
 
-/* エラー */
 .berry-error {
-  @apply mb-8;
+  margin-bottom: 2rem;
 }
 
-/* モーダル */
+/* === モーダル（高品質） === */
 .berry-modal {
-  @apply inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden;
-  @apply shadow-xl transform transition-all;
-  @apply sm:my-8 sm:align-middle sm:max-w-lg sm:w-full;
-  @apply border border-pink-100;
+  display: inline-block;
+  vertical-align: bottom;
+  background: #ffffff;
+  border-radius: 1rem;
+  text-align: left;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  transform: translateY(0);
+  transition: all 0.3s ease;
+  border: 2px solid #f9a8d4;
+}
+
+@media (min-width: 640px) {
+  .berry-modal {
+    margin: 2rem auto;
+    vertical-align: middle;
+    max-width: 32rem;
+    width: 100%;
+  }
 }
 
 .berry-modal-header {
-  @apply bg-gradient-to-r from-pink-50 to-purple-50 px-6 pt-6 pb-4;
-  @apply flex items-center justify-between border-b border-pink-100;
+  background: linear-gradient(to right, #fdf2f8, #f3e8ff);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid #f9a8d4;
 }
 
 .berry-close-button {
-  @apply text-gray-400 hover:text-gray-600 transition-colors duration-200;
+  color: #9ca3af;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+.berry-close-button:hover {
+  color: #6b7280;
+}
+
+/* === レスポンシブ・モバイル最適化 === */
+@media (max-width: 640px) {
+  .berry-card-form {
+    padding: 1.5rem;
+    margin: 0 0.5rem 1rem;
+  }
+  
+  .berry-card {
+    padding: 1rem;
+    margin: 0 0.5rem 0.75rem;
+  }
+  
+  .berry-input, .berry-select {
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+  }
+  
+  .berry-button {
+    padding: 0.875rem 1.25rem;
+    font-size: 1rem;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .berry-action-button {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+
+/* === アニメーション・マイクロインタラクション === */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.berry-card {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.berry-button:active {
+  animation: pulse 0.2s ease-in-out;
+}
+
+/* === 高コントラスト・視認性確保 === */
+h1, h2, h3, h4, h5, h6 {
+  color: #111827 !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+}
+
+p, span, div {
+  color: #374151 !important;
+  font-weight: 500 !important;
+  line-height: 1.6 !important;
+}
+
+/* Todo項目テキスト強化 */
+.todo-title {
+  color: #111827 !important;
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.todo-description {
+  color: #4b5563 !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+}
+
+.todo-meta {
+  color: #6b7280 !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
 }
 </style>
