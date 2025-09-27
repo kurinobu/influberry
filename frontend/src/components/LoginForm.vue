@@ -16,7 +16,7 @@
         <div class="space-y-4">
           <!-- メールアドレス入力 -->
           <div>
-            <label for="email" class="block text-sm font-medium text-gray-700">
+            <label for="email" class="berry-label">
               メールアドレス
             </label>
             <input
@@ -24,7 +24,7 @@
               v-model="formData.email"
               type="email"
               required
-              class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-pink-500 focus:border-pink-500 focus:z-10 sm:text-sm"
+              class="berry-input"
               placeholder="your@email.com"
               :disabled="authStore.isLoading"
             />
@@ -32,7 +32,7 @@
 
           <!-- パスワード入力 -->
           <div>
-            <label for="password" class="block text-sm font-medium text-gray-700">
+            <label for="password" class="berry-label">
               パスワード
             </label>
             <input
@@ -40,7 +40,7 @@
               v-model="formData.password"
               type="password"
               required
-              class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-pink-500 focus:border-pink-500 focus:z-10 sm:text-sm"
+              class="berry-input"
               placeholder="パスワード"
               :disabled="authStore.isLoading"
             />
@@ -207,5 +207,46 @@ button:hover:not(:disabled) {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+/* === Phase 4 berry化CSS（TodoApp.vue成功パターン移植） === */
+.berry-label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+  text-shadow: none;
+}
+
+.berry-input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 2px solid #f9a8d4;
+  background: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+  margin-top: 0.25rem;
+}
+
+.berry-input:focus {
+  outline: none;
+  border-color: #ec4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+  background: #ffffff;
+}
+
+.berry-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.berry-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

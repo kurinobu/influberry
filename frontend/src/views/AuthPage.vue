@@ -43,7 +43,7 @@ const handleAuthSuccess = () => {
           🍓 InfluBerry
         </h1>
         <p class="mt-2 text-gray-600 font-noto">
-          Z世代インフルエンサー向け案件管理システム
+          インフルエンサー向け案件管理システム
         </p>
       </div>
 

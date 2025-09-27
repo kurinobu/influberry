@@ -96,23 +96,23 @@ const toggleBasicData = () => {
         <div class="mb-8">
           <h2 class="text-2xl font-bold text-gray-900 mb-4">📊 概要</h2>
           <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div class="bg-white rounded-lg shadow p-6 text-center">
+            <div class="berry-card text-center">
               <div class="text-2xl font-bold text-blue-600">{{ stats.totalProjects }}</div>
               <div class="text-sm text-gray-600">総案件数</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-6 text-center">
+            <div class="berry-card text-center">
               <div class="text-2xl font-bold text-green-600">{{ stats.completedProjects }}</div>
               <div class="text-sm text-gray-600">完了案件</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-6 text-center">
+            <div class="berry-card text-center">
               <div class="text-2xl font-bold text-yellow-600">{{ stats.pendingProjects }}</div>
               <div class="text-sm text-gray-600">進行中案件</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-6 text-center">
+            <div class="berry-card text-center">
               <div class="text-2xl font-bold text-purple-600">{{ stats.totalInvoices }}</div>
               <div class="text-sm text-gray-600">請求書数</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-6 text-center">
+            <div class="berry-card text-center">
               <div class="text-2xl font-bold text-pink-600">¥{{ stats.totalRevenue.toLocaleString() }}</div>
               <div class="text-sm text-gray-600">総収益</div>
             </div>
@@ -125,7 +125,7 @@ const toggleBasicData = () => {
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             <!-- スポンサー案件管理アプリ -->
-            <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer" @click="navigateToApp('projects')">
+            <div class="berry-card cursor-pointer" @click="navigateToApp('projects')">
               <div class="p-6">
                 <div class="flex items-center mb-4">
                   <div class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center text-2xl">
@@ -145,7 +145,7 @@ const toggleBasicData = () => {
             </div>
 
             <!-- 請求書管理アプリ -->
-            <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer" @click="navigateToApp('invoices')">
+            <div class="berry-card cursor-pointer" @click="navigateToApp('invoices')">
               <div class="p-6">
                 <div class="flex items-center mb-4">
                   <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-2xl">
@@ -165,7 +165,7 @@ const toggleBasicData = () => {
             </div>
 
             <!-- BerryDo｜タスク管理アプリ -->
-            <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer" @click="navigateToApp('berry-do')">
+            <div class="berry-card cursor-pointer" @click="navigateToApp('berry-do')">
               <div class="p-6">
                 <div class="flex items-center mb-4">
                   <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-2xl">
@@ -185,7 +185,7 @@ const toggleBasicData = () => {
             </div>
 
             <!-- 将来プラグイン（予定） -->
-            <div class="bg-gray-100 rounded-lg shadow cursor-not-allowed opacity-75">
+            <div class="berry-card-disabled cursor-not-allowed opacity-75">
               <div class="p-6">
                 <div class="flex items-center mb-4">
                   <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-2xl">
@@ -213,8 +213,8 @@ const toggleBasicData = () => {
     <!-- 設定モーダル -->
     <div v-if="showSettings" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="showSettings = false">
       <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full" @click.stop>
-          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="inline-block align-bottom berry-card text-left overflow-hidden transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full" @click.stop>
+          <div class="berry-modal-content px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg leading-6 font-medium text-gray-900">設定</h3>
               <button @click="showSettings = false" class="text-gray-400 hover:text-gray-600">
@@ -235,6 +235,34 @@ const toggleBasicData = () => {
 </template>
 
 <style scoped>
+/* === Phase 4 Z世代向けカードベースUI === */
+.berry-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(244, 114, 182, 0.12);
+  border: 2px solid #f9a8d4;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+  z-index: 10; /* ハンバーガーメニュー競合解決 */
+}
+
+.berry-card:hover {
+  box-shadow: 0 12px 30px rgba(244, 114, 182, 0.2);
+  /* transform削除でスタッキングコンテキスト生成阻止 */
+}
+
+/* 無効化カード（将来プラグイン用） */
+.berry-card-disabled {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border: 2px solid #d1d5db;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  z-index: 10;
+}
+
 /* InfluBerry カスタムスタイル */
 header {
   backdrop-filter: blur(10px);

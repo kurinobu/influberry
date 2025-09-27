@@ -165,6 +165,7 @@ const handleOverlayClick = (event) => {
 </script>
 
 <template>
+  
   <div class="relative">
     <!-- ハンバーガーボタン -->
     <button
@@ -176,16 +177,16 @@ const handleOverlayClick = (event) => {
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
       </svg>
     </button>
-
+    <Teleport to="body">
     <!-- メニューオーバーレイ -->
     <div
       v-if="isOpen"
       class="fixed inset-0 bg-black bg-opacity-50 menu-overlay"
-      style="background-color: rgba(0, 0, 0, 0.5) !important; z-index: 45 !important;"
+      style="background-color: rgba(0, 0, 0, 0.5) !important; z-index: 9998 !important;"
       @click="handleOverlayClick"
     >
       <!-- メニューパネル -->
-      <div class="fixed top-0 right-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out menu-panel" style="background-color: #ffffff !important; background-image: none !important; z-index: 46 !important;">
+      <div class="fixed top-0 right-0 h-full w-80 bg-white shadow-xl menu-transform transition-transform duration-300 ease-in-out menu-panel" style="background-color: #ffffff !important; background-image: none !important; z-index: 9999 !important;">
         <!-- メニューヘッダー -->
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           <div class="flex items-center">
@@ -283,6 +284,7 @@ const handleOverlayClick = (event) => {
         </div>
       </div>
     </div>
+  </Teleport>
   </div>
 </template>
 
@@ -298,7 +300,7 @@ const handleOverlayClick = (event) => {
   right: 0 !important;
   height: 100vh !important;
   width: 320px !important;
-  z-index: 46 !important;
+  z-index: 9999 !important;
 }
 
 .menu-overlay {
@@ -309,7 +311,7 @@ const handleOverlayClick = (event) => {
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
-  z-index: 45 !important;
+  z-index: 9998 !important;
 }
 
 /* スムーズなアニメーション */
@@ -320,7 +322,7 @@ const handleOverlayClick = (event) => {
 }
 
 /* メニューパネルのスライドイン */
-.transform {
+.menu-transform {
   transform: translateX(0);
 }
 

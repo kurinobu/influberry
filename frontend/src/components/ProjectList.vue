@@ -112,7 +112,7 @@ const getStatusColor = (status) => {
     <!-- ダッシュボード統計 -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <!-- 総案件数 -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="berry-card">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center">
@@ -129,7 +129,7 @@ const getStatusColor = (status) => {
       </div>
 
       <!-- 合計金額 -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="berry-card">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -146,7 +146,7 @@ const getStatusColor = (status) => {
       </div>
 
       <!-- 進行中案件 -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="berry-card">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -163,7 +163,7 @@ const getStatusColor = (status) => {
       </div>
 
       <!-- 完了案件 -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="berry-card">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -181,7 +181,7 @@ const getStatusColor = (status) => {
     </div>
 
     <!-- 操作バー -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div class="berry-card">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
         <!-- ステータスフィルター -->
         <div class="flex items-center space-x-2">
@@ -262,7 +262,7 @@ const getStatusColor = (status) => {
     </div>
 
     <!-- プロジェクト一覧 -->
-    <div v-else-if="projectsStore.projects.length > 0" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div v-else-if="projectsStore.projects.length > 0" class="berry-card overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-200">
         <h3 class="text-lg font-medium text-gray-900">案件一覧</h3>
       </div>
@@ -382,5 +382,21 @@ const getStatusColor = (status) => {
 /* フォーカス状態 */
 .focus\:ring-2:focus {
   box-shadow: 0 0 0 2px rgba(ec, 4a, 99, 0.5);
+}
+/* === Phase 4 Z世代向けカードベースUI === */
+.berry-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(244, 114, 182, 0.12);
+  border: 2px solid #f9a8d4;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+  transform: scale(1);
+}
+
+.berry-card:hover {
+  box-shadow: 0 12px 30px rgba(244, 114, 182, 0.2);
+  transform: scale(1.02) translateY(-2px);
 }
 </style>

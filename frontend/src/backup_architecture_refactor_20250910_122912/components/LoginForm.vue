@@ -7,7 +7,7 @@
           🍓 InfluBerry
         </h2>
         <p class="mt-2 text-sm text-gray-600">
-          Z世代インフルエンサーのための案件管理ツール
+          インフルエンサーのための案件管理ツール
         </p>
       </div>
 

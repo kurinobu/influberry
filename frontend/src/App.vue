@@ -10,7 +10,7 @@ import FixedFooter from '@/components/FixedFooter.vue'
   <!-- ルーターアウトレット（ページコンポーネント表示） -->
   <router-view />
 
-  <!-- 固定フッター（Z世代向けナビゲーション） -->
+  <!-- 固定フッター（インフルエンサー向けナビゲーション） -->
   <FixedFooter />
 </template>
 
