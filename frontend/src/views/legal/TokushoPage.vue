@@ -15,12 +15,13 @@ const lastUpdated = '2025年9月17日'
 <template>
   <div class="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
     <!-- ヘッダー -->
-    <div class="bg-white/80 backdrop-blur-sm border-b border-pink-200">
+    <header class="berry-header">
       <div class="max-w-4xl mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <span class="text-2xl">🍓</span>
-            <h1 class="text-xl font-bold text-gray-800">InfluBerry</h1>
+          <div class="flex items-center">
+            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
+              🍓 InfluBerry
+            </h1>
           </div>
           <button 
             @click="goHome"
@@ -30,7 +31,7 @@ const lastUpdated = '2025年9月17日'
           </button>
         </div>
       </div>
-    </div>
+    </header>
 
     <!-- メインコンテンツ -->
     <div class="max-w-4xl mx-auto px-4 py-8">
@@ -292,4 +293,13 @@ html {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Phase 4 berry化CSS - TodoApp.vue成功パターン移植 */
+.berry-header {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-bottom: 2px solid #f9a8d4;
+  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
+}
+
 </style>
