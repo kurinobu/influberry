@@ -36,6 +36,24 @@ class User(UserMixin, db.Model):
     )
     
     # Relationships
+    # PDF印刷設定
+    pdf_layout = db.Column(db.String(20), default='business', nullable=False)  # business, modern, classic
+    pdf_paper_color = db.Column(db.String(7), default='#ffffff', nullable=False)  # HEXカラー
+    pdf_font_family = db.Column(db.String(50), default='Noto Sans JP', nullable=False)  # フォント
+
+    # PDF印刷設定
+    pdf_layout = db.Column(db.String(20), default='business', nullable=False)  # business, modern, classic
+    pdf_paper_color = db.Column(db.String(7), default='#ffffff', nullable=False)  # HEXカラー
+    pdf_font_family = db.Column(db.String(50), default='Noto Sans JP', nullable=False)  # フォント
+    
+    # 支払い情報設定（将来拡張対応: PayPay等の支払い方法追加可能）
+    payment_method = db.Column(db.String(50), nullable=True)  # 銀行振込、PayPay等
+    bank_name = db.Column(db.String(100), nullable=True)  # 銀行名
+    branch_name = db.Column(db.String(100), nullable=True)  # 支店名
+    account_type = db.Column(db.String(20), nullable=True)  # 普通、当座
+    account_number = db.Column(db.String(20), nullable=True)  # 口座番号
+    account_holder = db.Column(db.String(100), nullable=True)  # 口座名義
+    
     projects = db.relationship('Project', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def __init__(self, username, email, password, influencer_name=None, **kwargs):

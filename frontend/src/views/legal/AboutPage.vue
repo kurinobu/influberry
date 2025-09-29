@@ -18,7 +18,7 @@ const features = [
   {
     icon: '📋',
     title: '請求書自動生成',
-    description: '案件情報から請求書を自動作成。近い将来、PDF印刷、会計ソフト連携予定！'
+    description: '案件情報から請求書を自動作成PDF印刷。近い将来、メール送信、会計ソフト連携予定！'
   },
   {
     icon: '📊',

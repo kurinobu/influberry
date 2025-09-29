@@ -27,12 +27,29 @@ const profileError = ref('')
 const passwordError = ref('')
 
 // 初期化時にユーザー情報を設定
-onMounted(() => {
+const paymentForm = ref({
+  payment_method: '',
+  bank_name: '',
+  branch_name: '',
+  account_type: '',
+  account_number: '',
+  account_holder: ''
+})
+
+// 支払い情報UI状態
+const isPaymentLoading = ref(false)
+const paymentMessage = ref('')
+const paymentError = ref('')
+
+onMounted(async () => {
   if (authStore.user) {
     profileForm.value.username = authStore.user.username || ''
     profileForm.value.influencer_name = authStore.user.influencer_name || ''
     profileForm.value.profile = authStore.user.profile || ''
   }
+  
+  // 支払い情報取得
+  await fetchPaymentInfo()
 })
 
 // プロフィール更新処理
@@ -135,6 +152,70 @@ const handlePasswordChange = async () => {
     isPasswordLoading.value = false
   }
 }
+
+// 支払い情報取得処理
+const fetchPaymentInfo = async () => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/payment-info`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      paymentForm.value = {
+        payment_method: data.payment_method || '',
+        bank_name: data.bank_name || '',
+        branch_name: data.branch_name || '',
+        account_type: data.account_type || '',
+        account_number: data.account_number || '',
+        account_holder: data.account_holder || ''
+      }
+    }
+  } catch (error) {
+    console.error('支払い情報取得エラー:', error)
+  }
+}
+
+// 支払い情報更新処理
+const handlePaymentUpdate = async () => {
+  if (isPaymentLoading.value) return
+  
+  paymentError.value = ''
+  paymentMessage.value = ''
+  
+  isPaymentLoading.value = true
+  
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/payment-info`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(paymentForm.value)
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      paymentMessage.value = data.message || '支払い情報を更新しました'
+      setTimeout(() => {
+        paymentMessage.value = ''
+      }, 3000)
+    } else {
+      const error = await response.json()
+      paymentError.value = error.error || '支払い情報更新に失敗しました'
+    }
+  } catch (error) {
+    paymentError.value = '支払い情報更新中にエラーが発生しました'
+  } finally {
+    isPaymentLoading.value = false
+  }
+}
+
 </script>
 
 <template>
@@ -299,6 +380,129 @@ const handlePasswordChange = async () => {
           >
             <span v-if="isPasswordLoading" class="mr-2">🔄</span>
             {{ isPasswordLoading ? '変更中...' : 'パスワードを変更' }}
+          </button>
+        </form>
+      </div>
+      <!-- 支払い情報セクション -->
+      <div class="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
+        <h2 class="text-xl font-semibold text-gray-900 font-poppins mb-6 flex items-center">
+          💳 支払い情報
+        </h2>
+        
+        <form @submit.prevent="handlePaymentUpdate" class="space-y-6">
+          <!-- 支払い方法 -->
+          <div>
+            <label for="payment_method" class="block text-sm font-medium text-gray-700 font-noto mb-2">
+              支払い方法
+            </label>
+            <select
+              id="payment_method"
+              v-model="paymentForm.payment_method"
+              :disabled="isPaymentLoading"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500 font-noto transition-colors"
+            >
+              <option value="">選択してください</option>
+              <option value="銀行振込">銀行振込</option>
+              <option value="PayPay">PayPay</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+
+          <!-- 銀行名 -->
+          <div>
+            <label for="bank_name" class="block text-sm font-medium text-gray-700 font-noto mb-2">
+              銀行名
+            </label>
+            <input
+              id="bank_name"
+              v-model="paymentForm.bank_name"
+              type="text"
+              :disabled="isPaymentLoading"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500 font-noto transition-colors"
+              placeholder="銀行名を入力"
+            >
+          </div>
+
+          <!-- 支店名 -->
+          <div>
+            <label for="branch_name" class="block text-sm font-medium text-gray-700 font-noto mb-2">
+              支店名
+            </label>
+            <input
+              id="branch_name"
+              v-model="paymentForm.branch_name"
+              type="text"
+              :disabled="isPaymentLoading"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500 font-noto transition-colors"
+              placeholder="支店名を入力"
+            >
+          </div>
+
+          <!-- 口座種別 -->
+          <div>
+            <label for="account_type" class="block text-sm font-medium text-gray-700 font-noto mb-2">
+              口座種別
+            </label>
+            <select
+              id="account_type"
+              v-model="paymentForm.account_type"
+              :disabled="isPaymentLoading"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500 font-noto transition-colors"
+            >
+              <option value="">選択してください</option>
+              <option value="普通">普通</option>
+              <option value="当座">当座</option>
+            </select>
+          </div>
+
+          <!-- 口座番号 -->
+          <div>
+            <label for="account_number" class="block text-sm font-medium text-gray-700 font-noto mb-2">
+              口座番号
+            </label>
+            <input
+              id="account_number"
+              v-model="paymentForm.account_number"
+              type="text"
+              :disabled="isPaymentLoading"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500 font-noto transition-colors"
+              placeholder="口座番号を入力"
+            >
+          </div>
+
+          <!-- 口座名義 -->
+          <div>
+            <label for="account_holder" class="block text-sm font-medium text-gray-700 font-noto mb-2">
+              口座名義
+            </label>
+            <input
+              id="account_holder"
+              v-model="paymentForm.account_holder"
+              type="text"
+              :disabled="isPaymentLoading"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500 font-noto transition-colors"
+              placeholder="カタカナで入力してください"
+            >
+          </div>
+
+          <!-- 支払い情報更新メッセージ -->
+          <div v-if="paymentMessage" class="p-4 bg-green-50 border border-green-200 rounded-lg">
+            <p class="text-green-800 font-noto">{{ paymentMessage }}</p>
+          </div>
+
+          <div v-if="paymentError" class="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-red-800 font-noto">{{ paymentError }}</p>
+          </div>
+
+          <!-- 支払い情報更新ボタン -->
+          <button
+            type="submit"
+            :disabled="isPaymentLoading"
+            class="w-full flex justify-center items-center px-6 py-3 font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-poppins bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700"
+            style="box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3)"
+          >
+            <span v-if="isPaymentLoading" class="mr-2">🔄</span>
+            {{ isPaymentLoading ? '更新中...' : '支払い情報を更新' }}
           </button>
         </form>
       </div>

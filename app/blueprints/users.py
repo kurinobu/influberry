@@ -158,3 +158,66 @@ def deactivate_account():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'アカウント無効化エラー'}), 500
+
+@users_bp.route('/payment-info', methods=['GET'])
+@login_required
+def get_payment_info():
+    """支払い情報取得"""
+    try:
+        payment_info = {
+            'payment_method': current_user.payment_method,
+            'bank_name': current_user.bank_name,
+            'branch_name': current_user.branch_name,
+            'account_type': current_user.account_type,
+            'account_number': current_user.account_number,
+            'account_holder': current_user.account_holder
+        }
+        return jsonify(payment_info), 200
+    except Exception as e:
+        return jsonify({'error': '支払い情報取得エラー'}), 500
+
+@users_bp.route('/payment-info', methods=['PUT'])
+@login_required
+def update_payment_info():
+    """支払い情報更新（将来拡張対応: PayPay等の支払い方法追加可能）"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'データが送信されていません'}), 400
+        
+        # 更新可能フィールド（将来拡張: payment_methodで新しい支払い方法対応）
+        updatable_fields = [
+            'payment_method',  # 銀行振込、PayPay等
+            'bank_name', 
+            'branch_name', 
+            'account_type',  # 普通、当座
+            'account_number', 
+            'account_holder'
+        ]
+        updated = False
+        
+        for field in updatable_fields:
+            if field in data:
+                setattr(current_user, field, data[field])
+                updated = True
+        
+        if updated:
+            current_user.updated_at = datetime.utcnow()
+            db.session.commit()
+            return jsonify({
+                'message': '支払い情報を更新しました',
+                'payment_info': {
+                    'payment_method': current_user.payment_method,
+                    'bank_name': current_user.bank_name,
+                    'branch_name': current_user.branch_name,
+                    'account_type': current_user.account_type,
+                    'account_number': current_user.account_number,
+                    'account_holder': current_user.account_holder
+                }
+            }), 200
+        else:
+            return jsonify({'error': '更新するデータがありません'}), 400
+            
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': '支払い情報更新エラー'}), 500

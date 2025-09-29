@@ -13,6 +13,23 @@ const showDetailModal = ref(false)
 const selectedInvoice = ref(null)
 const showEditModal = ref(false)
 const editingInvoice = ref(null)
+const pdfGenerating = ref(false)
+
+// PDF生成メソッド
+const generatePDF = async (invoiceId) => {
+  pdfGenerating.value = true
+  try {
+    const result = await invoicesStore.generatePDF(invoiceId)
+    if (!result.success) {
+      alert(`PDF生成エラー: ${result.error}`)
+    }
+  } catch (error) {
+    alert(`PDF生成エラー: ${error.message}`)
+  } finally {
+    pdfGenerating.value = false
+  }
+}
+
 // 状態をsetupStateにexport
 defineExpose({
   showEditModal,
@@ -509,6 +526,9 @@ const formatDate = (dateString) => {
           </button>
           <button @click="showInvoiceEdit(selectedInvoice)" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             📝 編集
+          </button>
+          <button @click="generatePDF(selectedInvoice.id)" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors" :disabled="pdfGenerating">
+            {{ pdfGenerating ? '生成中...' : '📄 PDF' }}
           </button>
         </div>
       </div>
