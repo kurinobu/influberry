@@ -49,13 +49,13 @@ const backToDashboard = () => {
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- ヘッダー -->
-    <header class="shadow-lg border-b-2" style="background: linear-gradient(to right, var(--influberry-pink-light), var(--influberry-lavender-light)); border-color: var(--influberry-pink);">
+    <header class="berry-header">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <!-- InfluBerry ロゴ -->
+        <div class="flex items-center justify-between h-16">
+          <!-- アプリタイトルのみ -->
           <div class="flex items-center">
-            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
-              🍓 InfluBerry
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              BerryPay｜請求書管理
             </h1>
           </div>
           
@@ -74,30 +74,39 @@ const backToDashboard = () => {
           <div class="berry-card">
             <div class="flex items-center justify-between">
               <div>
-                <h2 class="text-2xl font-bold text-gray-900">請求書管理</h2>
+                <h2 class="text-2xl font-bold text-gray-900">BerryPay｜請求書管理</h2>
                 <p class="mt-1 text-sm text-gray-600">
                   プロジェクトから自動請求書生成・編集・管理を行います
                 </p>
               </div>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div class="grid grid-cols-2 gap-4">
+                <!-- 1行目: 総請求書数・支払済 -->
                 <div class="text-center">
-                  <div class="text-2xl font-bold text-purple-600">{{ invoicesStore.invoices?.length || 0 }}</div>
+                  <div class="text-xl md:text-2xl font-bold text-purple-600">{{ invoicesStore.invoices?.length || 0 }}</div>
                   <div class="text-xs text-gray-500">総請求書数</div>
                 </div>
                 <div class="text-center">
-                  <div class="text-2xl font-bold text-green-600">
+                  <div class="text-xl md:text-2xl font-bold text-green-600">
                     {{ invoicesStore.invoices?.filter(i => i.status === 'paid').length || 0 }}
                   </div>
                   <div class="text-xs text-gray-500">支払済</div>
                 </div>
+                
+                <!-- 2行目: 未払・下書き -->
                 <div class="text-center">
-                  <div class="text-2xl font-bold text-yellow-600">
+                  <div class="text-xl md:text-2xl font-bold text-yellow-600">
                     {{ invoicesStore.invoices?.filter(i => i.status === 'pending').length || 0 }}
                   </div>
                   <div class="text-xs text-gray-500">未払</div>
                 </div>
                 <div class="text-center">
-                  <div class="text-2xl font-bold text-pink-600">
+                  <div class="text-xl md:text-2xl font-bold text-gray-600">0</div>
+                  <div class="text-xs text-gray-500">下書き</div>
+                </div>
+                
+                <!-- 3行目: 総金額（2列結合） -->
+                <div class="col-span-2 text-center">
+                  <div class="text-xl md:text-2xl font-bold text-pink-600 text-right">
                     ¥{{ invoicesStore.invoices?.reduce((sum, i) => sum + (i.total_amount || 0), 0).toLocaleString() || 0 }}
                   </div>
                   <div class="text-xs text-gray-500">総金額</div>
@@ -575,5 +584,13 @@ h1.text-2xl.font-bold {
 select[v-model="editForm.priority"] {
   background: linear-gradient(135deg, #fef3c7, #fbbf24) !important;
   border-color: #f59e0b !important;
+}
+
+/* berry-header統一スタイル（TodoApp.vue成功パターン） */
+.berry-header {
+  background: linear-gradient(to right, #fdf2f8, #ffffff, #f3e8ff);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #f9a8d4;
+  box-shadow: 0 1px 3px rgba(244, 114, 182, 0.1);
 }
 </style>

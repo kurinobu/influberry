@@ -5,6 +5,7 @@ import { useTodosStore } from '@/stores/todos'
 import { useUIStore } from '@/stores/ui'
 import UserSettings from '@/components/UserSettings.vue'
 import BasicDataModal from '@/components/BasicDataModal.vue'
+import HamburgerMenu from '@/components/HamburgerMenu.vue'
 
 const router = useRouter()
 const todosStore = useTodosStore()
@@ -178,15 +179,15 @@ const getStatusColor = (status) => {
     <header class="berry-header">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
-
-          <div class="flex items-center justify-between h-16">
-            <!-- アプリタイトルのみ -->
-            <div class="flex items-center">
-              <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-                BerryDo｜タスク管理
-              </h1>
-            </div>
+          <!-- アプリタイトルのみ -->
+          <div class="flex items-center">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              BerryDo｜タスク管理
+            </h1>
           </div>
+          
+          <!-- ハンバーガーメニュー -->
+          <HamburgerMenu @openSettings="uiStore.toggleSettings" @openBasicData="uiStore.toggleBasicData" />
         </div>
       </div>
     </header>
@@ -889,6 +890,11 @@ p, span, div {
   color: #6b7280 !important;
   font-size: 0.875rem !important;
   font-weight: 600 !important;
+}
+
+/* Tailwind text-2xlクラス上書き（ProjectApp・InvoiceAppと統一） */
+.text-2xl {
+  font-size: 1.25rem;
 }
 
 /* ヘッダータイトル強制カラフル表示 */

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import { useProjectsStore } from '../stores/projects.js'
 import { useInvoicesStore } from '../stores/invoices.js'
+import { useTodosStore } from '../stores/todos.js'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
 import BasicDataModal from '../components/BasicDataModal.vue'
 import UserSettings from '../components/UserSettings.vue'
@@ -12,6 +13,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const projectsStore = useProjectsStore()
 const invoicesStore = useInvoicesStore()
+const todosStore = useTodosStore()
 
 // 設定モーダル表示状態
 const showSettings = ref(false)
@@ -26,6 +28,7 @@ const stats = computed(() => {
     completedProjects: projectsStore.completedCount,
     pendingProjects: projectsStore.pendingProjectsCount,  // ← 統一修正
     totalInvoices: invoices.length,
+    totalTodos: todosStore.todos?.length || 0,
     totalRevenue: projectsStore.projects
       .filter(p => p.status === 'completed')
       .reduce((sum, p) => sum + (p.amount || 0), 0)
@@ -44,7 +47,8 @@ onMounted(async () => {
   // データ取得
   await Promise.all([
     projectsStore.fetchProjects(),
-    invoicesStore.fetchInvoices()
+    invoicesStore.fetchInvoices(),
+    todosStore.fetchTodos()
   ])
 })
 
@@ -132,7 +136,7 @@ const toggleBasicData = () => {
                     🏢
                   </div>
                   <div class="ml-4">
-                    <h3 class="text-lg font-semibold text-gray-900">スポンサー案件管理</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">BerryWork｜案件管理</h3>
                     <p class="text-sm text-gray-600">案件の登録・管理・進捗追跡</p>
                   </div>
                 </div>
@@ -152,7 +156,7 @@ const toggleBasicData = () => {
                     📋
                   </div>
                   <div class="ml-4">
-                    <h3 class="text-lg font-semibold text-gray-900">請求書管理</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">BerryPay｜請求書管理</h3>
                     <p class="text-sm text-gray-600">自動請求書生成・管理</p>
                   </div>
                 </div>
@@ -178,7 +182,7 @@ const toggleBasicData = () => {
                 </div>
                 <div class="text-right">
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    準備完了
+                    {{ stats.totalTodos }} 件
                   </span>
                 </div>
               </div>

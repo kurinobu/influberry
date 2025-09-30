@@ -47,14 +47,13 @@ const backToDashboard = () => {
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- ヘッダー -->
-    <!-- ヘッダー -->
-    <header class="shadow-lg border-b-2" style="background: linear-gradient(to right, var(--influberry-pink-light), var(--influberry-lavender-light)); border-color: var(--influberry-pink);">
+    <header class="berry-header">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <!-- InfluBerry ロゴ -->
+        <div class="flex items-center justify-between h-16">
+          <!-- アプリタイトルのみ -->
           <div class="flex items-center">
-            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
-              🍓 InfluBerry
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              BerryWork｜案件管理
             </h1>
           </div>
           
@@ -73,7 +72,7 @@ const backToDashboard = () => {
           <div class="berry-card">
             <div class="flex items-center justify-between">
               <div>
-                <h2 class="text-2xl font-bold text-gray-900">スポンサー案件管理</h2>
+                <h2 class="text-2xl font-bold text-gray-900">BerryWork｜案件管理</h2>
                 <p class="mt-1 text-sm text-gray-600">
                   案件の登録・編集・削除・進捗管理を行います
                 </p>
@@ -442,5 +441,13 @@ header {
   background: linear-gradient(135deg, #e0e7ff, #6366f1) !important;
   color: #3730a3 !important;
   border-color: #4f46e5 !important;
+}
+
+/* berry-header統一スタイル（TodoApp.vue成功パターン） */
+.berry-header {
+  background: linear-gradient(to right, #fdf2f8, #ffffff, #f3e8ff);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #f9a8d4;
+  box-shadow: 0 1px 3px rgba(244, 114, 182, 0.1);
 }
 </style>

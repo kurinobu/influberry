@@ -96,9 +96,16 @@ const closeEditModal = () => {
 }
 
 // 編集成功処理
-const handleEditSuccess = (result) => {
+const handleEditSuccess = async (result) => {
   console.log('請求書編集成功:', result.message)
-  // 一覧とcurrentInvoiceを更新
+  
+  // モーダル閉鎖
+  closeEditModal()
+  
+  // Store から最新データ再取得（既存成功パターン統一）
+  await invoicesStore.fetchInvoices()
+  
+  // selectedInvoice 更新
   if (selectedInvoice.value && selectedInvoice.value.id === result.invoice.id) {
     selectedInvoice.value = result.invoice
   }
@@ -193,7 +200,7 @@ const formatDate = (dateString) => {
     <div class="berry-card">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-2xl font-bold text-gray-900">📋 請求書管理</h2>
+          <h2 class="text-lg font-bold text-gray-900">📋 請求書管理</h2>
           <p class="mt-1 text-sm text-gray-600">
             作成済み請求書の一覧・管理
           </p>
@@ -402,7 +409,7 @@ const formatDate = (dateString) => {
                 <div class="space-y-1">
                   <div>
                     <span class="font-medium">顧客:</span>
-                    {{ invoice.company_name || '-' }}
+                    {{ invoice.client_company || '-' }}
                   </div>
                   <div v-if="invoice.project_name" class="text-sm text-gray-600">
                     {{ invoice.project_name }}
@@ -468,7 +475,7 @@ const formatDate = (dateString) => {
             </div>
             <div>
               <label class="text-sm font-medium text-gray-600">顧客名</label>
-              <p class="text-lg font-semibold text-gray-900">{{ selectedInvoice.customer_name }}</p>
+              <p class="text-lg font-semibold text-gray-900">{{ selectedInvoice.client_company }}</p>
             </div>
             <div>
               <label class="text-sm font-medium text-gray-600">ステータス</label>
@@ -500,7 +507,7 @@ const formatDate = (dateString) => {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="text-sm font-medium text-gray-600">税抜金額</label>
-              <p class="text-xl font-bold text-gray-900">{{ formatAmount(selectedInvoice.amount) }}</p>
+              <p class="text-xl font-bold text-gray-900">{{ formatAmount(selectedInvoice.subtotal) }}</p>
             </div>
             <div>
               <label class="text-sm font-medium text-gray-600">消費税</label>
@@ -558,6 +565,10 @@ const formatDate = (dateString) => {
   transform: scale(1);
 }
 
+/* === テキストサイズ統一（3アプリ統一） === */
+.text-2xl {
+  font-size: 1.25rem; /* 20px統一 */
+}
 .berry-card:hover {
   box-shadow: 0 12px 30px rgba(244, 114, 182, 0.2);
   transform: scale(1.02) translateY(-2px);

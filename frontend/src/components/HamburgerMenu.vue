@@ -63,31 +63,21 @@ const menuItems = [
   },
   {
     icon: '🏢',
-    name: 'スポンサー案件管理',
+    name: 'BerryWork｜案件管理',
     path: '/apps/projects',
     available: true
   },
   {
     icon: '📋',
-    name: '請求書管理',
+    name: 'BerryPay｜請求書管理',
     path: '/apps/invoices',
     available: true
   },
   {
-    icon: '💡',
-    name: 'ブランド提案文',
-    path: '/apps/brand-generator',
-    available: false,
-    isPro: true,
-    comingSoon: false
-  },
-  {
     icon: '📝',
-    name: 'Todoリスト',
-    path: '/apps/todo',
-    available: false,
-    isPro: false,
-    comingSoon: true
+    name: 'BerryDo｜タスク管理',
+    path: '/berry-do',
+    available: true
   }
 ]
 
@@ -99,7 +89,7 @@ const settingsItems = ref([
   },
   {
     icon: '💎',
-    name: 'プラン管理',
+    name: 'プラン管理　準備中',
     action: 'plan'
   },
   {
@@ -186,7 +176,7 @@ const handleOverlayClick = (event) => {
       @click="handleOverlayClick"
     >
       <!-- メニューパネル -->
-      <div class="fixed top-0 right-0 h-full w-80 bg-white shadow-xl menu-transform transition-transform duration-300 ease-in-out menu-panel" style="background-color: #ffffff !important; background-image: none !important; z-index: 9999 !important;">
+      <div class="menu-panel">
         <!-- メニューヘッダー -->
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           <div class="flex items-center">
@@ -288,19 +278,24 @@ const handleOverlayClick = (event) => {
   </div>
 </template>
 
-<style scoped>
+<style>
 /* HamburgerMenu限定根本解決 - Tailwind依存排除 */
 .menu-panel {
-  background: solid white !important;
-  background-color: white !important;
-  background-image: none !important;
-  opacity: 1 !important;
+  /* berry統一デザイン適用 */
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%) !important;
+  border-left: 2px solid #f9a8d4 !important;
+  box-shadow: -8px 0 20px rgba(244, 114, 182, 0.12) !important;
+  
+  /* 既存の固定位置・z-index維持 */
   position: fixed !important;
   top: 0 !important;
   right: 0 !important;
   height: 100vh !important;
   width: 320px !important;
   z-index: 9999 !important;
+  /* アニメーション統合 */
+  transform: translateX(0);
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .menu-overlay {
