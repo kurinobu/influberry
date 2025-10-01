@@ -15,12 +15,13 @@ const lastUpdated = '2025年9月17日'
 <template>
   <div class="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
     <!-- ヘッダー -->
-    <div class="bg-white/80 backdrop-blur-sm border-b border-pink-200">
+    <header class="berry-header">
       <div class="max-w-4xl mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <span class="text-2xl">🍓</span>
-            <h1 class="text-xl font-bold text-gray-800">InfluBerry</h1>
+            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
+              🍓 InfluBerry
+            </h1>
           </div>
           <button 
             @click="goHome"
@@ -30,7 +31,7 @@ const lastUpdated = '2025年9月17日'
           </button>
         </div>
       </div>
-    </div>
+    </header>
 
     <!-- メインコンテンツ -->
     <div class="max-w-4xl mx-auto px-4 py-8">
@@ -49,7 +50,7 @@ const lastUpdated = '2025年9月17日'
           <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b border-pink-200 pb-2">1. 基本方針</h2>
           <div class="text-gray-700 leading-relaxed space-y-3">
             <p>InfluBerry（以下「当サービス」）を運営するAir Edison（エアエジソン）（以下「当社」）は、ユーザーの皆様の個人情報の保護を重要な責務と考え、個人情報の保護に関する法律（個人情報保護法）、その他の関係法令等を遵守し、適切に取り扱います。</p>
-            <p>特にZ世代の女性インフルエンサーの皆様が安心してご利用いただけるよう、最新のセキュリティ技術と透明性のある運営を心がけています。</p>
+            <p>特にインフルエンサーの皆様が安心してご利用いただけるよう、最新のセキュリティ技術と透明性のある運営を心がけています。</p>
           </div>
         </section>
 
@@ -228,5 +229,13 @@ html {
     padding-left: 1rem;
     padding-right: 1rem;
   }
+}
+
+
+/* Phase 4 berry化CSS - TodoApp.vue成功パターン移植 */
+.berry-header {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-bottom: 2px solid #f9a8d4;
+  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
 }
 </style>

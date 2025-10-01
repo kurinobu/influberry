@@ -14,13 +14,8 @@ class Config:
     """Base configuration class"""
     
     # Flask Core Configuration
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'cI9s1nvJ78D6x5UNXXd0KJiOOe09dtn4mQ05eHDX2sqNzH3vPOY3Kyy0ImB0RBYsJ12bFGfvsCbyDWAIiSWUeQ'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'influberry-secret-key-2025-change-in-production'
     
-    # CSRF対策設定
-    WTF_CSRF_ENABLED = True
-    WTF_CSRF_TIME_LIMIT = None  # トークン期限なし
-    WTF_CSRF_CHECK_DEFAULT = False  # REST API用・手動チェック
-
     # Database Configuration
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///instance/influberry_dev.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -34,11 +29,7 @@ class Config:
     CORS_ORIGINS = [
     'https://influberry-app.onrender.com',
     'https://influberry.jp',
-    'https://influberry-staging.onrender.com',
     'http://127.0.0.1:5173'
-    'https://influberry-staging.onrender.com',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:5001'
     ]
     
     # Development Configuration
@@ -57,7 +48,7 @@ class DevelopmentConfig(Config):
     # Development用Cookie設定（HTTP対応）
     SESSION_COOKIE_SECURE = False  # HTTP接続でもCookie有効
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax' 
+    SESSION_COOKIE_SAMESITE = 'None'
 
 class ProductionConfig(Config):
     """Production configuration"""
@@ -75,24 +66,10 @@ class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
 
-class StagingConfig(Config):
-    """Staging configuration"""
-    DEBUG = False
-    SQLALCHEMY_ECHO = False
-    
-    # Railway PostgreSQL接続（環境変数優先）
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///instance/influberry_dev.db'
-
-    # Staging用Cookie設定（本番同等）
-    SESSION_COOKIE_SECURE = True
-    SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'None'
-
 # Configuration mapping
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
-    'staging': StagingConfig,
     'testing': TestConfig,
     'default': DevelopmentConfig
 }

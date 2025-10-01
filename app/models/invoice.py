@@ -71,7 +71,7 @@ class Invoice(db.Model):
     
     # Relationships
     user = db.relationship('User', backref='invoices')
-    project = db.relationship('Project', backref='invoices')
+    project = db.relationship('Project', foreign_keys='Invoice.project_id', backref='invoices')
     
     def __init__(self, user_id, project_id, **kwargs):
         """コンストラクタ"""

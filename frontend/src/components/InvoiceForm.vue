@@ -412,8 +412,8 @@ const handleSubmit = async () => {
 
   try {
     const submitData = {
-      customer_name: formData.customer_name.trim(),
-      amount: parseFloat(formData.amount),
+      client_company: formData.customer_name.trim(),
+      subtotal: parseFloat(formData.amount),
       tax_rate: parseFloat(formData.tax_rate),
       status: formData.status,
       description: formData.description.trim(),

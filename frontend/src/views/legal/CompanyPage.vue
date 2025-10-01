@@ -15,12 +15,13 @@ const lastUpdated = '2025年9月17日'
 <template>
   <div class="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
     <!-- ヘッダー -->
-    <div class="bg-white/80 backdrop-blur-sm border-b border-pink-200">
+    <header class="berry-header">
       <div class="max-w-4xl mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <span class="text-2xl">🍓</span>
-            <h1 class="text-xl font-bold text-gray-800">InfluBerry</h1>
+          <div class="flex items-center">
+            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
+              🍓 InfluBerry
+            </h1>
           </div>
           <button 
             @click="goHome"
@@ -30,7 +31,7 @@ const lastUpdated = '2025年9月17日'
           </button>
         </div>
       </div>
-    </div>
+    </header>
 
     <!-- メインコンテンツ -->
     <div class="max-w-4xl mx-auto px-4 py-8">
@@ -72,7 +73,6 @@ const lastUpdated = '2025年9月17日'
                 <div class="space-y-2 text-sm text-gray-700">
                   <p><strong>本社所在地:</strong><br>〒652-0804<br>神戸市兵庫区西出町２−３−２３</p>
                   <p><strong>電話番号:</strong> お問い合わせフォームにて承ります</p>
-                  <p><strong>営業時間:</strong> 平日 9:00-18:00</p>
                 </div>
               </div>
             </div>
@@ -91,7 +91,7 @@ const lastUpdated = '2025年9月17日'
                 <h3 class="font-bold text-gray-800 mb-2">栗原伸行（代表）</h3>
                 <div class="text-gray-700 leading-relaxed space-y-3">
                   <p>InfluBerryをご利用いただき、ありがとうございます。</p>
-                  <p>私たちAir Edisonは、Z世代のクリエイターが活動しやすい環境を作ることを使命として、InfluBerryを開発しました。初心者の方でも簡単に案件管理ができ、クリエイティブな活動に集中できるツールを目指しています。</p>
+                  <p>私たちAir Edisonは、インフルエンサーやクリエイターが活動しやすい環境を作ることを使命として、InfluBerryを開発しました。初心者の方でも簡単に案件管理ができ、クリエイティブな活動に集中できるツールを目指しています。</p>
                   <p>ユーザーの皆様からのご意見を大切にしながら、継続的にサービスを改善してまいります。何かご不明な点やご要望がございましたら、お気軽にお問い合わせください。</p>
                 </div>
               </div>
@@ -135,7 +135,7 @@ const lastUpdated = '2025年9月17日'
             </div>
             <div class="bg-white p-4 rounded-lg border border-gray-200">
               <h3 class="font-semibold text-gray-800 mb-2">Q. スマートフォンでも使えますか？</h3>
-              <p class="text-sm text-gray-600">A. はい、レスポンシブデザインでスマートフォンからでも快適にご利用いただけます。</p>
+              <p class="text-sm text-gray-600">A. はい、スマートフォンのご利用を前提に開発しました。逆にPCでもご利用できます。</p>
             </div>
           </div>
         </section>
@@ -197,4 +197,13 @@ html {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Phase 4 berry化CSS - TodoApp.vue成功パターン移植 */
+.berry-header {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-bottom: 2px solid #f9a8d4;
+  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
+}
+
 </style>

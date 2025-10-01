@@ -38,7 +38,20 @@ class Project(db.Model):
     # New extensible fields (拡張可能フィールド)
     project_name = db.Column(db.String(255), nullable=True)
     notes = db.Column(db.Text, nullable=True)
+    # BerryDo Todo拡張フィールド（PostgreSQLスキーマと整合）
+    is_todo = db.Column(db.Boolean, default=False, nullable=True)
+    todo_title = db.Column(db.String(255), nullable=True)
+    todo_description = db.Column(db.Text, nullable=True)
+    todo_due_date = db.Column(db.Date, nullable=True)
+    todo_priority = db.Column(db.String(10), nullable=True)
+    todo_importance = db.Column(db.Integer, nullable=True)
+    todo_status = db.Column(db.String(20), nullable=True)
     
+    linked_project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
+
+    linked_invoice_id = db.Column(db.Integer, db.ForeignKey('invoices.id'), nullable=True)
+
+
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
     updated_at = db.Column(
@@ -49,19 +62,28 @@ class Project(db.Model):
     )
     
     def __init__(self, user_id, company_name, amount, deadline, description, **kwargs):
-        """コンストラクタ"""
+        """統一Project初期化メソッド - Project/Todo両対応"""
         self.user_id = user_id
         self.company_name = company_name
-        self.amount = Decimal(str(amount))  # Decimal型で精度保証
+        self.amount = Decimal(str(amount))
         self.deadline = deadline if isinstance(deadline, date) else datetime.strptime(deadline, '%Y-%m-%d').date()
         self.description = description
         
-        # 新フィールド追加
-        self.project_name = kwargs.get('project_name', company_name)  # デフォルト値で安全性確保
+        # ProjectApp互換フィールド
+        self.project_name = kwargs.get('project_name', company_name)
         self.notes = kwargs.get('notes', '')
-        
-        # オプション引数
         self.status = kwargs.get('status', 'proposed')
+        
+        # TodoApp拡張フィールド
+        self.is_todo = kwargs.get('is_todo', False)
+        self.todo_title = kwargs.get('todo_title')
+        self.todo_description = kwargs.get('todo_description')
+        self.todo_due_date = kwargs.get('todo_due_date')
+        self.todo_priority = kwargs.get('todo_priority')
+        self.linked_project_id = kwargs.get('linked_project_id')
+        self.linked_invoice_id = kwargs.get('linked_invoice_id')
+        self.todo_importance = kwargs.get('todo_importance')
+        self.todo_status = kwargs.get('todo_status')
     
     def to_dict(self):
         """辞書形式でプロジェクト情報を返す"""
@@ -81,7 +103,18 @@ class Project(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'is_overdue': self.is_overdue(),
-            'days_until_deadline': self.days_until_deadline()
+            'days_until_deadline': self.days_until_deadline(),
+            # Todo機能フィールド追加（2025-10-01）
+            'is_todo': self.is_todo if hasattr(self, 'is_todo') else False,
+            'todo_title': self.todo_title if hasattr(self, 'todo_title') else None,
+            'todo_description': self.todo_description if hasattr(self, 'todo_description') else None,
+            'todo_due_date': self.todo_due_date.isoformat() if hasattr(self, 'todo_due_date') and self.todo_due_date else None,
+            'todo_priority': self.todo_priority if hasattr(self, 'todo_priority') else None,
+            'todo_importance': self.todo_importance if hasattr(self, 'todo_importance') else None,
+            'todo_status': self.todo_status if hasattr(self, 'todo_status') else None,
+            # BerryWork・BerryPay連動フィールド追加（2025-10-01）
+            'linked_project_id': self.linked_project_id if hasattr(self, 'linked_project_id') else None,
+            'linked_invoice_id': self.linked_invoice_id if hasattr(self, 'linked_invoice_id') else None
         }
     
     def format_amount(self):

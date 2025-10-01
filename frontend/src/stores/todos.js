@@ -19,7 +19,7 @@ export const useTodosStore = defineStore('todos', {
     currentTodo: null,
     
     // 読み込み状態
-    loading: true,
+    loading: false,
     
     // エラー状態
     error: null,
@@ -38,7 +38,7 @@ export const useTodosStore = defineStore('todos', {
   getters: {
     // 緊急度×重要度マトリックス（4段階ソート）
     sortedTodos: (state) => {
-      return [...(Array.isArray(state.todos) ? state.todos : [])].sort((a, b) => {
+      return [...(state.todos || [])].sort((a, b) => {
         // Priority値の変換（high=3, medium=2, low=1）
         const getPriorityValue = (priority) => {
           switch(priority) {
@@ -91,7 +91,7 @@ export const useTodosStore = defineStore('todos', {
       
       try {
         const response = await axios.get('/api/todos/')
-        this.todos = Array.isArray(response.data) ? response.data : (response.data?.todos || [])
+        this.todos = response.data.todos || []
         
         // 統計データ同時取得
         await this.fetchStats()
@@ -129,12 +129,8 @@ export const useTodosStore = defineStore('todos', {
         const response = await axios.post('/api/todos/', todoData)
         const newTodo = response.data
         
-        if (Array.isArray(this.todos)) {
-          this.todos.push(newTodo)
-        } else {
-          this.todos = [newTodo]
-        }
-        await this.fetchTodos()
+        this.todos.push(newTodo)
+        await this.fetchStats()
         
         return newTodo
         
@@ -222,7 +218,7 @@ export const useTodosStore = defineStore('todos', {
     // ProjectApp連動選択肢取得
     async fetchProjectOptions() {
       try {
-        const response = await axios.get('/api/todos/project-options')
+        const response = await axios.get('/api/projects/options')
         this.projectOptions = response.data || []
       } catch (error) {
         console.error('プロジェクト選択肢取得エラー:', error)
@@ -233,7 +229,7 @@ export const useTodosStore = defineStore('todos', {
     // InvoiceApp連動選択肢取得
     async fetchInvoiceOptions() {
       try {
-        const response = await axios.get('/api/todos/invoice-options')
+        const response = await axios.get('/api/invoices/options')
         this.invoiceOptions = response.data || []
       } catch (error) {
         console.error('請求書選択肢取得エラー:', error)

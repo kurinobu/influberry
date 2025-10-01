@@ -22,10 +22,12 @@ onMounted(async () => {
 // 認証フォーム切り替え
 const switchToLogin = () => {
   authMode.value = 'login'
+  authStore.error = null // タブ切り替え時にエラークリア
 }
 
 const switchToRegister = () => {
   authMode.value = 'register'
+  authStore.error = null // タブ切り替え時にエラークリア
 }
 
 // 認証成功時のリダイレクト処理
@@ -43,23 +45,21 @@ const handleAuthSuccess = () => {
           🍓 InfluBerry
         </h1>
         <p class="mt-2 text-gray-600 font-noto">
-          Z世代インフルエンサー向け案件管理システム
+          インフルエンサー向け案件管理システム
         </p>
       </div>
 
       <!-- 認証フォーム表示 -->
-      <div class="bg-white rounded-xl shadow-lg p-6">
-        <LoginForm 
-          v-if="authMode === 'login'" 
-          @switch-to-register="switchToRegister"
-          @auth-success="handleAuthSuccess"
-        />
-        <RegisterForm 
-          v-if="authMode === 'register'" 
-          @switch-to-login="switchToLogin"
-          @auth-success="handleAuthSuccess"
-        />
-      </div>
+      <LoginForm 
+        v-if="authMode === 'login'" 
+        @switch-to-register="switchToRegister"
+        @auth-success="handleAuthSuccess"
+      />
+      <RegisterForm 
+        v-if="authMode === 'register'" 
+        @switch-to-login="switchToLogin"
+        @auth-success="handleAuthSuccess"
+      />
 
       <!-- フッター -->
       <div class="text-center text-sm text-gray-500">

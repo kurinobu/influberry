@@ -321,8 +321,8 @@ const validateForm = () => {
   if (!formData.description.trim()) {
     errors.description = '案件概要は必須です'
     isValid = false
-  } else if (formData.description.trim().length < 10) {
-    errors.description = '案件概要は10文字以上である必要があります'
+  } else if (formData.description.trim().length < 3) {
+    errors.description = '案件概要は3文字以上である必要があります'
     isValid = false
   }
 

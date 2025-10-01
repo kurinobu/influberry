@@ -18,7 +18,7 @@ const features = [
   {
     icon: '📋',
     title: '請求書自動生成',
-    description: '案件情報から請求書を自動作成。面倒な事務作業はInfluBerryにお任せ！'
+    description: '案件情報から請求書を自動作成PDF印刷。近い将来、メール送信、会計ソフト連携予定！'
   },
   {
     icon: '📊',
@@ -50,7 +50,7 @@ const comingSoonFeatures = [
 <template>
   <div class="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
     <!-- ヘッダー -->
-    <header class="bg-white shadow-sm">
+    <header class="berry-header">
       <div class="max-w-4xl mx-auto px-4 py-6">
         <div class="flex items-center justify-between">
           <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
@@ -71,7 +71,7 @@ const comingSoonFeatures = [
       <!-- ヒーローセクション -->
       <section class="text-center mb-16">
         <h2 class="text-4xl font-bold text-gray-900 mb-4">
-          Z世代インフルエンサーのための
+          インフルエンサーのための
           <br>
           <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
             オールインワンツール
@@ -83,7 +83,7 @@ const comingSoonFeatures = [
         </p>
         
         <!-- 画像配置予定エリア（将来実装） -->
-        <div class="bg-gray-100 rounded-lg p-8 mb-8">
+        <div class="berry-card-placeholder">
           <p class="text-gray-500">📱 アプリスクリーンショット（近日公開）</p>
         </div>
       </section>
@@ -97,7 +97,7 @@ const comingSoonFeatures = [
           <div
             v-for="feature in features"
             :key="feature.title"
-            class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+            class="berry-card"
           >
             <div class="text-4xl mb-4">{{ feature.icon }}</div>
             <h4 class="text-lg font-semibold text-gray-900 mb-2">{{ feature.title }}</h4>
@@ -195,8 +195,8 @@ const comingSoonFeatures = [
     </main>
 
     <!-- フッター -->
-    <footer class="bg-gray-900 text-white py-8">
-      <div class="max-w-4xl mx-auto px-4 text-center">
+    <footer class="berry-footer">
+      <div class="berry-footer-inner">
         <p class="text-gray-400">© 2025 InfluBerry by Air Edison. All rights reserved.</p>
       </div>
     </footer>
@@ -240,5 +240,56 @@ const comingSoonFeatures = [
   .text-2xl {
     font-size: 1.5rem;
   }
+}
+
+/* Phase 4 berry化CSS - TodoApp.vue成功パターン移植 */
+.berry-header {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-bottom: 2px solid #f9a8d4;
+  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
+}
+
+.berry-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(244, 114, 182, 0.12);
+  border: 2px solid #f9a8d4;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.berry-card:hover {
+  box-shadow: 0 12px 30px rgba(244, 114, 182, 0.2);
+  transform: scale(1.02) translateY(-2px);
+}
+
+.berry-card-placeholder {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border: 2px solid #d1d5db;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.berry-footer {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%) !important;
+  border-top: 2px solid #f9a8d4 !important;
+  color: #ffffff !important;
+  padding: 2rem 0 !important;
+  box-shadow: 0 -4px 12px rgba(244, 114, 182, 0.15) !important;
+  min-height: 120px !important;
+}
+
+.berry-footer-inner {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+  text-align: center;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

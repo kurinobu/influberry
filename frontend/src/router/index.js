@@ -6,6 +6,7 @@ import AuthPage from '../views/AuthPage.vue'
 import DashboardPage from '../views/DashboardPage.vue'
 import ProjectApp from '../views/ProjectApp.vue'
 import InvoiceApp from '../views/InvoiceApp.vue'
+import TodoApp from '../views/TodoApp.vue'
 // 法的ページコンポーネント
 import AboutPage from '../views/legal/AboutPage.vue'
 import PrivacyPage from '../views/legal/PrivacyPage.vue'
@@ -59,12 +60,12 @@ const routes = [
   
   // BerryDo｜タスク管理アプリ
   {
-    path: '/apps/berry-do',
-    name: 'BerryDo',
-    component: () => import('../views/TodoApp.vue'),
+    path: '/berry-do',
+    name: 'TodoApp',
+    component: TodoApp,
     meta: { 
       requiresAuth: true,
-      title: 'InfluBerry - BerryDo｜タスク管理'
+      title: 'BerryDo｜タスク管理 - InfluBerry'
     }
   },
   

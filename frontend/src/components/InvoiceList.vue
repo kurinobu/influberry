@@ -13,6 +13,23 @@ const showDetailModal = ref(false)
 const selectedInvoice = ref(null)
 const showEditModal = ref(false)
 const editingInvoice = ref(null)
+const pdfGenerating = ref(false)
+
+// PDF生成メソッド
+const generatePDF = async (invoiceId) => {
+  pdfGenerating.value = true
+  try {
+    const result = await invoicesStore.generatePDF(invoiceId)
+    if (!result.success) {
+      alert(`PDF生成エラー: ${result.error}`)
+    }
+  } catch (error) {
+    alert(`PDF生成エラー: ${error.message}`)
+  } finally {
+    pdfGenerating.value = false
+  }
+}
+
 // 状態をsetupStateにexport
 defineExpose({
   showEditModal,
@@ -79,9 +96,16 @@ const closeEditModal = () => {
 }
 
 // 編集成功処理
-const handleEditSuccess = (result) => {
+const handleEditSuccess = async (result) => {
   console.log('請求書編集成功:', result.message)
-  // 一覧とcurrentInvoiceを更新
+  
+  // モーダル閉鎖
+  closeEditModal()
+  
+  // Store から最新データ再取得（既存成功パターン統一）
+  await invoicesStore.fetchInvoices()
+  
+  // selectedInvoice 更新
   if (selectedInvoice.value && selectedInvoice.value.id === result.invoice.id) {
     selectedInvoice.value = result.invoice
   }
@@ -173,10 +197,10 @@ const formatDate = (dateString) => {
 <template>
   <div class="space-y-6">
     <!-- ページヘッダー -->
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="berry-card">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-2xl font-bold text-gray-900">📋 請求書管理</h2>
+          <h2 class="text-lg font-bold text-gray-900">📋 請求書管理</h2>
           <p class="mt-1 text-sm text-gray-600">
             作成済み請求書の一覧・管理
           </p>
@@ -193,7 +217,7 @@ const formatDate = (dateString) => {
     <!-- 統計カード -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- ステータス別統計 -->
-      <div class="bg-white rounded-lg shadow-sm p-4">
+      <div class="berry-card">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
@@ -207,7 +231,7 @@ const formatDate = (dateString) => {
         </div>
       </div>
 
-      <div class="bg-white rounded-lg shadow-sm p-4">
+      <div class="berry-card">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -221,7 +245,7 @@ const formatDate = (dateString) => {
         </div>
       </div>
 
-      <div class="bg-white rounded-lg shadow-sm p-4">
+      <div class="berry-card">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -235,7 +259,7 @@ const formatDate = (dateString) => {
         </div>
       </div>
 
-      <div class="bg-white rounded-lg shadow-sm p-4">
+      <div class="berry-card">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
@@ -252,7 +276,7 @@ const formatDate = (dateString) => {
 
     <!-- 金額サマリー -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-white rounded-lg shadow-sm p-4">
+          <div class="berry-card">
       <div class="flex items-center">
         <div class="flex-shrink-0">
           <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
@@ -266,7 +290,7 @@ const formatDate = (dateString) => {
       </div>
     </div>
       
-      <div class="bg-white rounded-lg shadow-sm p-4">
+      <div class="berry-card">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -280,7 +304,7 @@ const formatDate = (dateString) => {
         </div>
       </div>
       
-      <div class="bg-white rounded-lg shadow-sm p-4">
+      <div class="berry-card">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
@@ -296,7 +320,7 @@ const formatDate = (dateString) => {
     </div>
 
     <!-- ステータスフィルター -->
-    <div class="bg-white rounded-lg shadow-sm p-4">
+    <div class="berry-card">
       <h3 class="text-lg font-medium text-gray-900 mb-3">📋 ステータス別フィルター</h3>
       <div class="flex flex-wrap gap-2">
         <button
@@ -328,7 +352,7 @@ const formatDate = (dateString) => {
     </div>
 
     <!-- 請求書一覧 -->
-    <div class="bg-white rounded-lg shadow-sm">
+    <div class="berry-card">
       <div class="px-6 py-4 border-b border-gray-200">
         <h3 class="text-lg font-medium text-gray-900">📄 請求書一覧</h3>
       </div>
@@ -385,7 +409,7 @@ const formatDate = (dateString) => {
                 <div class="space-y-1">
                   <div>
                     <span class="font-medium">顧客:</span>
-                    {{ invoice.company_name || '-' }}
+                    {{ invoice.client_company || '-' }}
                   </div>
                   <div v-if="invoice.project_name" class="text-sm text-gray-600">
                     {{ invoice.project_name }}
@@ -428,7 +452,7 @@ const formatDate = (dateString) => {
   </div>
   <!-- Invoice詳細モーダル -->
   <div v-if="showDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div class="berry-card max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
       <!-- モーダルヘッダー -->
       <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-t-lg">
         <div class="flex justify-between items-center">
@@ -451,7 +475,7 @@ const formatDate = (dateString) => {
             </div>
             <div>
               <label class="text-sm font-medium text-gray-600">顧客名</label>
-              <p class="text-lg font-semibold text-gray-900">{{ selectedInvoice.customer_name }}</p>
+              <p class="text-lg font-semibold text-gray-900">{{ selectedInvoice.client_company }}</p>
             </div>
             <div>
               <label class="text-sm font-medium text-gray-600">ステータス</label>
@@ -483,7 +507,7 @@ const formatDate = (dateString) => {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="text-sm font-medium text-gray-600">税抜金額</label>
-              <p class="text-xl font-bold text-gray-900">{{ formatAmount(selectedInvoice.amount) }}</p>
+              <p class="text-xl font-bold text-gray-900">{{ formatAmount(selectedInvoice.subtotal) }}</p>
             </div>
             <div>
               <label class="text-sm font-medium text-gray-600">消費税</label>
@@ -510,6 +534,9 @@ const formatDate = (dateString) => {
           <button @click="showInvoiceEdit(selectedInvoice)" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             📝 編集
           </button>
+          <button @click="generatePDF(selectedInvoice.id)" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors" :disabled="pdfGenerating">
+            {{ pdfGenerating ? '生成中...' : '📄 PDF' }}
+          </button>
         </div>
       </div>
     </div>
@@ -526,6 +553,27 @@ const formatDate = (dateString) => {
 
 
 <style scoped>
+/* === Phase 4 Z世代向けカードベースUI === */
+.berry-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(244, 114, 182, 0.12);
+  border: 2px solid #f9a8d4;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+  transform: scale(1);
+}
+
+/* === テキストサイズ統一（3アプリ統一） === */
+.text-2xl {
+  font-size: 1.25rem; /* 20px統一 */
+}
+.berry-card:hover {
+  box-shadow: 0 12px 30px rgba(244, 114, 182, 0.2);
+  transform: scale(1.02) translateY(-2px);
+}
+
 /* InfluBerry カスタムスタイル - 請求書管理画面 */
 .transition-colors {
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -550,4 +598,6 @@ const formatDate = (dateString) => {
 .bg-gradient-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops));
 }
+
+
 </style>

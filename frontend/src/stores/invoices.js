@@ -306,6 +306,40 @@ export const useInvoicesStore = defineStore('invoices', () => {
       has_prev: false
     }
   }
+  // PDF生成
+  const generatePDF = async (invoiceId) => {
+    try {
+      const response = await fetch(`${axios.defaults.baseURL}/api/invoices/${invoiceId}/pdf`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/pdf'
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'PDF生成に失敗しました')
+      }
+
+      // PDFダウンロード処理
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `invoice_${invoiceId}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+
+      return { success: true }
+    } catch (error) {
+      console.error('PDF生成エラー:', error)
+      error.value = error.message
+      return { success: false, error: error.message }
+    }
+  }
 
   return {
     // State
@@ -328,6 +362,8 @@ export const useInvoicesStore = defineStore('invoices', () => {
     updateInvoice,
     deleteInvoice,
     clearError,
-    resetStore
+    resetStore,
+    generatePDF
   }
+  
 })

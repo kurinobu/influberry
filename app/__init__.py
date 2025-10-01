@@ -11,6 +11,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_cors import CORS
+from flask_wtf.csrf import CSRFProtect
 from config import config
 
 
@@ -18,6 +19,7 @@ from config import config
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
+csrf = CSRFProtect()
 
 def create_app(config_name='development'):
     """Flask application factory"""
@@ -31,6 +33,7 @@ def create_app(config_name='development'):
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    csrf.init_app(app)
     
     # CORS Configuration
     CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True)
@@ -55,6 +58,7 @@ def create_app(config_name='development'):
     from app.blueprints.plugins import plugins_bp
     from app.blueprints.main import main_bp
     from app.blueprints.invoices import invoices_bp
+    from app.blueprints.todos import todos_bp
     from app.blueprints.domain_redirect import domain_redirect_bp
     from app.plugins.manager import plugin_manager
     
@@ -90,6 +94,7 @@ def create_app(config_name='development'):
     app.register_blueprint(plugins_bp, url_prefix='/api/plugins')
     app.register_blueprint(projects_bp, url_prefix='/api/projects')
     app.register_blueprint(invoices_bp, url_prefix='/api/invoices')
+    app.register_blueprint(todos_bp, url_prefix='/api/todos')
     # Plugin System Integration
     try:
         plugin_manager.initialize_plugins()

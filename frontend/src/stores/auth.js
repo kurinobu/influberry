@@ -229,9 +229,9 @@ export const setupAxiosInterceptors = () => {
       if (error.response?.status === 401) {
         const authStore = useAuthStore()
         // 401エラー時は認証状態をクリア
-        authStore.user = null
         authStore.isAuthenticated = false
-        authStore.error = '認証の有効期限が切れました。再度ログインしてください。'
+        authStore.user = null
+        // エラーメッセージは設定しない（正常な未ログイン状態のため）
       }
       return Promise.reject(error)
     }
