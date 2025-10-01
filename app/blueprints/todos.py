@@ -196,8 +196,10 @@ def update_todo(todo_id):
             todo.todo_title = data['todo_title']
         if 'todo_description' in data:
             todo.todo_description = data['todo_description']
-        if 'todo_due_date' in data:
+        if 'todo_due_date' in data and data['todo_due_date']:
             todo.todo_due_date = datetime.strptime(data['todo_due_date'], '%Y-%m-%d').date()
+        elif 'todo_due_date' in data and data['todo_due_date'] is None:
+            todo.todo_due_date = None
         if 'todo_priority' in data:
             todo.todo_priority = data['todo_priority']
         if 'todo_importance' in data:
