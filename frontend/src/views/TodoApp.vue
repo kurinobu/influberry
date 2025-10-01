@@ -18,8 +18,8 @@ const newTodo = ref({
   due_date: '',
   priority: 'medium',
   importance: 3,
-  project_id: null,
-  invoice_id: null
+  linked_project_id: null,
+  linked_invoice_id: null
 })
 
 // プロジェクト・請求書選択肢
@@ -50,6 +50,16 @@ const fetchInvoiceOptions = async () => {
   }
 }
 
+const getProjectName = (projectId) => {
+  const project = projectOptions.value.find(p => p.id === projectId)
+  return project ? `${project.company_name} - ${project.project_name || '名称未設定'}` : '不明'
+}
+
+const getInvoiceName = (invoiceId) => {
+  const invoice = invoiceOptions.value.find(i => i.id === invoiceId)
+  return invoice ? `${invoice.client_company}` : '不明'
+}
+
 // Todo作成
 const createNewTodo = async () => {
   try {
@@ -59,8 +69,8 @@ const createNewTodo = async () => {
       todo_due_date: newTodo.value.due_date,
       todo_priority: newTodo.value.priority,
       todo_importance: parseInt(newTodo.value.importance),
-      project_id: newTodo.value.project_id,
-      invoice_id: newTodo.value.invoice_id
+      linked_project_id: newTodo.value.linked_project_id,
+      linked_invoice_id: newTodo.value.linked_invoice_id
     }
     
     await todosStore.createTodo(todoData)
@@ -98,7 +108,9 @@ const editForm = ref({
   description: '',
   due_date: '',
   priority: 'medium',
-  importance: 3
+  importance: 3,
+  linked_project_id: null,
+  linked_invoice_id: null
 })
 
 const startEdit = (todo) => {
@@ -108,7 +120,9 @@ const startEdit = (todo) => {
     description: todo.todo_description,
     due_date: todo.todo_due_date,
     priority: todo.todo_priority,
-    importance: todo.todo_importance
+    importance: todo.todo_importance,
+    linked_project_id: todo.linked_project_id,
+    linked_invoice_id: todo.linked_invoice_id
   }
 }
 
@@ -119,7 +133,9 @@ const cancelEdit = () => {
     description: '',
     due_date: '',
     priority: 'medium',
-    importance: 3
+    importance: 3,
+    linked_project_id: null,
+    linked_invoice_id: null
   }
 }
 
@@ -130,7 +146,9 @@ const saveEdit = async () => {
       todo_description: editForm.value.description,
       todo_due_date: editForm.value.due_date,
       todo_priority: editForm.value.priority,
-      todo_importance: parseInt(editForm.value.importance)
+      todo_importance: parseInt(editForm.value.importance),
+      linked_project_id: editForm.value.linked_project_id,
+      linked_invoice_id: editForm.value.linked_invoice_id
     }
     
     await todosStore.updateTodo(editTodo.value, updateData)
@@ -341,21 +359,25 @@ const getStatusColor = (status) => {
                           placeholder="詳細説明"></textarea>
               </div>
               
-              <div class="grid grid-cols-3 gap-4">
-                <select v-model="editForm.priority" class="berry-select">
-                  <option value="low">🟢 低</option>
-                  <option value="medium">🟡 中</option>
-                  <option value="high">🔴 高</option>
-                </select>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="berry-input-group">
+                  <label class="berry-label">優先度</label>
+                  <select v-model="editForm.priority" class="berry-select">
+                    <option value="low">🟢 低</option>
+                    <option value="medium">🟡 中</option>
+                    <option value="high">🔴 高</option>
+                  </select>
+                </div>
                 
-                <select v-model="editForm.importance" class="berry-select min-w-48">
-                  <option value="1">⭐ 1</option>
-                  <option value="2">⭐⭐ 2</option>
-                  <option value="3">⭐⭐⭐ 3</option>
-                  <option value="4">⭐⭐⭐⭐ 4</option>
-                  <option value="5">⭐⭐⭐⭐⭐ 5</option>
-                </select>
-                
+                <div class="berry-input-group">
+                  <label class="berry-label">重要度</label>
+                  <select v-model="editForm.importance" class="berry-select">
+                    <option value="1">⭐ 1</option>
+                    <option value="2">⭐⭐ 2</option>
+                    <option value="3">⭐⭐⭐ 3</option>
+                    <option value="4">⭐⭐⭐⭐ 4</option>
+                    <option value="5">⭐⭐⭐⭐⭐ 5</option>
+                  </select>
                 </div>
 
                 <div class="berry-input-group">
@@ -364,6 +386,37 @@ const getStatusColor = (status) => {
                         type="date" 
                         class="berry-input" />
                 </div>
+                <!-- BerryWork・BerryPay連動機能 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div class="berry-input-group">
+                    <label class="berry-label">
+                      <span class="flex items-center">
+                        📁 関連案件（BerryWork連動）
+                      </span>
+                    </label>
+                    <select v-model="editForm.linked_project_id" class="berry-select">
+                      <option :value="null">案件を選択（任意）</option>
+                      <option v-for="project in projectOptions" :key="project.id" :value="project.id">
+                        {{ project.company_name }} - {{ project.project_name || '名称未設定' }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="berry-input-group">
+                    <label class="berry-label">
+                      <span class="flex items-center">
+                        💰 関連請求書（BerryPay連動）
+                      </span>
+                    </label>
+                    <select v-model="editForm.linked_invoice_id" class="berry-select">
+                      <option :value="null">請求書を選択（任意）</option>
+                      <option v-for="invoice in invoiceOptions" :key="invoice.id" :value="invoice.id">
+                        {{ invoice.client_company }} - ¥{{ Number(invoice.subtotal).toLocaleString() }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
 
                 <div class="flex justify-between items-center mt-6">
                 <div></div>
@@ -408,7 +461,7 @@ const getStatusColor = (status) => {
                   
                   <!-- メタ情報 -->
                   <div class="flex flex-wrap gap-3 text-sm">
-                    <span class="berry-badge" :class="getPriorityColor(todo.todo_priority)">
+                    <span class="berry-badge bg-gradient-to-r" :class="getPriorityColor(todo.todo_priority)">
                       優先度: {{ todo.todo_priority }}
                     </span>
                     <span class="berry-badge bg-gradient-to-r from-blue-300 to-indigo-400">
@@ -416,6 +469,12 @@ const getStatusColor = (status) => {
                     </span>
                     <span v-if="todo.todo_due_date" class="berry-badge bg-gradient-to-r from-purple-300 to-pink-400">
                       期限: {{ todo.todo_due_date }}
+                    </span>
+                    <span v-if="todo.linked_project_id" class="berry-badge bg-gradient-to-r from-blue-300 to-cyan-400">
+                      📁 案件: {{ getProjectName(todo.linked_project_id) }}
+                    </span>
+                    <span v-if="todo.linked_invoice_id" class="berry-badge bg-gradient-to-r from-green-300 to-emerald-400">
+                      💰 請求書: {{ getInvoiceName(todo.linked_invoice_id) }}
                     </span>
                   </div>
                 </div>
@@ -909,5 +968,29 @@ h1.text-2xl.font-bold {
 select[v-model="editForm.priority"] {
   background: linear-gradient(135deg, #fef3c7, #fbbf24) !important;
   border-color: #f59e0b !important;
+}
+/* タスクカードPhase 4デザイン */
+.berry-todo-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(244, 114, 182, 0.12);
+  border: 2px solid #f9a8d4;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  transform: scale(1);
+}
+
+.berry-todo-card:hover {
+  box-shadow: 0 12px 30px rgba(244, 114, 182, 0.2);
+  transform: scale(1.01) translateY(-2px);
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 640px) {
+  .berry-todo-card {
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+  }
 }
 </style>

@@ -47,7 +47,10 @@ class Project(db.Model):
     todo_importance = db.Column(db.Integer, nullable=True)
     todo_status = db.Column(db.String(20), nullable=True)
     
-    
+    linked_project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
+
+    linked_invoice_id = db.Column(db.Integer, db.ForeignKey('invoices.id'), nullable=True)
+
 
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
@@ -77,6 +80,8 @@ class Project(db.Model):
         self.todo_description = kwargs.get('todo_description')
         self.todo_due_date = kwargs.get('todo_due_date')
         self.todo_priority = kwargs.get('todo_priority')
+        self.linked_project_id = kwargs.get('linked_project_id')
+        self.linked_invoice_id = kwargs.get('linked_invoice_id')
         self.todo_importance = kwargs.get('todo_importance')
         self.todo_status = kwargs.get('todo_status')
     
@@ -98,7 +103,18 @@ class Project(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'is_overdue': self.is_overdue(),
-            'days_until_deadline': self.days_until_deadline()
+            'days_until_deadline': self.days_until_deadline(),
+            # Todo機能フィールド追加（2025-10-01）
+            'is_todo': self.is_todo if hasattr(self, 'is_todo') else False,
+            'todo_title': self.todo_title if hasattr(self, 'todo_title') else None,
+            'todo_description': self.todo_description if hasattr(self, 'todo_description') else None,
+            'todo_due_date': self.todo_due_date.isoformat() if hasattr(self, 'todo_due_date') and self.todo_due_date else None,
+            'todo_priority': self.todo_priority if hasattr(self, 'todo_priority') else None,
+            'todo_importance': self.todo_importance if hasattr(self, 'todo_importance') else None,
+            'todo_status': self.todo_status if hasattr(self, 'todo_status') else None,
+            # BerryWork・BerryPay連動フィールド追加（2025-10-01）
+            'linked_project_id': self.linked_project_id if hasattr(self, 'linked_project_id') else None,
+            'linked_invoice_id': self.linked_invoice_id if hasattr(self, 'linked_invoice_id') else None
         }
     
     def format_amount(self):

@@ -117,7 +117,10 @@ def create_todo():
             todo_status='pending',
             # BerryWork連動（オプション）
             project_name=data.get('project_name', ''),
-            notes=data.get('notes', '')
+            notes=data.get('notes', ''),
+            # 案件・請求書連携（オプション）
+            linked_project_id=data.get('linked_project_id'),
+            linked_invoice_id=data.get('linked_invoice_id')
         )
         
         db.session.add(todo)
@@ -131,7 +134,7 @@ def create_todo():
             'is_todo': todo.is_todo,
             'todo_title': todo.todo_title,
             'todo_description': todo.todo_description,
-            'todo_due_date': todo.todo_due_date.isoformat() if todo.todo_due_date else None
+            'todo_due_date': todo.todo_due_date.isoformat() if todo.todo_due_date else None,
         })
         
         return jsonify({
@@ -165,7 +168,8 @@ def get_todo(todo_id):
         'is_todo': todo.is_todo,
         'todo_title': todo.todo_title,
         'todo_description': todo.todo_description,
-        'todo_due_date': todo.todo_due_date.isoformat() if todo.todo_due_date else None
+        'todo_due_date': todo.todo_due_date.isoformat() if todo.todo_due_date else None,
+        'linked_project_id': todo.linked_project_id,
     })
     
     return jsonify({'todo': todo_data})
@@ -200,7 +204,12 @@ def update_todo(todo_id):
             todo.todo_importance = int(data['todo_importance'])
         if 'todo_status' in data:
             todo.todo_status = data['todo_status']
-        
+        # 案件・請求書連携フィールド更新
+        if 'linked_project_id' in data:
+            todo.linked_project_id = data['linked_project_id']
+        if 'linked_invoice_id' in data:
+            todo.linked_invoice_id = data['linked_invoice_id']
+
         # BerryWork連動フィールド更新
         if 'company_name' in data:
             todo.company_name = data['company_name']

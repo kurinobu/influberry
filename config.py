@@ -16,6 +16,11 @@ class Config:
     # Flask Core Configuration
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'influberry-secret-key-2025-change-in-production'
     
+    # CSRF対策設定
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_TIME_LIMIT = None  # トークン期限なし
+    WTF_CSRF_CHECK_DEFAULT = False  # REST API用・手動チェック
+
     # Database Configuration
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///instance/influberry_dev.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False

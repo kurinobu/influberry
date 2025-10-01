@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 px-4">
+  <div class="min-h-fit flex items-start justify-center bg-gradient-to-br from-pink-50 to-purple-50 px-4 pt-8 pb-4">
     <div class="max-w-md w-full space-y-8">
       
 
       <!-- 新規登録フォーム -->
-      <form @submit.prevent="handleRegister" class="mt-8 space-y-6">
+      <form @submit.prevent="handleRegister" class="mt-4 space-y-6">
         <!-- エラーメッセージ -->
         <div v-if="authStore.error" class="bg-red-50 border border-red-200 rounded-md p-3">
           <div class="text-sm text-red-600">
