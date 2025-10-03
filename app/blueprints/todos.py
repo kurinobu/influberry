@@ -109,6 +109,8 @@ def create_todo():
             description=data.get('todo_description', ''),
             # Todo専用フィールド
             is_todo=1,  # SQLite Boolean型対応
+            linked_project_id=data.get('linked_project_id'), 
+            linked_invoice_id=data.get('linked_invoice_id'),
             todo_title=data['todo_title'],
             todo_description=data.get('todo_description', ''),
             todo_due_date=datetime.strptime(data['todo_due_date'], '%Y-%m-%d').date(),
@@ -118,9 +120,6 @@ def create_todo():
             # BerryWork連動（オプション）
             project_name=data.get('project_name', ''),
             notes=data.get('notes', ''),
-            # 案件・請求書連携（オプション）
-            linked_project_id=data.get('linked_project_id'),
-            linked_invoice_id=data.get('linked_invoice_id')
         )
         
         db.session.add(todo)

@@ -81,10 +81,11 @@ def get_plugin_usage_stats():
         # Phase 1段階では sponsor_management のみ使用統計
         from app.models.project import Project
         
-        project_count = Project.query.filter_by(user_id=current_user.id).count()
+        project_count = Project.query.filter_by(user_id=current_user.id, is_todo=False).count()
         completed_projects = Project.query.filter_by(
             user_id=current_user.id, 
-            status='completed'
+            status='completed',
+            is_todo=False
         ).count()
         
         stats = {

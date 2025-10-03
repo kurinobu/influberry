@@ -80,12 +80,12 @@ const backToDashboard = () => {
               </div>
               <div class="flex items-center space-x-4">
                 <div class="text-center">
-                  <div class="text-2xl font-bold text-pink-600">{{ projectsStore.projects?.length || 0 }}</div>
+                  <div class="text-2xl font-bold text-pink-600">{{ projectsStore.projects?.filter(p => p.is_todo !== 1).length || 0 }}</div>
                   <div class="text-xs text-gray-500">総案件数</div>
                 </div>
                 <div class="text-center">
                   <div class="text-2xl font-bold text-green-600">
-                    {{ projectsStore.projects?.filter(p => p.status === 'completed').length || 0 }}
+                    {{ projectsStore.projects?.filter(p => p.is_todo !== 1 && p.status === 'completed').length || 0 }}
                   </div>
                   <div class="text-xs text-gray-500">完了</div>
                 </div>

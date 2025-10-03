@@ -254,6 +254,7 @@
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
 import { useInvoicesStore } from '../stores/invoices.js'
+import { trackInvoiceCreate, trackError } from '@/utils/analytics.js'
 
 // Props
 const props = defineProps({
@@ -438,16 +439,19 @@ const handleSubmit = async () => {
     const result = await invoicesStore.updateInvoice(props.invoice.id, submitData)
 
     if (result) {
+      trackInvoiceCreate(false, result.subtotal)
       emit('success', {
         message: '請求書を更新しました',
         invoice: result
       })
       closeModal()
     } else {
+      trackError('invoice_update', invoicesStore.error || '更新に失敗しました', 'InvoiceForm')
       formError.value = invoicesStore.error || '更新に失敗しました'
     }
   } catch (error) {
     console.error('請求書更新エラー:', error)
+    trackError('invoice_update', error.message, 'InvoiceForm')
     formError.value = '予期しないエラーが発生しました'
   } finally {
     isSubmitting.value = false

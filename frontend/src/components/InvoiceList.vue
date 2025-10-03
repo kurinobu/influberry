@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useInvoicesStore } from '../stores/invoices.js'
 import { useAuthStore } from '../stores/auth.js'
 import InvoiceForm from './InvoiceForm.vue'
+import { trackPdfDownload, trackError } from '@/utils/analytics.js'
 
 // Invoice管理ストア
 const invoicesStore = useInvoicesStore()
@@ -21,9 +22,13 @@ const generatePDF = async (invoiceId) => {
   try {
     const result = await invoicesStore.generatePDF(invoiceId)
     if (!result.success) {
+      trackError('pdf_generation', result.error, 'InvoiceList')
       alert(`PDF生成エラー: ${result.error}`)
+    } else {
+      trackPdfDownload('invoice')
     }
   } catch (error) {
+    trackError('pdf_generation', error.message, 'InvoiceList')
     alert(`PDF生成エラー: ${error.message}`)
   } finally {
     pdfGenerating.value = false

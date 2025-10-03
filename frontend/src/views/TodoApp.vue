@@ -6,6 +6,7 @@ import { useUIStore } from '@/stores/ui'
 import UserSettings from '@/components/UserSettings.vue'
 import BasicDataModal from '@/components/BasicDataModal.vue'
 import HamburgerMenu from '@/components/HamburgerMenu.vue'
+import { trackTaskComplete, trackError } from '@/utils/analytics.js'
 
 const router = useRouter()
 const todosStore = useTodosStore()
@@ -72,10 +73,12 @@ const createNewTodo = async () => {
       linked_project_id: newTodo.value.linked_project_id,
       linked_invoice_id: newTodo.value.linked_invoice_id
     }
+    console.log('🔍 送信するTodoデータ:', todoData)
     
     await todosStore.createTodo(todoData)
     await todosStore.fetchTodos() // 表示問題根本解決パターン適用
-    
+    trackTaskComplete('todo_create')
+
     // フォームリセット
     newTodo.value = {
       title: '',
@@ -83,8 +86,8 @@ const createNewTodo = async () => {
       due_date: '',
       priority: 'medium',
       importance: 3,
-      project_id: null,
-      invoice_id: null
+      linked_project_id: null,
+      linked_invoice_id: null
     }
   } catch (error) {
     console.error('Todo作成エラー:', error)
@@ -96,8 +99,10 @@ const toggleComplete = async (todoId) => {
   try {
     await todosStore.completeTodo(todoId)
     await todosStore.fetchTodos()
+    trackTaskComplete('todo_complete')
   } catch (error) {
     console.error('完了切り替えエラー:', error)
+    trackError('todo_complete', error.message, 'TodoApp')
   }
 }
 
@@ -153,9 +158,11 @@ const saveEdit = async () => {
     
     await todosStore.updateTodo(editTodo.value, updateData)
     await todosStore.fetchTodos()
+    trackTaskComplete('todo_update')
     cancelEdit()
   } catch (error) {
     console.error('編集エラー:', error)
+    trackError('todo_update', error.message, 'TodoApp')
   }
 }
 
@@ -165,8 +172,10 @@ const deleteTodoConfirm = async (todoId, todoTitle) => {
     try {
       await todosStore.deleteTodo(todoId)
       await todosStore.fetchTodos()
+      trackTaskComplete('todo_delete')
     } catch (error) {
       console.error('削除エラー:', error)
+      trackError('todo_delete', error.message, 'TodoApp')
     }
   }
 }
@@ -301,7 +310,7 @@ const getStatusColor = (status) => {
                     📁 関連案件（BerryWork連動）
                   </span>
                 </label>
-                <select v-model="newTodo.project_id" class="berry-select">
+                <select v-model="newTodo.linked_project_id" class="berry-select">
                   <option value="">案件を選択（任意）</option>
                   <option v-for="project in projectOptions" :key="project.id" :value="project.id">
                     {{ project.company_name }} - {{ project.project_name || '名称未設定' }}
@@ -315,7 +324,7 @@ const getStatusColor = (status) => {
                     💰 関連請求書（BerryPay連動）
                   </span>
                 </label>
-                <select v-model="newTodo.invoice_id" class="berry-select">
+                <select v-model="newTodo.linked_invoice_id" class="berry-select">
                   <option value="">請求書を選択（任意）</option>
                   <option v-for="invoice in invoiceOptions" :key="invoice.id" :value="invoice.id">
                     {{ invoice.client_company }} - ¥{{ Number(invoice.subtotal).toLocaleString() }}

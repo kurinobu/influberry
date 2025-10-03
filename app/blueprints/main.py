@@ -47,7 +47,7 @@ def user_status():
     """認証済みユーザーのステータス確認"""
     from app.models.project import Project
     
-    project_count = Project.query.filter_by(user_id=current_user.id).count()
+    project_count = Project.query.filter_by(user_id=current_user.id, is_todo=False).count()
     
     return jsonify({
         'user': current_user.to_dict(),

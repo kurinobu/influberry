@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useProjectsStore } from '../stores/projects.js'
 import { useInvoicesStore } from '../stores/invoices.js'
 import { useAuthStore } from '../stores/auth.js'
+import { trackInvoiceCreate, trackError } from '@/utils/analytics.js'
 import ProjectForm from './ProjectForm.vue'
 
 // プロジェクト管理ストア
@@ -21,8 +22,8 @@ const totalAmount = computed(() => projectsStore.totalAmount)
 
 // フィルター独立化：統計とフィルター表示の完全分離
 const filteredProjects = computed(() => {
-  if (!selectedStatus.value) return projectsStore.projects
-  return projectsStore.projects.filter(p => p.status === selectedStatus.value)
+  if (!selectedStatus.value) return projectsStore.projects.filter(p => p.is_todo !== 1)
+return projectsStore.projects.filter(p => p.is_todo !== 1 && p.status === selectedStatus.value)
 })
 
 // コンポーネント初期化
@@ -70,6 +71,7 @@ const deleteProject = async (project) => {
       console.log('プロジェクトを削除しました')
     } else {
       console.error('削除エラー:', result.error)
+      trackError('project_delete', result.error, 'ProjectList')
     }
   }
 }
@@ -80,8 +82,10 @@ const createInvoiceFromProject = async (project) => {
     const result = await invoicesStore.createInvoiceFromProject(project.id)
     if (result) {
       console.log('請求書を作成しました:', result.invoice_number)
+      trackInvoiceCreate(true, project.amount)
     } else {
       console.error('請求書作成エラー:', invoicesStore.error)
+      trackError('invoice_create', invoicesStore.error, 'ProjectList')
     }
   }
 }
