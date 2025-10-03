@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import LoginForm from '../components/LoginForm.vue'
 import RegisterForm from '../components/RegisterForm.vue'
+import AddToHomePrompt from '@/components/AddToHomePrompt.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -67,6 +68,8 @@ const handleAuthSuccess = () => {
       </div>
     </div>
   </div>
+  <!-- ホーム画面追加促進モーダル -->
+  <AddToHomePrompt page-name="auth" />
 </template>
 
 <style scoped>

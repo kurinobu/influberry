@@ -8,6 +8,7 @@ import { useTodosStore } from '../stores/todos.js'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
 import BasicDataModal from '../components/BasicDataModal.vue'
 import UserSettings from '../components/UserSettings.vue'
+import AddToHomePrompt from '@/components/AddToHomePrompt.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -236,6 +237,8 @@ const toggleBasicData = () => {
     <BasicDataModal :show="showBasicData" @close="showBasicData = false" />
 
   </div>
+  <!-- ホーム画面追加促進モーダル -->
+  <AddToHomePrompt page-name="dashboard" />
 </template>
 
 <style scoped>
