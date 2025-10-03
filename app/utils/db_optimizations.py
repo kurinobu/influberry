@@ -18,7 +18,7 @@ class ProjectQueryOptimizer:
         """
         ユーザーのプロジェクト一覧を最適化されたクエリで取得
         """
-        query = Project.query.filter_by(user_id=user_id)
+        query = Project.query.filter_by(user_id=user_id, is_todo=False)
         
         if status:
             query = query.filter_by(status=status)
@@ -54,7 +54,7 @@ class ProjectQueryOptimizer:
                 )
             ), 0).label('total_earnings'),
             func.coalesce(func.sum(Project.amount), 0).label('total_potential')
-        ).filter_by(user_id=user_id).first()
+        ).filter_by(user_id=user_id, is_todo=False).first()
         
         return {
             'total_projects': stats_query.total,
@@ -72,7 +72,7 @@ class ProjectQueryOptimizer:
         """
         最近のプロジェクトを効率的に取得
         """
-        return Project.query.filter_by(user_id=user_id)\
+        return Project.query.filter_by(user_id=user_id, is_todo=False)\
             .order_by(Project.created_at.desc())\
             .limit(limit)\
             .all()
@@ -109,7 +109,7 @@ class UserQueryOptimizer:
                     )
                 ), 0
             ).label('total_earnings')
-        ).outerjoin(Project, User.id == Project.user_id)\
+        ).outerjoin(Project, (User.id == Project.user_id) & (Project.is_todo == False))\
          .filter(User.id == user_id)\
          .group_by(User.id)\
          .first()

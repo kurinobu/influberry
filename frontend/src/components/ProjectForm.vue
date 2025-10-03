@@ -195,6 +195,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useProjectsStore } from '../stores/projects.js'
+import { trackProjectCreate, trackFormStart, trackFormAbandon } from '../utils/analytics.js'
 
 // Props
 const props = defineProps({
@@ -357,6 +358,10 @@ const handleSubmit = async () => {
       result = await projectsStore.updateProject(props.project.id, submitData)
     } else {
       result = await projectsStore.createProject(submitData)
+      // 新規作成成功時のトラッキング
+      if (result.success) {
+        trackProjectCreate('manual')
+      }
     }
 
     if (result.success) {

@@ -29,7 +29,7 @@ export const useProjectsStore = defineStore('projects', {
       current_page: 1,
       total_pages: 1,
       total_count: 0,
-      per_page: 10
+      per_page: 50
     },
     
     // フィルター・検索
@@ -77,7 +77,7 @@ export const useProjectsStore = defineStore('projects', {
     // 統一「進行中案件」数（proposed + contracted）
     pendingProjectsCount: (state) => {
       return state.projects.filter(project => 
-        project.status === 'proposed' || project.status === 'contracted'
+        project.is_todo !== 1 && (project.status === 'proposed' || project.status === 'contracted')
       ).length
     },
     
@@ -316,7 +316,7 @@ export const useProjectsStore = defineStore('projects', {
         current_page: 1,
         total_pages: 1,
         total_count: 0,
-        per_page: 10
+        per_page: 50
       }
       this.filters = {
         status: '',
