@@ -35,3 +35,13 @@ a,
     padding: 0;
   }
 }
+/* モバイルでhover無効化 */
+@media (hover: none) {
+  * {
+    pointer-events: auto !important;
+  }
+  *:hover {
+    background-color: inherit !important;
+    color: inherit !important;
+  }
+}

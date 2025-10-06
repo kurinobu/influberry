@@ -14,9 +14,10 @@ class ProjectQueryOptimizer:
     """Project関連クエリの最適化ヘルパー"""
     
     @staticmethod
-    def get_user_projects_optimized(user_id, status=None, page=1, per_page=10):
+    def get_user_projects_optimized(user_id, status=None):
         """
-        ユーザーのプロジェクト一覧を最適化されたクエリで取得
+        ユーザーのプロジェクト一覧を最適化されたクエリで取得（全件）
+
         """
         query = Project.query.filter_by(user_id=user_id, is_todo=False)
         
@@ -30,11 +31,7 @@ class ProjectQueryOptimizer:
         )
         
         # ページネーション適用
-        return query.paginate(
-            page=page,
-            per_page=per_page,
-            error_out=False
-        )
+        return query.all()
     
     @staticmethod
     def get_user_stats_optimized(user_id):

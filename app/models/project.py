@@ -166,8 +166,10 @@ class Project(db.Model):
         return self.status != 'completed'
     
     def can_delete(self):
-        """削除可能かチェック"""
-        return self.status == 'proposed'
+        """削除可能かチェック - 関連請求書がある場合は削除不可"""
+        from app.models.invoice import Invoice
+        related_invoices = Invoice.query.filter_by(project_id=self.id).count()
+        return related_invoices == 0 and self.status == 'proposed'
     
     @classmethod
     def get_by_user(cls, user_id, status=None):

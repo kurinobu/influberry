@@ -3,17 +3,32 @@ import { ref, computed, onMounted } from 'vue'
 import { useProjectsStore } from '../stores/projects.js'
 import { useInvoicesStore } from '../stores/invoices.js'
 import { useAuthStore } from '../stores/auth.js'
-import { trackInvoiceCreate, trackError } from '@/utils/analytics.js'
-import ProjectForm from './ProjectForm.vue'
+import { trackInvoiceCreate, trackProjectCreate, trackError } from '@/utils/analytics.js'
+
 
 // プロジェクト管理ストア
 const projectsStore = useProjectsStore()
 const invoicesStore = useInvoicesStore()
 
 // ローカル状態
-const showCreateForm = ref(false)
 const selectedStatus = ref('')
-const editingProject = ref(null)
+const editingProject = ref(null)  // null = 表示モード、ID = 編集モード
+const editForm = ref({
+  company_name: '',
+  project_name: '',
+  amount: '',
+  deadline: '',
+  description: '',
+  notes: '',
+  status: 'proposed'
+})
+const editErrors = ref({
+  company_name: '',
+  amount: '',
+  deadline: '',
+  description: ''
+})
+const isSubmitting = ref(false)
 
 // 計算プロパティ
 
@@ -43,26 +58,169 @@ const handleStatusFilter = (status) => {
 }
 
 // プロジェクト作成フォーム切り替え
-// ProjectForm モーダル制御
-const openCreateForm = () => {
+// 新規作成開始
+const startCreate = () => {
+  editingProject.value = 'new'
+  editForm.value = {
+    company_name: '',
+    project_name: '',
+    amount: '',
+    deadline: '',
+    description: '',
+    notes: '',
+    status: 'proposed'
+  }
+  editErrors.value = {
+    company_name: '',
+    amount: '',
+    deadline: '',
+    description: ''
+  }
+}
+
+// 編集開始
+const startEdit = (project) => {
+  editingProject.value = project.id
+  editForm.value = {
+    company_name: project.company_name || '',
+    project_name: project.project_name || '',
+    amount: project.amount || '',
+    deadline: project.deadline || '',
+    description: project.description || '',
+    notes: project.notes || '',
+    status: project.status || 'proposed'
+  }
+  editErrors.value = {
+    company_name: '',
+    amount: '',
+    deadline: '',
+    description: ''
+  }
+}
+
+// 編集キャンセル
+const cancelEdit = () => {
   editingProject.value = null
-  showCreateForm.value = true
+  editForm.value = {
+    company_name: '',
+    project_name: '',
+    amount: '',
+    deadline: '',
+    description: '',
+    notes: '',
+    status: 'proposed'
+  }
+  editErrors.value = {
+    company_name: '',
+    amount: '',
+    deadline: '',
+    description: ''
+  }
+  isSubmitting.value = false
 }
 
-const openEditForm = (project) => {
-  editingProject.value = project
-  showCreateForm.value = true
+// バリデーション（ProjectForm.vueから移植）
+const validateForm = () => {
+  let isValid = true
+  editErrors.value = {
+    company_name: '',
+    amount: '',
+    deadline: '',
+    description: ''
+  }
+
+  if (!editForm.value.company_name.trim()) {
+    editErrors.value.company_name = '企業名は必須です'
+    isValid = false
+  } else if (editForm.value.company_name.trim().length < 2) {
+    editErrors.value.company_name = '企業名は2文字以上である必要があります'
+    isValid = false
+  }
+
+  if (!editForm.value.amount || editForm.value.amount <= 0) {
+    editErrors.value.amount = '金額は1円以上である必要があります'
+    isValid = false
+  } else if (editForm.value.amount > 10000000) {
+    editErrors.value.amount = '金額は1000万円以下である必要があります'
+    isValid = false
+  }
+
+  if (!editForm.value.deadline) {
+    editErrors.value.deadline = '納期は必須です'
+    isValid = false
+  } else {
+    const deadlineDate = new Date(editForm.value.deadline)
+    const minDate = new Date()
+    minDate.setFullYear(minDate.getFullYear() - 1)
+    if (deadlineDate < minDate) {
+      editErrors.value.deadline = '納期は1年前以降の日付である必要があります'
+      isValid = false
+    }
+  }
+
+  if (!editForm.value.description.trim()) {
+    editErrors.value.description = '案件概要は必須です'
+    isValid = false
+  } else if (editForm.value.description.trim().length < 3) {
+    editErrors.value.description = '案件概要は3文字以上である必要があります'
+    isValid = false
+  }
+
+  return isValid
 }
 
-const closeProjectForm = () => {
-  showCreateForm.value = false
-  editingProject.value = null
+// 保存処理
+const saveEdit = async () => {
+  if (!validateForm()) {
+    return
+  }
+
+  isSubmitting.value = true
+
+  try {
+    const submitData = {
+      company_name: editForm.value.company_name.trim(),
+      project_name: editForm.value.project_name.trim(),
+      amount: parseFloat(editForm.value.amount),
+      deadline: editForm.value.deadline,
+      description: editForm.value.description.trim(),
+      notes: editForm.value.notes.trim()
+    }
+
+    if (editingProject.value !== 'new') {
+      submitData.status = editForm.value.status
+    }
+
+    let result
+    if (editingProject.value === 'new') {
+      result = await projectsStore.createProject(submitData)
+      if (result.success) {
+        trackProjectCreate('manual')
+      }
+    } else {
+      result = await projectsStore.updateProject(editingProject.value, submitData)
+    }
+
+    if (result.success) {
+      await projectsStore.fetchProjects()
+      cancelEdit()
+    } else {
+      alert(result.error || 'エラーが発生しました')
+    }
+  } catch (error) {
+    console.error('保存エラー:', error)
+    alert('予期しないエラーが発生しました')
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
-const handleFormSuccess = (result) => {
-  console.log(result.message)
-  projectsStore.fetchProjects()
-}
+// 今日の日付（バリデーション用）
+const today = computed(() => {
+  const now = new Date()
+  return now.toISOString().split('T')[0]
+})
+
 
 const deleteProject = async (project) => {
   if (confirm(`「${project.company_name}」を削除しますか？この操作は取り消せません。`)) {
@@ -78,15 +236,13 @@ const deleteProject = async (project) => {
 
 // 請求書作成
 const createInvoiceFromProject = async (project) => {
-  if (confirm(`「${project.company_name}」の請求書を作成しますか？`)) {
-    const result = await invoicesStore.createInvoiceFromProject(project.id)
-    if (result) {
-      console.log('請求書を作成しました:', result.invoice_number)
-      trackInvoiceCreate(true, project.amount)
-    } else {
-      console.error('請求書作成エラー:', invoicesStore.error)
-      trackError('invoice_create', invoicesStore.error, 'ProjectList')
-    }
+  const result = await invoicesStore.createInvoiceFromProject(project.id)
+  if (result) {
+    alert(`✅ 請求書を作成しました\n請求書番号: ${result.invoice_number}`)
+    trackInvoiceCreate(true, project.amount)
+  } else {
+    alert(`❌ 請求書作成に失敗しました\n${invoicesStore.error || 'エラーが発生しました'}`)
+    trackError('invoice_create', invoicesStore.error, 'ProjectList')
   }
 }
 
@@ -229,7 +385,7 @@ const getStatusColor = (status) => {
 
         <!-- 新規作成ボタン -->
         <button
-          @click="openCreateForm"
+          @click="startCreate"
           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition-colors"
         >
           ➕ 新規案件作成
@@ -272,15 +428,127 @@ const getStatusColor = (status) => {
       </div>
       
       <div class="divide-y divide-gray-200">
-        <div
-          v-for="project in filteredProjects"
-          :key="project.id"
-          class="p-6 hover:bg-gray-50 transition-colors"
-        >
+          <!-- 新規作成モード -->
+          <div v-if="editingProject === 'new'" class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 space-y-4">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">新しい案件を作成</h3>
+            
+            <div class="berry-input-group">
+              <label class="berry-label">企業名 *</label>
+              <input v-model="editForm.company_name" class="berry-input" placeholder="企業名を入力" />
+              <p v-if="editErrors.company_name" class="text-red-500 text-sm mt-1">{{ editErrors.company_name }}</p>
+            </div>
+
+            <div class="berry-input-group">
+              <label class="berry-label">プロジェクト名</label>
+              <input v-model="editForm.project_name" class="berry-input" placeholder="プロジェクト名（任意）" />
+            </div>
+
+            <div class="berry-input-group">
+              <label class="berry-label">金額 *</label>
+              <input v-model="editForm.amount" type="number" class="berry-input" placeholder="金額を入力" />
+              <p v-if="editErrors.amount" class="text-red-500 text-sm mt-1">{{ editErrors.amount }}</p>
+            </div>
+
+            <div class="berry-input-group">
+              <label class="berry-label">納期 *</label>
+              <input v-model="editForm.deadline" type="date" class="berry-input" />
+              <p v-if="editErrors.deadline" class="text-red-500 text-sm mt-1">{{ editErrors.deadline }}</p>
+            </div>
+
+            <div class="berry-input-group">
+              <label class="berry-label">案件概要 *</label>
+              <textarea v-model="editForm.description" rows="3" class="berry-input resize-none" placeholder="案件概要を入力"></textarea>
+              <p v-if="editErrors.description" class="text-red-500 text-sm mt-1">{{ editErrors.description }}</p>
+            </div>
+
+            <div class="berry-input-group">
+              <label class="berry-label">備考・メモ</label>
+              <textarea v-model="editForm.notes" rows="2" class="berry-input resize-none" placeholder="備考やメモ（任意）"></textarea>
+            </div>
+
+            <div class="flex justify-end space-x-4 mt-6">
+              <button @click="cancelEdit" class="berry-secondary-button" :disabled="isSubmitting">
+                キャンセル
+              </button>
+              <button @click="saveEdit" class="berry-primary-button" :disabled="isSubmitting">
+                {{ isSubmitting ? '作成中...' : '作成' }}
+              </button>
+            </div>
+          </div>
+
+          <div v-else-if="filteredProjects.length > 0">
+            <div
+              v-for="project in filteredProjects"
+              :key="project.id"
+              class="p-6"
+            >
           <div class="flex flex-col space-y-4">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center space-x-3">
-                <div class="space-y-1">
+            <!-- 編集モード -->
+            <div v-if="editingProject === project.id" class="space-y-4 bg-gradient-to-br from-white to-pink-50 border-2 border-pink-300 rounded-lg p-4">
+              <div class="berry-input-group">
+                <label class="berry-label">企業名 *</label>
+                <input v-model="editForm.company_name" class="berry-input" placeholder="企業名を入力" />
+                <p v-if="editErrors.company_name" class="text-red-500 text-sm mt-1">{{ editErrors.company_name }}</p>
+              </div>
+
+              <div class="berry-input-group">
+                <label class="berry-label">プロジェクト名</label>
+                <input v-model="editForm.project_name" class="berry-input" placeholder="プロジェクト名（任意）" />
+              </div>
+
+              <div class="berry-input-group">
+                <label class="berry-label">金額 *</label>
+                <input v-model="editForm.amount" type="number" class="berry-input" placeholder="金額を入力" />
+                <p v-if="editErrors.amount" class="text-red-500 text-sm mt-1">{{ editErrors.amount }}</p>
+              </div>
+
+              <div class="berry-input-group">
+                <label class="berry-label">納期 *</label>
+                <input v-model="editForm.deadline" type="date" class="berry-input" />
+                <p v-if="editErrors.deadline" class="text-red-500 text-sm mt-1">{{ editErrors.deadline }}</p>
+              </div>
+
+              <div class="berry-input-group">
+                <label class="berry-label">案件概要 *</label>
+                <textarea v-model="editForm.description" rows="3" class="berry-input resize-none" placeholder="案件概要を入力"></textarea>
+                <p v-if="editErrors.description" class="text-red-500 text-sm mt-1">{{ editErrors.description }}</p>
+              </div>
+
+              <div class="berry-input-group">
+                <label class="berry-label">備考・メモ</label>
+                <textarea v-model="editForm.notes" rows="2" class="berry-input resize-none" placeholder="備考やメモ（任意）"></textarea>
+              </div>
+
+              <div class="berry-input-group">
+                <label class="berry-label">ステータス</label>
+                <select v-model="editForm.status" class="berry-select">
+                  <option value="proposed">提案中</option>
+                  <option value="contracted">契約中</option>
+                  <option value="completed">完了</option>
+                </select>
+              </div>
+
+              <div class="flex justify-end space-x-4 mt-6">
+                <button @click="cancelEdit" class="berry-secondary-button" :disabled="isSubmitting">
+                  キャンセル
+                </button>
+                <button @click="saveEdit" class="berry-primary-button" :disabled="isSubmitting">
+                  {{ isSubmitting ? '保存中...' : '保存' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- 表示モード -->
+            <div v-else class="flex-1 min-w-0">
+              <!-- ステータスバッジ（最上部） -->
+              <div class="mb-2">
+                <span :class="['inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', getStatusColor(project.status)]">
+                  {{ project.status_display }}
+                </span>
+              </div>
+              
+              <!-- 企業名・プロジェクト名 -->
+              <div class="space-y-1">
                 <h4 class="text-sm font-medium text-gray-900 truncate">
                   {{ project.company_name }}
                 </h4>
@@ -288,33 +556,20 @@ const getStatusColor = (status) => {
                   {{ project.project_name }}
                 </div>
               </div>
-                <span
-                  :class="[
-                    'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                    getStatusColor(project.status)
-                  ]"
-                >
-                  {{ project.status_display }}
-                </span>
-              </div>
               
-              <div class="mt-2 flex items-center space-x-6 text-sm text-gray-500">
-                <div class="flex items-center">
+              <!-- 金額・納期・残り（縦並び） -->
+              <div class="mt-2 space-y-1 text-sm">
+                <div class="flex items-center text-gray-700">
                   <span class="font-medium">金額:</span>
-                  <span class="ml-1 text-gray-900">{{ project.amount_formatted }}</span>
+                  <span class="ml-1 text-gray-900 font-semibold">{{ project.amount_formatted }}</span>
                 </div>
-                <div class="flex items-center">
+                <div class="flex items-center text-gray-700">
                   <span class="font-medium">納期:</span>
                   <span class="ml-1">{{ project.deadline_formatted }}</span>
                 </div>
-                <div v-if="project.days_until_deadline !== null" class="flex items-center">
+                <div v-if="project.days_until_deadline !== null" class="flex items-center text-gray-700">
                   <span class="font-medium">残り:</span>
-                  <span 
-                    :class="[
-                      'ml-1',
-                      project.days_until_deadline <= 7 ? 'text-red-600 font-medium' : 'text-gray-900'
-                    ]"
-                  >
+                  <span :class="['ml-1', project.days_until_deadline <= 7 ? 'text-red-600 font-bold' : 'text-gray-900']">
                     {{ project.days_until_deadline }}日
                   </span>
                 </div>
@@ -325,19 +580,35 @@ const getStatusColor = (status) => {
               </p>
             </div>
             
-            <div class="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-              <button @click="openEditForm(project)" class="text-blue-600 hover:text-blue-800 text-sm">
-                📝 編集
+            <div class="flex items-center pt-3 border-t border-gray-100" style="gap: 0.5rem;">
+              <button @click.stop="startEdit(project)" 
+                      class="berry-action-button edit"
+                      title="編集">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
               </button>
-              <button @click="deleteProject(project)" class="text-red-600 hover:text-red-800 text-sm">
-                🗑️ 削除
+              <button @click.stop="deleteProject(project)" 
+                      class="berry-action-button delete"
+                      title="削除">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
               </button>
-              <button @click="createInvoiceFromProject(project)" class="text-green-600 hover:text-green-800 text-sm">
-                📄 請求書
+              <button @click.stop="createInvoiceFromProject(project)" 
+                      class="berry-action-button invoice"
+                      title="請求書作成">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
               </button>
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -349,23 +620,109 @@ const getStatusColor = (status) => {
       <h3 class="text-lg font-medium text-gray-900 mb-2">案件がありません</h3>
       <p class="text-gray-500 mb-6">新しい案件を作成して始めましょう。</p>
       <button
-        @click="openCreateForm"
+        @click="startCreate"
         class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
       >
         ➕ 最初の案件を作成
       </button>
     </div>
   </div>
-  <!-- ProjectForm モーダル -->
-  <ProjectForm
-    :is-open="showCreateForm"
-    :project="editingProject"
-    @close="closeProjectForm"
-    @success="handleFormSuccess"
-  />
 </template>
 
 <style scoped>
+/* === Phase 4 berry化デザイン（TodoApp.vueより移植） === */
+
+/* 入力フィールド（視認性最優先） */
+.berry-input-group {
+  margin-bottom: 1.5rem;
+}
+
+.berry-label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+  text-shadow: none;
+}
+
+.berry-input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 2px solid #f9a8d4;
+  background: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111827;
+  transition: all 0.2s ease;
+}
+
+.berry-input:focus {
+  outline: none;
+  border-color: #ec4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+}
+
+.berry-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.berry-select {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 2px solid #f9a8d4;
+  background: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111827;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.berry-select:focus {
+  outline: none;
+  border-color: #ec4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+}
+
+/* ボタン */
+.berry-primary-button {
+  background: linear-gradient(45deg, #ec4899, #be185d);
+  color: white;
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.berry-primary-button:hover {
+  transform: scale(1.05);
+  background: linear-gradient(45deg, #be185d, #9d174d);
+}
+
+.berry-secondary-button {
+  background: #ffffff;
+  color: #ec4899;
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  font-weight: 700;
+  border: 2px solid #f9a8d4;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.berry-secondary-button:hover {
+  background: #fdf2f8;
+  border-color: #ec4899;
+}
+
+/* 既存のberry-action-button系CSS（以下既存コードを維持） */
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -402,5 +759,66 @@ const getStatusColor = (status) => {
 .berry-card:hover {
   box-shadow: 0 12px 30px rgba(244, 114, 182, 0.2);
   transform: scale(1.02) translateY(-2px);
+}
+
+/* berry-action-button（TodoAppパターン統一） */
+.berry-action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.berry-action-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.berry-action-button.edit {
+  color: #3b82f6;
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.berry-action-button.edit:hover {
+  background: #bfdbfe;
+  border-color: #60a5fa;
+}
+
+.berry-action-button.delete {
+  color: #ef4444;
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.berry-action-button.delete:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+}
+
+.berry-action-button.invoice {
+  color: #22c55e;
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.berry-action-button.invoice:hover {
+  background: #dcfce7;
+  border-color: #4ade80;
+}
+
+/* モバイル最適化 */
+@media (max-width: 640px) {
+  .berry-action-button {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
 }
 </style>

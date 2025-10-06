@@ -109,10 +109,10 @@ class Invoice(db.Model):
     def calculate_amounts(self):
         """金額計算"""
         if self.subtotal:
-            # 消費税計算
-            self.tax_amount = self.subtotal * (self.tax_rate / Decimal('100'))
-            # 合計額計算
-            self.total_amount = self.subtotal + self.tax_amount
+            # 消費税計算（整数丸め）
+            self.tax_amount = (self.subtotal * (self.tax_rate / Decimal('100'))).quantize(Decimal('1'), rounding='ROUND_HALF_UP')
+            # 合計額計算（整数丸め）
+            self.total_amount = (self.subtotal + self.tax_amount).quantize(Decimal('1'), rounding='ROUND_HALF_UP')
     
     def auto_populate_from_project(self, project):
         """プロジェクトデータから自動入力"""

@@ -96,21 +96,21 @@ const backToDashboard = () => {
                 <!-- 2行目: 未払・下書き -->
                 <div class="text-center">
                   <div class="text-xl md:text-2xl font-bold text-yellow-600">
-                    {{ invoicesStore.invoices?.filter(i => i.status === 'pending').length || 0 }}
+                    {{ invoicesStore.invoiceStats.sent + invoicesStore.invoiceStats.overdue }}
                   </div>
                   <div class="text-xs text-gray-500">未払</div>
                 </div>
                 <div class="text-center">
-                  <div class="text-xl md:text-2xl font-bold text-gray-600">0</div>
+                  <div class="text-xl md:text-2xl font-bold text-gray-600">{{ invoicesStore.invoiceStats.draft }}</div>
                   <div class="text-xs text-gray-500">下書き</div>
                 </div>
                 
                 <!-- 3行目: 総金額（2列結合） -->
-                <div class="col-span-2 text-center">
+                <div class="col-span-2 text-right">
                   <div class="text-xl md:text-2xl font-bold text-pink-600 text-right">
-                    ¥{{ invoicesStore.invoices?.reduce((sum, i) => sum + (i.total_amount || 0), 0).toLocaleString() || 0 }}
+                    ¥{{ invoicesStore.invoiceStats.total_invoice_amount.toLocaleString() }}
                   </div>
-                  <div class="text-xs text-gray-500">総金額</div>
+                  <div class="text-xs text-gray-500 text-right">総金額</div>
                 </div>
               </div>
             </div>
@@ -146,6 +146,45 @@ const backToDashboard = () => {
 </template>
 
 <style scoped>
+
+/* === Phase 4 Z世代向けカードベースUI === */
+.berry-card-form {
+  background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(244, 114, 182, 0.15);
+  border: 2px solid #f9a8d4;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.berry-card-form:hover {
+  box-shadow: 0 20px 40px rgba(244, 114, 182, 0.2);
+  transform: translateY(-2px);
+}
+
+.berry-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(244, 114, 182, 0.12);
+  border: 2px solid #f9a8d4;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+  transform: scale(1);
+}
+
+.berry-card:hover {
+  box-shadow: 0 12px 30px rgba(244, 114, 182, 0.2);
+  transform: scale(1.02) translateY(-2px);
+}
+
+.berry-card-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f9a8d4;
+}
+
 /* === Phase 4 Z世代向けカードベースUI === */
 .berry-card {
   background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
@@ -594,4 +633,5 @@ select[v-model="editForm.priority"] {
   border-bottom: 1px solid #f9a8d4;
   box-shadow: 0 1px 3px rgba(244, 114, 182, 0.1);
 }
+
 </style>

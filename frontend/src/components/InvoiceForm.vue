@@ -28,7 +28,7 @@
       </div>
 
       <!-- フォーム本体 -->
-      <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
+      <form @submit.prevent="handleSubmit" class="p-6 space-y-6 bg-white">
         <!-- エラー表示 -->
         <div v-if="formError" class="bg-red-50 border border-red-200 rounded-lg p-4">
           <div class="flex items-center space-x-2">

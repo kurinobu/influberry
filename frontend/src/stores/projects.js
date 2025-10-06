@@ -29,7 +29,6 @@ export const useProjectsStore = defineStore('projects', {
       current_page: 1,
       total_pages: 1,
       total_count: 0,
-      per_page: 50
     },
     
     // フィルター・検索
@@ -104,7 +103,6 @@ export const useProjectsStore = defineStore('projects', {
         // APIパラメータ構築
         const queryParams = {
           page: this.pagination.current_page,
-          per_page: this.pagination.per_page,
           ...this.filters,
           ...params
         }
@@ -316,7 +314,6 @@ export const useProjectsStore = defineStore('projects', {
         current_page: 1,
         total_pages: 1,
         total_count: 0,
-        per_page: 50
       }
       this.filters = {
         status: '',

@@ -451,4 +451,15 @@ header {
   border-bottom: 1px solid #f9a8d4;
   box-shadow: 0 1px 3px rgba(244, 114, 182, 0.1);
 }
+
+/* === ボタン間隔強制適用（space-x-4有効化） === */
+.flex.space-x-4 > .berry-action-button + .berry-action-button {
+  margin-left: 1rem !important; /* 16px */
+}
+
+@media (max-width: 640px) {
+  .flex.space-x-4 > .berry-action-button + .berry-action-button {
+    margin-left: 0.75rem !important; /* 12px - モバイル最適化 */
+  }
+}
 </style>

@@ -23,8 +23,6 @@ def get_invoices():
     """ユーザーの請求書一覧取得"""
     try:
         # パラメーター取得
-        page = request.args.get('page', 1, type=int)
-        per_page = min(request.args.get('per_page', 10, type=int), 100)
         status = request.args.get('status')
         
         # クエリ構築
@@ -34,21 +32,14 @@ def get_invoices():
         if status:
             query = query.filter(Invoice.status == status)
         
-        # ページネーション
-        invoices = query.order_by(Invoice.created_at.desc()).paginate(
-            page=page, per_page=per_page, error_out=False
-        )
+        # 全件取得（ページネーション削除）
+        invoices = query.order_by(Invoice.created_at.desc()).all()
         
         return jsonify({
             'success': True,
-            'invoices': [invoice.to_dict() for invoice in invoices.items],
+            'invoices': [invoice.to_dict() for invoice in invoices],
             'pagination': {
-                'page': page,
-                'pages': invoices.pages,
-                'per_page': per_page,
-                'total': invoices.total,
-                'has_next': invoices.has_next,
-                'has_prev': invoices.has_prev
+                'total': len(invoices)
             }
         })
         

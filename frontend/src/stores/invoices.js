@@ -39,15 +39,30 @@ export const useInvoicesStore = defineStore('invoices', () => {
       paid: 0,
       overdue: 0,
       cancelled: 0,
-      total_amount: 0,
-      paid_amount: 0
+      total_invoice_amount: 0,  // 会計上の総請求書金額（sent + paid + overdue）
+      paid_amount: 0,            // 支払済金額
+      unpaid_amount: 0           // 未収金額（sent + overdue）
     }
     
     invoices.value.forEach(invoice => {
+      // ステータス別件数カウント
       stats[invoice.status] = (stats[invoice.status] || 0) + 1
-      stats.total_amount += parseFloat(invoice.total_amount || 0)
+      
+      const amount = Math.round(parseFloat(invoice.total_amount || 0))
+      
+      // 会計上の総請求書金額：sent + paid + overdue のみ
+      if (['sent', 'paid', 'overdue'].includes(invoice.status)) {
+        stats.total_invoice_amount += amount
+      }
+      
+      // 支払済金額
       if (invoice.status === 'paid') {
-        stats.paid_amount += parseFloat(invoice.total_amount || 0)
+        stats.paid_amount += amount
+      }
+      
+      // 未収金額：sent + overdue
+      if (['sent', 'overdue'].includes(invoice.status)) {
+        stats.unpaid_amount += amount
       }
     })
     
@@ -59,7 +74,7 @@ export const useInvoicesStore = defineStore('invoices', () => {
   /**
    * 請求書一覧取得
    */
-  const fetchInvoices = async (page = 1, per_page = 10) => {
+  const fetchInvoices = async () => {
     const authStore = useAuthStore()
     if (!authStore.isAuthenticated) {
       error.value = '認証が必要です'
@@ -71,9 +86,8 @@ export const useInvoicesStore = defineStore('invoices', () => {
 
     try {
       const response = await axios.get('/api/invoices/', {
-        params: { page, per_page },
-        withCredentials: true
-      })
+      withCredentials: true
+    })
 
       if (response.data.success) {
         invoices.value = response.data.invoices || []
@@ -229,7 +243,7 @@ export const useInvoicesStore = defineStore('invoices', () => {
         if (currentInvoice.value && currentInvoice.value.id === invoiceId) {
           currentInvoice.value = updatedInvoice
         }
-        return updatedInvoice
+        return { success: true, invoice: updatedInvoice }
       } else {
         error.value = response.data.error || '請求書の更新に失敗しました'
         return false

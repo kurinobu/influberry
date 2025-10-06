@@ -67,29 +67,21 @@ def get_projects():
         status = request.args.get('status')
         if status == '':  # 空文字をNoneに変換
             status = None
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 20, type=int)
+        
         
         # sort_by, order パラメータは無視（ProjectQueryOptimizerで固定順序）
         
         # 最適化されたクエリを使用
-        pagination = ProjectQueryOptimizer.get_user_projects_optimized(
+        projects = ProjectQueryOptimizer.get_user_projects_optimized(
             user_id=current_user.id,
-            status=status,
-            page=page,
-            per_page=per_page
+            status=status
         )
         # pagination.itemsを直接使用（変数代入を削除）
         
         return jsonify({
-            'projects': [project.to_dict() for project in pagination.items],
+            'projects': [project.to_dict() for project in projects],
             'pagination': {
-                'page': page,
-                'per_page': per_page,
-                'total': pagination.total,
-                'pages': pagination.pages,
-                'has_next': pagination.has_next,
-                'has_prev': pagination.has_prev
+                'total': len(projects)
             }
         }), 200
         

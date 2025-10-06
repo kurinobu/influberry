@@ -1,0 +1,4 @@
+cssselect2==0.8.0
+pydyf==0.11.0
+tinycss2==1.4.0
+weasyprint==60.2

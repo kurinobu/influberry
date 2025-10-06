@@ -2,19 +2,36 @@
 import { ref, computed, onMounted } from 'vue'
 import { useInvoicesStore } from '../stores/invoices.js'
 import { useAuthStore } from '../stores/auth.js'
-import InvoiceForm from './InvoiceForm.vue'
 import { trackPdfDownload, trackError } from '@/utils/analytics.js'
 
 // Invoice管理ストア
 const invoicesStore = useInvoicesStore()
 
 // ローカル状態
+// ローカル状態
 const selectedStatus = ref('')
 const showDetailModal = ref(false)
 const selectedInvoice = ref(null)
-const showEditModal = ref(false)
-const editingInvoice = ref(null)
 const pdfGenerating = ref(false)
+
+// インライン編集状態（ProjectList.vue統一）
+const editingInvoice = ref(null)  // null = 表示モード、ID = 編集モード
+const editForm = ref({
+  customer_name: '',
+  amount: '',
+  tax_rate: 10,
+  status: 'draft',
+  due_date: '',
+  description: '',
+  project_name: ''
+})
+const editErrors = ref({
+  customer_name: '',
+  amount: '',
+  due_date: '',
+  description: ''
+})
+const isSubmitting = ref(false)
 
 // PDF生成メソッド
 const generatePDF = async (invoiceId) => {
@@ -35,11 +52,7 @@ const generatePDF = async (invoiceId) => {
   }
 }
 
-// 状態をsetupStateにexport
-defineExpose({
-  showEditModal,
-  editingInvoice
-})
+
 // 計算プロパティ
 const statusCounts = computed(() => ({
   draft: invoicesStore.invoiceStats.draft,
@@ -49,9 +62,9 @@ const statusCounts = computed(() => ({
   cancelled: invoicesStore.invoiceStats.cancelled
 }))
 
-const totalAmount = computed(() => invoicesStore.invoiceStats.total_amount)
+const totalAmount = computed(() => invoicesStore.invoiceStats.total_invoice_amount)
 const paidAmount = computed(() => invoicesStore.invoiceStats.paid_amount)
-const unpaidAmount = computed(() => totalAmount.value - paidAmount.value)
+const unpaidAmount = computed(() => invoicesStore.invoiceStats.unpaid_amount)
 
 // 詳細表示関数
 const showInvoiceDetail = async (invoice) => {
@@ -75,44 +88,113 @@ const closeDetailModal = () => {
   selectedInvoice.value = null
 }
 
-// 編集モーダル開始
-const showInvoiceEdit = (invoice) => {
-  console.log('=== 編集ボタンクリック開始 ===')
-  console.log('1. 受信invoice:', invoice)
-  console.log('2. 変更前showEditModal:', showEditModal.value)
-  console.log('3. 変更前editingInvoice:', editingInvoice.value)
-  
-  editingInvoice.value = {
-    ...invoice,
+// 編集開始（ProjectList.vue統一）
+const startEdit = (invoice) => {
+  editingInvoice.value = invoice.id
+  editForm.value = {
     customer_name: invoice.client_company || invoice.customer_name || '',
-    amount: parseFloat(invoice.subtotal || invoice.amount || 0)
+    amount: parseFloat(invoice.subtotal || invoice.amount || 0),
+    tax_rate: parseFloat(invoice.tax_rate || 10),
+    status: invoice.status || 'draft',
+    due_date: invoice.due_date || '',
+    description: invoice.description || '',
+    project_name: invoice.project_name || ''
   }
-  showEditModal.value = true
-  
-  console.log('4. 変更後showEditModal:', showEditModal.value)
-  console.log('5. 変更後editingInvoice:', editingInvoice.value)
-  console.log('=== 編集ボタンクリック完了 ===')
+  editErrors.value = {
+    customer_name: '',
+    amount: '',
+    due_date: '',
+    description: ''
+  }
 }
 
-// 編集モーダル閉鎖
-const closeEditModal = () => {
-  showEditModal.value = false
+// 編集キャンセル
+const cancelEdit = () => {
   editingInvoice.value = null
+  editForm.value = {
+    customer_name: '',
+    amount: '',
+    tax_rate: 10,
+    status: 'draft',
+    due_date: '',
+    description: '',
+    project_name: ''
+  }
+  editErrors.value = {
+    customer_name: '',
+    amount: '',
+    due_date: '',
+    description: ''
+  }
+  isSubmitting.value = false
 }
 
-// 編集成功処理
-const handleEditSuccess = async (result) => {
-  console.log('請求書編集成功:', result.message)
-  
-  // モーダル閉鎖
-  closeEditModal()
-  
-  // Store から最新データ再取得（既存成功パターン統一）
-  await invoicesStore.fetchInvoices()
-  
-  // selectedInvoice 更新
-  if (selectedInvoice.value && selectedInvoice.value.id === result.invoice.id) {
-    selectedInvoice.value = result.invoice
+// バリデーション
+const validateForm = () => {
+  let isValid = true
+  editErrors.value = {
+    customer_name: '',
+    amount: '',
+    due_date: '',
+    description: ''
+  }
+
+  if (!editForm.value.customer_name.trim()) {
+    editErrors.value.customer_name = '顧客名は必須です'
+    isValid = false
+  }
+
+  if (!editForm.value.amount || editForm.value.amount <= 0) {
+    editErrors.value.amount = '金額は1円以上である必要があります'
+    isValid = false
+  }
+
+  if (!editForm.value.due_date) {
+    editErrors.value.due_date = '支払期限は必須です'
+    isValid = false
+  }
+
+  if (!editForm.value.description.trim()) {
+    editErrors.value.description = '説明は必須です'
+    isValid = false
+  }
+
+  return isValid
+}
+
+// 保存処理
+const saveEdit = async () => {
+  if (!validateForm()) {
+    return
+  }
+
+  isSubmitting.value = true
+
+  try {
+    const submitData = {
+      client_company: editForm.value.customer_name.trim(),  // customer_name → client_company
+      subtotal: parseFloat(editForm.value.amount),          // amount → subtotal
+      tax_rate: parseFloat(editForm.value.tax_rate),
+      status: editForm.value.status,
+      due_date: editForm.value.due_date,
+      description: editForm.value.description.trim(),
+      project_name: editForm.value.project_name.trim()
+    }
+
+    const result = await invoicesStore.updateInvoice(editingInvoice.value, submitData)
+
+    if (result.success) {
+      await invoicesStore.fetchInvoices()
+      cancelEdit()
+    } else {
+      alert(`保存エラー: ${result.error || '不明なエラー'}`)
+    }
+  } catch (error) {
+    console.error('保存エラー:', error)
+    trackError('invoice_update', error.message, 'InvoiceList')
+    alert(`保存エラー: ${error.message}`)
+  } finally {
+    isSubmitting.value = false
   }
 }
 
@@ -188,7 +270,7 @@ const formatAmount = (amount) => {
   return new Intl.NumberFormat('ja-JP', {
     style: 'currency',
     currency: 'JPY'
-  }).format(amount || 0)
+  }).format(Math.round(amount || 0))
 }
 
 // 日付フォーマット
@@ -280,20 +362,27 @@ const formatDate = (dateString) => {
     </div>
 
     <!-- 金額サマリー -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="berry-card">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-            <span class="text-sm">💰</span>
+    <!-- 総請求額: 全幅カード -->
+    <div class="berry-card mb-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+              <span class="text-sm">💰</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">総請求額</p>
           </div>
         </div>
-        <div class="ml-4">
-          <p class="text-sm font-medium text-gray-500">総請求額</p>
+        <div class="text-right">
           <p class="text-xl font-semibold text-gray-900">{{ formatAmount(totalAmount) }}</p>
         </div>
       </div>
     </div>
+
+    <!-- 支払済み・未収金額: 2カラムGrid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       
       <div class="berry-card">
         <div class="flex items-center">
@@ -395,20 +484,76 @@ const formatDate = (dateString) => {
           class="p-6 hover:bg-gray-50 transition-colors"
         >
           <div class="flex flex-col space-y-4">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center space-x-3">
-                <h4 class="text-lg font-medium text-gray-900">
-                  {{ invoice.invoice_number }}
-                </h4>
-                <span 
-                  :class="[
-                    'px-2 py-1 text-xs font-medium rounded-full',
-                    getStatusColor(invoice.status)
-                  ]"
-                >
+            <!-- 編集モード（ProjectList.vue統一） -->
+            <div v-if="editingInvoice === invoice.id" class="space-y-4 bg-gradient-to-br from-white to-pink-50 border-2 border-pink-300 rounded-lg p-4">
+              <div class="berry-input-group">
+                <label class="berry-label">顧客名 *</label>
+                <input v-model="editForm.customer_name" class="berry-input" placeholder="顧客名を入力" />
+                <p v-if="editErrors.customer_name" class="text-red-500 text-sm mt-1">{{ editErrors.customer_name }}</p>
+              </div>
+
+              <div class="berry-input-group">
+                <label class="berry-label">プロジェクト名</label>
+                <input v-model="editForm.project_name" class="berry-input" placeholder="プロジェクト名（任意）" />
+              </div>
+
+              <div class="berry-input-group">
+                <label class="berry-label">税抜金額 *</label>
+                <input v-model="editForm.amount" type="number" class="berry-input" placeholder="金額を入力" />
+                <p v-if="editErrors.amount" class="text-red-500 text-sm mt-1">{{ editErrors.amount }}</p>
+              </div>
+
+              <div class="berry-input-group">
+                <label class="berry-label">消費税率（%）</label>
+                <input v-model="editForm.tax_rate" type="number" step="0.1" class="berry-input" placeholder="10" />
+              </div>
+
+              <div class="berry-input-group">
+                <label class="berry-label">支払期限 *</label>
+                <input v-model="editForm.due_date" type="date" class="berry-input" />
+                <p v-if="editErrors.due_date" class="text-red-500 text-sm mt-1">{{ editErrors.due_date }}</p>
+              </div>
+
+              <div class="berry-input-group">
+                <label class="berry-label">説明 *</label>
+                <textarea v-model="editForm.description" rows="3" class="berry-input resize-none" placeholder="説明を入力"></textarea>
+                <p v-if="editErrors.description" class="text-red-500 text-sm mt-1">{{ editErrors.description }}</p>
+              </div>
+
+              <div class="berry-input-group">
+                <label class="berry-label">ステータス</label>
+                <select v-model="editForm.status" class="berry-select">
+                  <option value="draft">下書き</option>
+                  <option value="sent">送信済み</option>
+                  <option value="paid">支払済み</option>
+                  <option value="overdue">期限超過</option>
+                  <option value="cancelled">キャンセル</option>
+                </select>
+              </div>
+
+              <div class="flex justify-end space-x-4 mt-6">
+                <button @click="cancelEdit" class="berry-secondary-button" :disabled="isSubmitting">
+                  キャンセル
+                </button>
+                <button @click="saveEdit" class="berry-primary-button" :disabled="isSubmitting">
+                  {{ isSubmitting ? '保存中...' : '保存' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- 通常表示モード -->
+            <div v-else class="flex-1 min-w-0">
+              <!-- ステータスバッジ（最上部） -->
+              <div class="mb-2">
+                <span :class="['inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', getStatusColor(invoice.status)]">
                   {{ getStatusDisplay(invoice.status) }}
                 </span>
               </div>
+              
+              <!-- 請求書番号 -->
+              <h4 class="text-lg font-medium text-gray-900">
+                {{ invoice.invoice_number }}
+              </h4>
               
               <div class="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                 <div class="space-y-1">
@@ -440,14 +585,24 @@ const formatDate = (dateString) => {
               </div>
             </div>
             
-            <div class="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-              <button @click="showInvoiceEdit(invoice)" class="text-blue-600 hover:text-blue-800 text-sm">
-                📝 編集
+            <div class="flex items-center pt-3 border-t border-gray-100" style="gap: 1rem;">
+              <button @click.stop="startEdit(invoice)" 
+                      class="berry-action-button edit"
+                      title="編集">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
               </button>
-              <button 
-                @click="showInvoiceDetail(invoice)"
-                class="text-green-600 hover:text-green-800 text-sm">
-                👁️ 詳細
+              <button @click.stop="showInvoiceDetail(invoice)" 
+                      class="berry-action-button view"
+                      title="詳細表示">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
               </button>
             </div>
           </div>
@@ -547,12 +702,7 @@ const formatDate = (dateString) => {
     </div>
   </div>
   <!-- Invoice編集フォーム -->
-  <InvoiceForm
-    :is-open="showEditModal"
-    :invoice="editingInvoice"
-    @close="closeEditModal"
-    @success="handleEditSuccess"
-  />
+  
 </template>
 
 
@@ -604,5 +754,197 @@ const formatDate = (dateString) => {
   background-image: linear-gradient(to right, var(--tw-gradient-stops));
 }
 
+/* berry-action-button（TodoAppパターン統一） */
+.berry-action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  border: 2px solid transparent;
+}
 
+.berry-action-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.berry-action-button.edit {
+  color: #3b82f6;
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.berry-action-button.edit:hover {
+  background: #bfdbfe;
+  border-color: #60a5fa;
+}
+
+.berry-action-button.view {
+  color: #22c55e;
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.berry-action-button.view:hover {
+  background: #dcfce7;
+  border-color: #4ade80;
+}
+
+/* モバイル最適化 */
+@media (max-width: 640px) {
+  .berry-action-button {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+
+/* === Phase 4 berry化デザイン（TodoApp.vue統一） === */
+
+/* 入力フィールド（視認性最優先） */
+.berry-input-group {
+  margin-bottom: 1.5rem;
+}
+
+.berry-label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+  text-shadow: none;
+}
+
+.berry-input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 2px solid #f9a8d4;
+  background: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+}
+
+.berry-input:focus {
+  outline: none;
+  border-color: #ec4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+  background: #ffffff;
+}
+
+.berry-select {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 2px solid #f9a8d4;
+  background: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111827;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.berry-select:focus {
+  outline: none;
+  border-color: #ec4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+}
+
+/* ボタンデザイン */
+.berry-primary-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(45deg, #ec4899, #be185d);
+  border: none;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  transform: scale(1);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  cursor: pointer;
+}
+
+.berry-primary-button:hover {
+  background: linear-gradient(45deg, #be185d, #9d174d);
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+}
+
+.berry-primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: scale(1);
+}
+
+.berry-secondary-button {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  background: #ffffff;
+  border: 2px solid #d1d5db;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.berry-secondary-button:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #111827;
+}
+
+.berry-secondary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* アクションボタン（丸型・TikTokライク） */
+.berry-action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.berry-action-button.edit {
+  color: #3b82f6;
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.berry-action-button.edit:hover {
+  background: #bfdbfe;
+  border-color: #60a5fa;
+}
+
+.berry-action-button.view {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.berry-action-button.view:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
 </style>

@@ -16,7 +16,7 @@ class InputValidator:
     """入力値バリデーションクラス"""
     
     # 安全な文字パターン
-    SAFE_STRING_PATTERN = re.compile(r'^[a-zA-Z0-9\s\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\-_.,!?()/]*$')
+    SAFE_STRING_PATTERN = re.compile(r'^[a-zA-Z0-9\s\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\-_.,!?()/]*$')
     EMAIL_PATTERN = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
     USERNAME_PATTERN = re.compile(r'^[a-zA-Z0-9_]{3,20}$')
     
