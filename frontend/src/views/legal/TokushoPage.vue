@@ -9,7 +9,7 @@ const goHome = () => {
 }
 
 // 最終更新日
-const lastUpdated = '2025年9月17日'
+const lastUpdated = '2025年10月9日'
 </script>
 
 <template>
@@ -94,10 +94,9 @@ const lastUpdated = '2025年9月17日'
               <h3 class="font-semibold text-gray-800 mb-3">提供サービス</h3>
               <ul class="list-disc list-inside space-y-1 text-sm text-gray-700">
                 <li>InfluBerry - インフルエンサー向け案件管理Webアプリケーション</li>
-                <li>スポンサー案件管理機能</li>
                 <li>請求書自動生成機能</li>
+                <li>タスク管理機能</li>
                 <li>ダッシュボード・統計機能</li>
-                <li>カスタマーサポート</li>
               </ul>
             </div>
             
@@ -107,12 +106,12 @@ const lastUpdated = '2025年9月17日'
                 <div class="bg-white p-4 rounded-lg border">
                   <h4 class="font-medium text-gray-800 mb-2">基本プラン</h4>
                   <p class="text-2xl font-bold text-gray-800 mb-1">無料</p>
-                  <p class="text-sm text-gray-600">基本的な案件管理機能をご利用いただけます</p>
+                  <p class="text-sm text-gray-600">基本的な案件管理機能などを一部制限してご利用いただけます</p>
                 </div>
                 <div class="bg-white p-4 rounded-lg border">
                   <h4 class="font-medium text-gray-800 mb-2">プレミアムプラン</h4>
                   <p class="text-2xl font-bold text-gray-800 mb-1">月額1,280円<span class="text-sm font-normal">（税込）</span></p>
-                  <p class="text-sm text-gray-600">高度な機能とプレミアムサポートが利用可能（今後提供予定）</p>
+                  <p class="text-sm text-gray-600">制限無しのご利用</p>
                 </div>
               </div>
             </div>
