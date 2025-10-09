@@ -110,7 +110,7 @@ const backToDashboard = () => {
                   <div class="text-xl md:text-2xl font-bold text-pink-600">
                     ¥{{ invoicesStore.invoiceStats.total_invoice_amount.toLocaleString() }}
                   </div>
-                  <div class="text-xs text-gray-500">総金額</div>
+                  <div class="text-xs text-gray-500">総請求額</div>
                 </div>
               </div>
             </div>

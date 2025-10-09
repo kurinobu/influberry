@@ -212,3 +212,34 @@ def plugins_health_check():
         
     except Exception as e:
         return jsonify({'error': 'ヘルスチェックエラー'}), 500
+
+@plugins_bp.route('/api/todos/stats', methods=['GET'])
+@login_required
+def get_todo_stats():
+    """Todo統計取得API - 未完了タスク数を返す"""
+    try:
+        # 総タスク数
+        total_todos = Project.query.filter_by(
+            user_id=current_user.id,
+            is_todo=True
+        ).count()
+        
+        # 完了タスク数
+        completed_todos = Project.query.filter_by(
+            user_id=current_user.id,
+            is_todo=True,
+            todo_status='completed'
+        ).count()
+        
+        # 未完了タスク数 = 総タスク数 - 完了タスク数
+        pending_todos = total_todos - completed_todos
+        
+        return jsonify({
+            'total_todos': total_todos,
+            'completed_todos': completed_todos,
+            'pending_todos': pending_todos
+        }), 200
+        
+    except Exception as e:
+        print(f"Todo統計取得エラー: {str(e)}")
+        return jsonify({'error': 'Todo統計の取得に失敗しました'}), 500

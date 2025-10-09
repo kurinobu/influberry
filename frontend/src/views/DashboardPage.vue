@@ -27,12 +27,11 @@ const stats = computed(() => {
   return {
     totalProjects: projectsStore.totalProjectsCount,
     completedProjects: projectsStore.completedCount,
-    pendingProjects: projectsStore.pendingProjectsCount,  // ← 統一修正
+    pendingProjects: projectsStore.pendingProjectsCount,
     totalInvoices: invoices.length,
     totalTodos: todosStore.todos?.length || 0,
-    totalRevenue: projectsStore.projects
-      .filter(p => p.status === 'completed')
-      .reduce((sum, p) => sum + (p.amount || 0), 0)
+    totalInvoiceAmount: invoicesStore.invoiceStats.total_invoice_amount,
+    pendingTodos: todosStore.stats.pending_todos || 0
   }
 })
 
@@ -118,8 +117,12 @@ const toggleBasicData = () => {
               <div class="text-sm text-gray-600">請求書数</div>
             </div>
             <div class="berry-card text-center">
-              <div class="text-2xl font-bold text-pink-600">¥{{ stats.totalRevenue.toLocaleString() }}</div>
-              <div class="text-sm text-gray-600">総収益</div>
+              <div class="text-2xl font-bold text-pink-600">¥{{ stats.totalInvoiceAmount.toLocaleString() }}</div>
+              <div class="text-sm text-gray-600">総請求額</div>
+            </div>
+            <div class="berry-card text-center">
+              <div class="text-2xl font-bold text-blue-600">{{ stats.pendingTodos }}</div>
+              <div class="text-sm text-gray-600">総タスク数</div>
             </div>
           </div>
         </div>
