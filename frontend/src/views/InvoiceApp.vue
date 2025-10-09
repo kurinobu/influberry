@@ -105,12 +105,12 @@ const backToDashboard = () => {
                   <div class="text-xs text-gray-500">下書き</div>
                 </div>
                 
-                <!-- 3行目: 総金額（2列結合） -->
-                <div class="col-span-2 text-right">
-                  <div class="text-xl md:text-2xl font-bold text-pink-600 text-right">
+                <!-- 3行目: 総金額（2列結合・flexbox右寄せ） -->
+                <div class="col-span-2 flex flex-col items-end">
+                  <div class="text-xl md:text-2xl font-bold text-pink-600">
                     ¥{{ invoicesStore.invoiceStats.total_invoice_amount.toLocaleString() }}
                   </div>
-                  <div class="text-xs text-gray-500 text-right">総金額</div>
+                  <div class="text-xs text-gray-500">総金額</div>
                 </div>
               </div>
             </div>

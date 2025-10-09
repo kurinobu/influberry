@@ -691,9 +691,6 @@ const formatDate = (dateString) => {
           <button @click="closeDetailModal" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
             閉じる
           </button>
-          <button @click="showInvoiceEdit(selectedInvoice)" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            📝 編集
-          </button>
           <button @click="generatePDF(selectedInvoice.id)" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors" :disabled="pdfGenerating">
             {{ pdfGenerating ? '生成中...' : '📄 PDF' }}
           </button>
