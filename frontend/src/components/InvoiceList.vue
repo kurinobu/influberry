@@ -447,7 +447,7 @@ const formatDate = (dateString) => {
 
     <!-- 請求書一覧 -->
     <div class="berry-card">
-      <div class="px-6 py-4 border-b border-gray-200">
+      <div class="py-4 border-b border-gray-200">
         <h3 class="text-lg font-medium text-gray-900">📄 請求書一覧</h3>
       </div>
       

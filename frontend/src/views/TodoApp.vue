@@ -220,7 +220,7 @@ const getStatusColor = (status) => {
     </header>
 
     <!-- メインコンテンツ -->
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+    <main class="max-w-7xl mx-auto py-8 pb-24">
       <!-- ローディング状態 -->
       <div v-if="todosStore.loading" class="text-center py-12">
         <div class="berry-loading">
