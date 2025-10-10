@@ -3,6 +3,28 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import { useUIStore } from '../stores/ui.js'
+import DashboardIcon from './icons/DashboardIcon.vue'
+import BriefcaseIcon from './icons/BriefcaseIcon.vue'
+import InvoiceIcon from './icons/InvoiceIcon.vue'
+import ChecklistIcon from './icons/ChecklistIcon.vue'
+import SettingsIcon from './icons/SettingsIcon.vue'
+import DiamondIcon from './icons/DiamondIcon.vue'
+import SmartphoneIcon from './icons/SmartphoneIcon.vue'
+import FolderIcon from './icons/FolderIcon.vue'
+import LogoutIcon from './icons/LogoutIcon.vue'
+
+// コンポーネントマッピング用オブジェクト
+const iconComponents = {
+  DashboardIcon,
+  BriefcaseIcon,
+  InvoiceIcon,
+  ChecklistIcon,
+  SettingsIcon,
+  DiamondIcon,
+  SmartphoneIcon,
+  FolderIcon,
+  LogoutIcon
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -58,25 +80,25 @@ const planInfo = computed(() => {
 // メニュー項目定義
 const menuItems = [
   {
-    icon: '📊',
+    icon: 'DashboardIcon',
     name: 'ダッシュボード',
     path: '/dashboard',
     available: true
   },
   {
-    icon: '🏢',
+    icon: 'BriefcaseIcon',
     name: 'BerryWork｜案件管理',
     path: '/apps/projects',
     available: true
   },
   {
-    icon: '📋',
+    icon: 'InvoiceIcon',
     name: 'BerryPay｜請求書管理',
     path: '/apps/invoices',
     available: true
   },
   {
-    icon: '📝',
+    icon: 'ChecklistIcon',
     name: 'BerryDo｜タスク管理',
     path: '/berry-do',
     available: true
@@ -85,27 +107,27 @@ const menuItems = [
 
 const settingsItems = ref([
   {
-    icon: '⚙️',
+    icon: 'SettingsIcon',
     name: '設定',
     action: 'settings'
   },
   {
-    icon: '💎',
+    icon: 'DiamondIcon',
     name: 'プラン管理　準備中',
     action: 'plan'
   },
   {
-    icon: '📱',
+    icon: 'SmartphoneIcon',
     name: 'アプリ説明',
     action: 'about'
   },
   {
-    icon: '📋',
+    icon: 'FolderIcon',
     name: '基本データ',
     action: 'basicData'
   },
   {
-    icon: '🚪',
+    icon: 'LogoutIcon',
     name: 'ログアウト',
     action: 'logout'
   }
@@ -218,7 +240,7 @@ const handleOverlayClick = (event) => {
                     : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                 ]"
               >
-                <span class="text-lg mr-3">{{ item.icon }}</span>
+                <component :is="iconComponents[item.icon]" :size="24" class="mr-3" />
                 {{ item.name }}
               </button>
               
@@ -230,7 +252,7 @@ const handleOverlayClick = (event) => {
                   'text-gray-400 cursor-not-allowed relative'
                 ]"
               >
-                <span class="text-lg mr-3 grayscale">{{ item.icon }}</span>
+                <component :is="iconComponents[item.icon]" :size="24" class="mr-3 opacity-50" />
                 {{ item.name }}
                 <span v-if="item.isPro" class="ml-auto text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">
                   🔒 Pro限定
@@ -254,7 +276,7 @@ const handleOverlayClick = (event) => {
                 @click="handleAction(item.action)"
                 class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors"
               >
-                <span class="text-lg mr-3">{{ item.icon }}</span>
+                <component :is="iconComponents[item.icon]" :size="24" class="mr-3" />
                 {{ item.name }}
               </button>
             </div>
@@ -269,9 +291,9 @@ const handleOverlayClick = (event) => {
           <button
             v-if="planInfo.canUpgrade"
             @click="handleAction('plan')"
-            class="w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-sm font-medium rounded-md hover:from-pink-600 hover:to-purple-700 transition-colors"
+            class="w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-sm font-medium rounded-md hover:from-pink-600 hover:to-purple-700 transition-colors flex items-center justify-center"
           >
-            💎 アップグレード
+            <DiamondIcon :size="20" /> アップグレード
           </button>
         </div>
       </div>

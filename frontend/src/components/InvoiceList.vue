@@ -3,6 +3,16 @@ import { ref, computed, onMounted } from 'vue'
 import { useInvoicesStore } from '../stores/invoices.js'
 import { useAuthStore } from '../stores/auth.js'
 import { trackPdfDownload, trackError } from '@/utils/analytics.js'
+// SVGアイコン追加
+import InvoiceIcon from './icons/InvoiceIcon.vue'
+import EditIcon from './icons/EditIcon.vue'
+import ChecklistIcon from './icons/ChecklistIcon.vue'
+import MoneyIcon from './icons/MoneyIcon.vue'
+import DashboardIcon from './icons/DashboardIcon.vue'
+import CloseIcon from './icons/CloseIcon.vue'
+import PdfIcon from './icons/PdfIcon.vue'
+import SendIcon from './icons/SendIcon.vue'
+import AlertIcon from './icons/AlertIcon.vue'
 
 // Invoice管理ストア
 const invoicesStore = useInvoicesStore()
@@ -287,7 +297,10 @@ const formatDate = (dateString) => {
     <div class="berry-card">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-lg font-bold text-gray-900">📋 請求書管理</h2>
+          <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <InvoiceIcon :size="24" color="#a855f7" />
+            請求書管理
+          </h2>
           <p class="mt-1 text-sm text-gray-600">
             作成済み請求書の一覧・管理
           </p>
@@ -308,7 +321,7 @@ const formatDate = (dateString) => {
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-              <span class="text-sm">📝</span>
+              <EditIcon :size="16" color="#3b82f6" />
             </div>
           </div>
           <div class="ml-4">
@@ -322,7 +335,7 @@ const formatDate = (dateString) => {
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <span class="text-sm">📤</span>
+              <SendIcon :size="16" color="#3b82f6" />
             </div>
           </div>
           <div class="ml-4">
@@ -336,7 +349,7 @@ const formatDate = (dateString) => {
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <span class="text-sm">✅</span>
+              <ChecklistIcon :size="16" color="#10b981" />
             </div>
           </div>
           <div class="ml-4">
@@ -350,7 +363,7 @@ const formatDate = (dateString) => {
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-              <span class="text-sm">⚠️</span>
+              <AlertIcon :size="16" color="#ef4444" />
             </div>
           </div>
           <div class="ml-4">
@@ -368,7 +381,7 @@ const formatDate = (dateString) => {
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-              <span class="text-sm">💰</span>
+              <MoneyIcon :size="16" color="#10b981" />
             </div>
           </div>
           <div class="ml-4">
@@ -402,7 +415,7 @@ const formatDate = (dateString) => {
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-              <span class="text-sm">📊</span>
+              <DashboardIcon :size="16" color="#ec4899" />
             </div>
           </div>
           <div class="ml-4">
@@ -415,7 +428,10 @@ const formatDate = (dateString) => {
 
     <!-- ステータスフィルター -->
     <div class="berry-card">
-      <h3 class="text-lg font-medium text-gray-900 mb-3">📋 ステータス別フィルター</h3>
+      <h3 class="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
+        <InvoiceIcon :size="20" color="#a855f7" />
+        ステータス別フィルター
+      </h3>
       <div class="flex flex-wrap gap-2">
         <button
           @click="handleStatusFilter('')"
@@ -470,7 +486,8 @@ const formatDate = (dateString) => {
       
       <!-- 請求書なし -->
       <div v-else-if="!invoicesStore.hasInvoices" class="p-8 text-center">
-        <p class="text-gray-500">📋 請求書がまだありません</p>
+        <InvoiceIcon :size="96" color="#d1d5db" class="mx-auto mb-4" />
+        <p class="text-gray-500">請求書がまだありません</p>
         <p class="text-sm text-gray-400 mt-1">
           プロジェクト管理画面から請求書を作成してください
         </p>
@@ -611,23 +628,31 @@ const formatDate = (dateString) => {
     </div>
   </div>
   <!-- Invoice詳細モーダル -->
-  <div v-if="showDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div v-if="showDetailModal" class="fixed inset-0 bg-gray bg-opacity-50 flex items-center justify-center z-50">
     <div class="berry-card max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
       <!-- モーダルヘッダー -->
-      <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-t-lg">
+      <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 p-6 rounded-t-lg">
         <div class="flex justify-between items-center">
-          <h2 class="text-xl font-bold">📋 請求書詳細</h2>
-          <button @click="closeDetailModal" class="text-white hover:text-gray-200 text-2xl">
+          <h2 class="text-xl font-bold flex items-center gap-2">
+            <InvoiceIcon :size="24" color="#a855f7" />
+            請求書詳細
+          </h2>
+          <button @click="closeDetailModal" class="text-gray-900 hover:text-gray-200 text-2xl">
             ×
           </button>
         </div>
-        <p class="text-purple-100 mt-2">{{ selectedInvoice?.invoice_number }}</p>
       </div>
 
       <!-- モーダル内容 -->
       <div class="p-6" v-if="selectedInvoice">
         <!-- 基本情報 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+              <label class="text-sm font-medium text-gray-600">ステータス</label>
+              <span :class="getStatusBadgeClass(selectedInvoice.status)" class="inline-block px-3 py-1 rounded-full text-sm font-medium">
+                {{ getStatusText(selectedInvoice.status) }}
+              </span>
+            </div>
           <div class="space-y-4">
             <div>
               <label class="text-sm font-medium text-gray-600">請求書番号</label>
@@ -638,13 +663,10 @@ const formatDate = (dateString) => {
               <p class="text-lg font-semibold text-gray-900">{{ selectedInvoice.client_company }}</p>
             </div>
             <div>
-              <label class="text-sm font-medium text-gray-600">ステータス</label>
-              <span :class="getStatusBadgeClass(selectedInvoice.status)" class="inline-block px-3 py-1 rounded-full text-sm font-medium">
-                {{ getStatusText(selectedInvoice.status) }}
-              </span>
+              <label class="text-sm font-medium text-gray-600">プロジェクト名</label>
+              <p class="text-lg font-semibold text-gray-900">{{ selectedInvoice.project_name || '-' }}</p>
             </div>
           </div>
-          
           <div class="space-y-4">
             <div>
               <label class="text-sm font-medium text-gray-600">発行日</label>
@@ -654,16 +676,15 @@ const formatDate = (dateString) => {
               <label class="text-sm font-medium text-gray-600">支払期限</label>
               <p class="text-lg font-semibold text-gray-900">{{ formatDate(selectedInvoice.due_date) }}</p>
             </div>
-            <div>
-              <label class="text-sm font-medium text-gray-600">プロジェクト名</label>
-              <p class="text-lg font-semibold text-gray-900">{{ selectedInvoice.project_name || '-' }}</p>
-            </div>
           </div>
         </div>
 
         <!-- 金額情報 -->
         <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6">
-          <h3 class="text-lg font-bold text-gray-900 mb-4">💰 金額詳細</h3>
+          <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <MoneyIcon :size="20" color="#10b981" />
+            金額詳細
+          </h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="text-sm font-medium text-gray-600">税抜金額</label>
@@ -680,19 +701,21 @@ const formatDate = (dateString) => {
           </div>
         </div>
 
-        <!-- 説明・備考 -->
+        <!-- 案件概要（項目） -->
         <div v-if="selectedInvoice.description" class="mb-6">
-          <label class="text-sm font-medium text-gray-600">説明・備考</label>
+          <label class="text-sm font-medium text-gray-600">項目（請求内容）</label>
           <p class="mt-2 p-4 bg-gray-50 rounded-lg text-gray-900">{{ selectedInvoice.description }}</p>
         </div>
 
         <!-- アクションボタン -->
         <div class="flex justify-end space-x-3 pt-4 border-t">
-          <button @click="closeDetailModal" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+          <button @click="closeDetailModal" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center gap-2">
+            <CloseIcon :size="20" color="#ffffff" />
             閉じる
           </button>
-          <button @click="generatePDF(selectedInvoice.id)" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors" :disabled="pdfGenerating">
-            {{ pdfGenerating ? '生成中...' : '📄 PDF' }}
+          <button @click="generatePDF(selectedInvoice.id)" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2" :disabled="pdfGenerating">
+            <PdfIcon :size="20" color="#ffffff" v-if="!pdfGenerating" />
+            {{ pdfGenerating ? '生成中...' : 'PDF' }}
           </button>
         </div>
       </div>

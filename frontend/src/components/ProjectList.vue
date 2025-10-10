@@ -4,7 +4,11 @@ import { useProjectsStore } from '../stores/projects.js'
 import { useInvoicesStore } from '../stores/invoices.js'
 import { useAuthStore } from '../stores/auth.js'
 import { trackInvoiceCreate, trackProjectCreate, trackError } from '@/utils/analytics.js'
-
+import DashboardIcon from './icons/DashboardIcon.vue'
+import MoneyIcon from './icons/MoneyIcon.vue'
+import ChecklistIcon from './icons/ChecklistIcon.vue'
+import InvoiceIcon from './icons/InvoiceIcon.vue'
+import RefreshIcon from './icons/RefreshIcon.vue'
 
 // プロジェクト管理ストア
 const projectsStore = useProjectsStore()
@@ -276,7 +280,7 @@ const getStatusColor = (status) => {
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center">
-              📊
+              <DashboardIcon :size="20" color="#ec4899" />
             </div>
           </div>
           <div class="ml-4">
@@ -293,7 +297,7 @@ const getStatusColor = (status) => {
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-              💰
+              <MoneyIcon :size="20" color="#10b981" />
             </div>
           </div>
           <div class="ml-4">
@@ -310,7 +314,7 @@ const getStatusColor = (status) => {
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              🔄
+              <RefreshIcon :size="20" color="#3b82f6" />
             </div>
           </div>
           <div class="ml-4">
@@ -327,7 +331,7 @@ const getStatusColor = (status) => {
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-              ✅
+              <ChecklistIcon :size="20" color="#10b981" />
             </div>
           </div>
           <div class="ml-4">
@@ -614,8 +618,8 @@ const getStatusColor = (status) => {
 
     <!-- 空状態 -->
     <div v-else class="text-center py-12">
-      <div class="w-24 h-24 mx-auto mb-4 text-gray-300">
-        📋
+      <div class="w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+        <InvoiceIcon :size="96" color="#d1d5db" />
       </div>
       <h3 class="text-lg font-medium text-gray-900 mb-2">案件がありません</h3>
       <p class="text-gray-500 mb-6">新しい案件を作成して始めましょう。</p>

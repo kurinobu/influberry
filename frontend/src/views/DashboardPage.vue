@@ -10,6 +10,10 @@ import HamburgerMenu from '../components/HamburgerMenu.vue'
 import BasicDataModal from '../components/BasicDataModal.vue'
 import UserSettings from '../components/UserSettings.vue'
 import AddToHomePrompt from '@/components/AddToHomePrompt.vue'
+import DashboardIcon from '../components/icons/DashboardIcon.vue'
+import InvoiceIcon from '../components/icons/InvoiceIcon.vue'
+import ChecklistIcon from '../components/icons/ChecklistIcon.vue'
+import BriefcaseIcon from '../components/icons/BriefcaseIcon.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -100,7 +104,10 @@ const navigateToApp = (appName) => {
         
         <!-- 統計サマリー -->
         <div class="mb-8">
-          <h2 class="text-2xl font-bold text-gray-900 mb-4">📊 概要</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+            <DashboardIcon :size="28" color="#ec4899" class="mr-2" />
+            概要
+          </h2>
           <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div class="berry-card text-center">
               <div class="text-2xl font-bold text-blue-600">{{ stats.totalProjects }}</div>
@@ -131,15 +138,18 @@ const navigateToApp = (appName) => {
 
         <!-- プラグインアプリ選択 -->
         <div class="mb-8">
-          <h2 class="text-2xl font-bold text-gray-900 mb-4">🚀 アプリケーション</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+          <DashboardIcon :size="28" color="#ec4899" class="mr-2" />
+          アプリケーション
+        </h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             <!-- スポンサー案件管理アプリ -->
             <div class="berry-card cursor-pointer" @click="navigateToApp('projects')">
               <div class="p-6">
                 <div class="flex items-center mb-4">
-                  <div class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center text-2xl">
-                    🏢
+                  <div class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+                    <BriefcaseIcon :size="32" color="#3b82f6" />
                   </div>
                   <div class="ml-4">
                     <h3 class="text-lg font-semibold text-gray-900">BerryWork｜案件管理</h3>
@@ -158,8 +168,8 @@ const navigateToApp = (appName) => {
             <div class="berry-card cursor-pointer" @click="navigateToApp('invoices')">
               <div class="p-6">
                 <div class="flex items-center mb-4">
-                  <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-2xl">
-                    📋
+                  <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <InvoiceIcon :size="32" color="#a855f7" />
                   </div>
                   <div class="ml-4">
                     <h3 class="text-lg font-semibold text-gray-900">BerryPay｜請求書管理</h3>
@@ -178,8 +188,8 @@ const navigateToApp = (appName) => {
             <div class="berry-card cursor-pointer" @click="navigateToApp('berry-do')">
               <div class="p-6">
                 <div class="flex items-center mb-4">
-                  <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-2xl">
-                    ✅
+                  <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <ChecklistIcon :size="32" color="#10b981" />
                   </div>
                   <div class="ml-4">
                     <h3 class="text-lg font-semibold text-gray-900">BerryDo｜タスク管理</h3>

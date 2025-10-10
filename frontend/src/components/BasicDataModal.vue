@@ -1,5 +1,19 @@
 <script setup>
 import { useUIStore } from '../stores/ui.js'
+
+import FolderIcon from './icons/FolderIcon.vue'
+import LockIcon from './icons/LockIcon.vue'
+import BriefcaseIcon from './icons/BriefcaseIcon.vue'
+import ScaleIcon from './icons/ScaleIcon.vue'
+
+// コンポーネントマッピング
+const iconComponents = {
+  LockIcon,
+  FolderIcon,
+  BriefcaseIcon,
+  ScaleIcon
+}
+
 // UIストア使用（Store直接操作）
 const uiStore = useUIStore()
 
@@ -24,25 +38,25 @@ const handleOverlayClick = (event) => {
 // 基本データメニュー項目
 const dataItems = [
   {
-    icon: '🔒',
+    icon: 'LockIcon',
     name: 'プライバシーポリシー',
     description: '個人情報の取扱いについて',
     path: '/privacy'
   },
   {
-    icon: '📋',
+    icon: 'FolderIcon',
     name: 'ご利用規約',
     description: 'サービス利用条件',
     path: '/terms'
   },
   {
-    icon: '🏢',
+    icon: 'BriefcaseIcon',
     name: '運営会社情報',
     description: 'Air Edison（エアエジソン）について',
     path: '/company'
   },
   {
-    icon: '⚖️',
+    icon: 'ScaleIcon',
     name: '特定商取引法に基づく表記',
     description: '法的事項・返品条件等',
     path: '/tokusho'
@@ -67,7 +81,7 @@ const dataItems = [
         <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg leading-6 font-medium text-gray-900 flex items-center">
-              <span class="text-2xl mr-2">📋</span>
+              <FolderIcon :size="28" class="mr-2" color="#6b7280" />
               基本データ
             </h3>
             <button
@@ -90,7 +104,7 @@ const dataItems = [
             >
               <div class="p-4">
                 <div class="flex items-center">
-                  <span class="text-2xl mr-3">{{ item.icon }}</span>
+                  <component :is="iconComponents[item.icon]" :size="24" class="mr-3" />
                   <div class="flex-1">
                     <h4 class="text-sm font-medium text-gray-900">{{ item.name }}</h4>
                     <p class="text-xs text-gray-500 mt-1">{{ item.description }}</p>

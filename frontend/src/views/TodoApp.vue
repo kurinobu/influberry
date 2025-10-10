@@ -7,6 +7,9 @@ import UserSettings from '@/components/UserSettings.vue'
 import BasicDataModal from '@/components/BasicDataModal.vue'
 import HamburgerMenu from '@/components/HamburgerMenu.vue'
 import { trackTaskComplete, trackError } from '@/utils/analytics.js'
+import MoneyIcon from '../components/icons/MoneyIcon.vue'
+import ChecklistIcon from '../components/icons/ChecklistIcon.vue'
+import FolderIcon from '../components/icons/FolderIcon.vue'
 
 const router = useRouter()
 const todosStore = useTodosStore()
@@ -306,8 +309,9 @@ const getStatusColor = (status) => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="berry-input-group">
                 <label class="berry-label">
-                  <span class="flex items-center">
-                    📁 関連案件（BerryWork連動）
+                  <span class="flex items-center gap-2">
+                    <FolderIcon :size="16" color="#6b7280" />
+                    関連案件（BerryWork連動）
                   </span>
                 </label>
                 <select v-model="newTodo.linked_project_id" class="berry-select">
@@ -320,8 +324,9 @@ const getStatusColor = (status) => {
 
               <div class="berry-input-group">
                 <label class="berry-label">
-                  <span class="flex items-center">
-                    💰 関連請求書（BerryPay連動）
+                  <span class="flex items-center gap-2">
+                    <FolderIcon :size="16" color="#6b7280" />
+                    関連案件（BerryWork連動）
                   </span>
                 </label>
                 <select v-model="newTodo.linked_invoice_id" class="berry-select">
@@ -399,8 +404,9 @@ const getStatusColor = (status) => {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div class="berry-input-group">
                     <label class="berry-label">
-                      <span class="flex items-center">
-                        📁 関連案件（BerryWork連動）
+                      <span class="flex items-center gap-2">
+                        <FolderIcon :size="16" color="#6b7280" />
+                        関連案件（BerryWork連動）
                       </span>
                     </label>
                     <select v-model="editForm.linked_project_id" class="berry-select">
@@ -413,8 +419,9 @@ const getStatusColor = (status) => {
 
                   <div class="berry-input-group">
                     <label class="berry-label">
-                      <span class="flex items-center">
-                        💰 関連請求書（BerryPay連動）
+                      <span class="flex items-center gap-2">
+                        <MoneyIcon :size="16" color="#10b981" />
+                        関連請求書（BerryPay連動）
                       </span>
                     </label>
                     <select v-model="editForm.linked_invoice_id" class="berry-select">
@@ -479,11 +486,13 @@ const getStatusColor = (status) => {
                     <span v-if="todo.todo_due_date" class="berry-badge bg-gradient-to-r from-purple-300 to-pink-400">
                       期限: {{ todo.todo_due_date }}
                     </span>
-                    <span v-if="todo.linked_project_id" class="berry-badge bg-gradient-to-r from-blue-300 to-cyan-400">
-                      📁 案件: {{ getProjectName(todo.linked_project_id) }}
+                    <span v-if="todo.linked_project_id" class="berry-badge bg-gradient-to-r from-blue-300 to-cyan-400 flex items-center gap-1">
+                      <FolderIcon :size="14" color="#ffffff" />
+                      案件: {{ getProjectName(todo.linked_project_id) }}
                     </span>
-                    <span v-if="todo.linked_invoice_id" class="berry-badge bg-gradient-to-r from-green-300 to-emerald-400">
-                      💰 請求書: {{ getInvoiceName(todo.linked_invoice_id) }}
+                    <span v-if="todo.linked_invoice_id" class="berry-badge bg-gradient-to-r from-green-300 to-emerald-400 flex items-center gap-1">
+                      <MoneyIcon :size="14" color="#ffffff" />
+                      請求書: {{ getInvoiceName(todo.linked_invoice_id) }}
                     </span>
                   </div>
                 </div>
@@ -516,7 +525,7 @@ const getStatusColor = (status) => {
         <div v-else class="berry-empty-state">
           <div class="text-center py-16">
             <div class="berry-empty-icon">
-              📝
+              <ChecklistIcon :size="96" color="#d1d5db" />
             </div>
             <h3 class="text-xl font-bold text-gray-900 mb-2">タスクがありません</h3>
             <p class="text-gray-600 mb-8">新しいタスクを作成してください。</p>
