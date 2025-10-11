@@ -259,7 +259,7 @@ def update_invoice(invoice_id):
             'client_company', 'client_address', 'client_contact',
             'influencer_address', 'description', 'notes',
             'subtotal', 'tax_rate', 'status', 'payment_date', 'payment_method',
-            'project_name'
+            'project_name', 'invoice_date', 'due_date'
         ]
         
         # フィールド更新
@@ -267,7 +267,7 @@ def update_invoice(invoice_id):
             if field in data:
                 if field in ['subtotal', 'tax_rate']:
                     setattr(invoice, field, Decimal(str(data[field])))
-                elif field == 'payment_date' and data[field]:
+                elif field in ['payment_date', 'invoice_date', 'due_date'] and data[field]:
                     setattr(invoice, field, date.fromisoformat(data[field]))
                 else:
                     setattr(invoice, field, data[field])
@@ -522,8 +522,21 @@ def generate_invoice_pdf(invoice_id):
         
         # === 請求元（右側・同じ高さ） ===
         p.setFont('IPAexGothic', 10)
-        issuer_name = current_user.influencer_name or current_user.username
+        
+        # オフィス所在地（任意）
+        if current_user.office_address:
+            p.drawRightString(page_width - margin, y_position, current_user.office_address)
+            y_position -= 15
+        
+        # 請求者名（必須）
+        issuer_name = current_user.issuer_name or current_user.influencer_name or current_user.username
         p.drawRightString(page_width - margin, y_position, issuer_name)
+        y_position -= 15
+        
+        # 連絡先（任意）
+        if current_user.contact_info:
+            p.drawRightString(page_width - margin, y_position, current_user.contact_info)
+            y_position -= 15
         
         # === 支払期限・件名 ===
         y_position -= 30
@@ -536,7 +549,7 @@ def generate_invoice_pdf(invoice_id):
         
         due_date = invoice.due_date if hasattr(invoice, 'due_date') and invoice.due_date else None
         if due_date:
-            p.drawString(margin, y_position, f"支払期限: {due_date.strftime('%Y年%m月%d日')}")
+            p.drawString(margin, y_position, f"お支払期限: {due_date.strftime('%Y年%m月%d日')}")
             y_position -= 20
         
         # === 合計金額（大きく表示） ===
@@ -572,7 +585,7 @@ def generate_invoice_pdf(invoice_id):
         y_position = table_y - table_height - 20
         
         # 明細データ
-        item_name = invoice.project_name or project.project_name or invoice.description or '案件作業'
+        item_name = invoice.description or invoice.project_name or project.project_name or '案件作業'
         p.drawString(col1_x, y_position, item_name)
         p.drawRightString(col2_x, y_position, "1")
         p.drawRightString(col3_x, y_position, f"¥{int(invoice.subtotal):,}")

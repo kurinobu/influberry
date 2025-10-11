@@ -34,7 +34,7 @@ def update_profile():
             return jsonify({'error': 'データが送信されていません'}), 400
         
         # 更新可能フィールド
-        updatable_fields = ['username', 'influencer_name']
+        updatable_fields = ['username', 'influencer_name', 'issuer_name', 'office_address', 'contact_info']
         updated = False
         
         for field in updatable_fields:
@@ -50,7 +50,9 @@ def update_profile():
                 
                 setattr(current_user, field, data[field])
                 updated = True
-        
+                # 請求者名必須チェック
+                if field == 'issuer_name' and not data[field].strip():
+                    return jsonify({'error': '請求者名は必須です'}), 400
         if updated:
             current_user.updated_at = datetime.utcnow()
             db.session.commit()

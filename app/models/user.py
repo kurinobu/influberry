@@ -36,10 +36,6 @@ class User(UserMixin, db.Model):
     )
     
     # Relationships
-    # PDF印刷設定
-    pdf_layout = db.Column(db.String(20), default='business', nullable=False)  # business, modern, classic
-    pdf_paper_color = db.Column(db.String(7), default='#ffffff', nullable=False)  # HEXカラー
-    pdf_font_family = db.Column(db.String(50), default='Noto Sans JP', nullable=False)  # フォント
 
     # PDF印刷設定
     pdf_layout = db.Column(db.String(20), default='business', nullable=False)  # business, modern, classic
@@ -53,7 +49,10 @@ class User(UserMixin, db.Model):
     account_type = db.Column(db.String(20), nullable=True)  # 普通、当座
     account_number = db.Column(db.String(20), nullable=True)  # 口座番号
     account_holder = db.Column(db.String(100), nullable=True)  # 口座名義
-    
+    # 請求者情報設定（PDF出力用）
+    issuer_name = db.Column(db.String(100), nullable=False, default='')  # 請求者名（必須）
+    office_address = db.Column(db.String(200), nullable=True)  # オフィス所在地（任意）
+    contact_info = db.Column(db.String(100), nullable=True)  # 連絡先（任意）
     projects = db.relationship('Project', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def __init__(self, username, email, password, influencer_name=None, **kwargs):
@@ -74,12 +73,14 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
     
     def to_dict(self):
-        """辞書形式変換"""
         return {
             'id': self.id,
             'username': self.username,
             'email': self.email,
             'influencer_name': self.influencer_name,
+            'issuer_name': self.issuer_name,
+            'office_address': self.office_address,
+            'contact_info': self.contact_info,
             'is_active': self.is_active,
             'plan_type': self.plan_type,
             'created_at': self.created_at.isoformat() if self.created_at else None,

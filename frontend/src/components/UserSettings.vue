@@ -9,7 +9,10 @@ const authStore = useAuthStore()
 const profileForm = ref({
   username: '',
   influencer_name: '',
-  profile: ''
+  profile: '',
+  issuer_name: '',
+  office_address: '',
+  contact_info: ''
 })
 
 const passwordForm = ref({
@@ -46,6 +49,9 @@ onMounted(async () => {
     profileForm.value.username = authStore.user.username || ''
     profileForm.value.influencer_name = authStore.user.influencer_name || ''
     profileForm.value.profile = authStore.user.profile || ''
+    profileForm.value.issuer_name = authStore.user.issuer_name || ''
+    profileForm.value.office_address = authStore.user.office_address || ''
+    profileForm.value.contact_info = authStore.user.contact_info || ''
   }
   
   // 支払い情報取得
@@ -69,14 +75,22 @@ const handleProfileUpdate = async () => {
     profileError.value = 'インフルエンサー名は必須です'
     return
   }
-  
+
+  if (!profileForm.value.issuer_name.trim()) {
+    profileError.value = '請求者名は必須です'
+    return
+  }
+
   isProfileLoading.value = true
   
   try {
     const result = await authStore.updateUserProfile({
       username: profileForm.value.username.trim(),
       influencer_name: profileForm.value.influencer_name.trim(),
-      profile: profileForm.value.profile.trim()
+      profile: profileForm.value.profile.trim(),
+      issuer_name: profileForm.value.issuer_name.trim(),
+      office_address: profileForm.value.office_address.trim(),
+      contact_info: profileForm.value.contact_info.trim()
     })
     
     if (result.success) {
@@ -283,6 +297,52 @@ const handlePaymentUpdate = async () => {
               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 disabled:bg-gray-50 disabled:text-gray-500 font-noto transition-colors resize-none"
               placeholder="自己紹介やプロフィールを入力（任意）"
             ></textarea>
+          </div>
+          
+          <!-- 請求者名 -->
+          <div>
+            <label for="issuer_name" class="block text-sm font-medium text-gray-700 font-noto mb-2">
+              請求者名 *
+            </label>
+            <input
+              id="issuer_name"
+              v-model="profileForm.issuer_name"
+              type="text"
+              required
+              :disabled="isProfileLoading"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 disabled:bg-gray-50 disabled:text-gray-500 font-noto transition-colors"
+              placeholder="請求者名を入力（必須）"
+            >
+          </div>
+
+          <!-- オフィス所在地 -->
+          <div>
+            <label for="office_address" class="block text-sm font-medium text-gray-700 font-noto mb-2">
+              オフィス所在地
+            </label>
+            <input
+              id="office_address"
+              v-model="profileForm.office_address"
+              type="text"
+              :disabled="isProfileLoading"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 disabled:bg-gray-50 disabled:text-gray-500 font-noto transition-colors"
+              placeholder="オフィス所在地を入力（任意）"
+            >
+          </div>
+
+          <!-- 連絡先 -->
+          <div>
+            <label for="contact_info" class="block text-sm font-medium text-gray-700 font-noto mb-2">
+              連絡先
+            </label>
+            <input
+              id="contact_info"
+              v-model="profileForm.contact_info"
+              type="text"
+              :disabled="isProfileLoading"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 disabled:bg-gray-50 disabled:text-gray-500 font-noto transition-colors"
+              placeholder="電話番号またはメールアドレスを入力（任意）"
+            >
           </div>
 
           <!-- プロフィール更新メッセージ -->

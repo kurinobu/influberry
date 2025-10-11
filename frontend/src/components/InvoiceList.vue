@@ -31,6 +31,7 @@ const editForm = ref({
   amount: '',
   tax_rate: 10,
   status: 'draft',
+  invoice_date: '',
   due_date: '',
   description: '',
   project_name: ''
@@ -38,6 +39,7 @@ const editForm = ref({
 const editErrors = ref({
   customer_name: '',
   amount: '',
+  invoice_date: '',
   due_date: '',
   description: ''
 })
@@ -106,6 +108,7 @@ const startEdit = (invoice) => {
     amount: parseFloat(invoice.subtotal || invoice.amount || 0),
     tax_rate: parseFloat(invoice.tax_rate || 10),
     status: invoice.status || 'draft',
+    invoice_date: invoice.invoice_date || '',
     due_date: invoice.due_date || '',
     description: invoice.description || '',
     project_name: invoice.project_name || ''
@@ -113,6 +116,7 @@ const startEdit = (invoice) => {
   editErrors.value = {
     customer_name: '',
     amount: '',
+    invoice_date: '',
     due_date: '',
     description: ''
   }
@@ -133,6 +137,7 @@ const cancelEdit = () => {
   editErrors.value = {
     customer_name: '',
     amount: '',
+    invoice_date: '',
     due_date: '',
     description: ''
   }
@@ -156,6 +161,11 @@ const validateForm = () => {
 
   if (!editForm.value.amount || editForm.value.amount <= 0) {
     editErrors.value.amount = '金額は1円以上である必要があります'
+    isValid = false
+  }
+
+  if (!editForm.value.invoice_date) {
+    editErrors.value.invoice_date = '発行日は必須です'
     isValid = false
   }
 
@@ -186,6 +196,7 @@ const saveEdit = async () => {
       subtotal: parseFloat(editForm.value.amount),          // amount → subtotal
       tax_rate: parseFloat(editForm.value.tax_rate),
       status: editForm.value.status,
+      invoice_date: editForm.value.invoice_date,
       due_date: editForm.value.due_date,
       description: editForm.value.description.trim(),
       project_name: editForm.value.project_name.trim()
@@ -526,6 +537,12 @@ const formatDate = (dateString) => {
               </div>
 
               <div class="berry-input-group">
+                <label class="berry-label">発行日 *</label>
+                <input v-model="editForm.invoice_date" type="date" class="berry-input" />
+                <p v-if="editErrors.invoice_date" class="text-red-500 text-sm mt-1">{{ editErrors.invoice_date }}</p>
+              </div>
+
+              <div class="berry-input-group">
                 <label class="berry-label">支払期限 *</label>
                 <input v-model="editForm.due_date" type="date" class="berry-input" />
                 <p v-if="editErrors.due_date" class="text-red-500 text-sm mt-1">{{ editErrors.due_date }}</p>
@@ -584,7 +601,7 @@ const formatDate = (dateString) => {
                 </div>
                 <div>
                   <span class="font-medium">発行日:</span>
-                  {{ formatDate(invoice.issue_date) }}
+                  {{ formatDate(invoice.invoice_date) }}
                 </div>
                 <div>
                   <span class="font-medium">支払期限:</span>
@@ -670,7 +687,7 @@ const formatDate = (dateString) => {
           <div class="space-y-4">
             <div>
               <label class="text-sm font-medium text-gray-600">発行日</label>
-              <p class="text-lg font-semibold text-gray-900">{{ formatDate(selectedInvoice.issue_date) }}</p>
+              <p class="text-lg font-semibold text-gray-900">{{ formatDate(selectedInvoice.invoice_date) }}</p>
             </div>
             <div>
               <label class="text-sm font-medium text-gray-600">支払期限</label>
