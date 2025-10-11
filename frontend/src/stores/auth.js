@@ -214,6 +214,45 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         this.isLoading = false
       }
+    },
+    /**
+     * 支払い情報取得
+     */
+    async getPaymentInfo() {
+      this.isLoading = true
+      this.error = null
+      
+      try {
+        const response = await axios.get('/api/users/payment-info')
+        
+        return { success: true, data: response.data }
+        
+      } catch (error) {
+        this.error = error.response?.data?.error || '支払い情報取得に失敗しました'
+        return { success: false, error: this.error }
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    /**
+     * 支払い情報更新
+     */
+    async updatePaymentInfo(paymentData) {
+      this.isLoading = true
+      this.error = null
+      
+      try {
+        const response = await axios.put('/api/users/payment-info', paymentData)
+        
+        return { success: true, message: response.data.message, data: response.data.payment_info }
+        
+      } catch (error) {
+        this.error = error.response?.data?.error || '支払い情報更新に失敗しました'
+        return { success: false, error: this.error }
+      } finally {
+        this.isLoading = false
+      }
     }
   }
 })

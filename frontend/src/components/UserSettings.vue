@@ -170,23 +170,16 @@ const handlePasswordChange = async () => {
 // 支払い情報取得処理
 const fetchPaymentInfo = async () => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/payment-info`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
+    const result = await authStore.getPaymentInfo()
     
-    if (response.ok) {
-      const data = await response.json()
+    if (result.success && result.data) {
       paymentForm.value = {
-        payment_method: data.payment_method || '',
-        bank_name: data.bank_name || '',
-        branch_name: data.branch_name || '',
-        account_type: data.account_type || '',
-        account_number: data.account_number || '',
-        account_holder: data.account_holder || ''
+        payment_method: result.data.payment_method || '銀行振込',
+        bank_name: result.data.bank_name || '',
+        branch_name: result.data.branch_name || '',
+        account_type: result.data.account_type || '普通',
+        account_number: result.data.account_number || '',
+        account_holder: result.data.account_holder || ''
       }
     }
   } catch (error) {
@@ -204,24 +197,15 @@ const handlePaymentUpdate = async () => {
   isPaymentLoading.value = true
   
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/payment-info`, {
-      method: 'PUT',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(paymentForm.value)
-    })
+    const result = await authStore.updatePaymentInfo(paymentForm.value)
     
-    if (response.ok) {
-      const data = await response.json()
-      paymentMessage.value = data.message || '支払い情報を更新しました'
+    if (result.success) {
+      paymentMessage.value = result.message || '支払い情報を更新しました'
       setTimeout(() => {
         paymentMessage.value = ''
       }, 3000)
     } else {
-      const error = await response.json()
-      paymentError.value = error.error || '支払い情報更新に失敗しました'
+      paymentError.value = result.error || '支払い情報更新に失敗しました'
     }
   } catch (error) {
     paymentError.value = '支払い情報更新中にエラーが発生しました'
