@@ -5,6 +5,7 @@
 """
 
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 from app.models.project import Project
 from app.models.user import User
 from app import db
@@ -17,9 +18,11 @@ class ProjectQueryOptimizer:
     def get_user_projects_optimized(user_id, status=None):
         """
         ユーザーのプロジェクト一覧を最適化されたクエリで取得（全件）
-
+        N+1問題解決: joinedloadでリレーション先を一括取得
         """
-        query = Project.query.filter_by(user_id=user_id, is_todo=False)
+        query = Project.query.options(
+            joinedload(Project.invoices)  # ← N+1問題根本解決
+        ).filter_by(user_id=user_id, is_todo=False)
         
         if status:
             query = query.filter_by(status=status)
@@ -30,7 +33,6 @@ class ProjectQueryOptimizer:
             Project.created_at.desc()
         )
         
-        # ページネーション適用
         return query.all()
     
     @staticmethod
