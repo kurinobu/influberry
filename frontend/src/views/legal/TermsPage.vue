@@ -78,13 +78,16 @@ const lastUpdated = '2025年9月17日'
             <div class="bg-yellow-50 p-4 rounded-lg">
               <h3 class="font-semibold text-gray-800 mb-2">登録条件</h3>
               <ul class="list-disc list-inside space-y-1 text-sm">
+                <li><strong>18歳以上であること（18歳未満の利用は禁止されています）</strong></li>
                 <li>正確で最新の情報を登録すること</li>
                 <li>他人になりすましてアカウントを作成しないこと</li>
                 <li>一人につき一つのアカウントのみ作成すること</li>
-                <li>未成年者は保護者の同意を得ること</li>
               </ul>
             </div>
             <p>ユーザーは、登録情報を正確かつ最新の状態に保つ責任があります。</p>
+            <div class="bg-red-50 p-4 rounded-lg mt-3">
+              <p class="text-sm"><strong>重要:</strong> 年齢を偽って登録した場合、アカウントの即時停止および法的措置を講じる場合があります。</p>
+            </div>
             <p>アカウントのセキュリティはユーザーの責任において管理してください。不正利用を発見した場合は、直ちに当社にご連絡ください。</p>
           </div>
         </section>
