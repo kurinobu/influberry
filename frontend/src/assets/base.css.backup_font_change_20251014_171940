@@ -81,7 +81,7 @@ body {
     background-color 0.5s;
   line-height: 1.6;
   font-family:
-    'M PLUS Rounded 1c',
+    'Noto Sans Rounded',
     Inter,
     -apple-system,
     BlinkMacSystemFont,
@@ -93,7 +93,7 @@ body {
     'Fira Sans',
     'Droid Sans',
     'Helvetica Neue',
-    sans-serif !important;
+    sans-serif;
   font-size: 15px;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

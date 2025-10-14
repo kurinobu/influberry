@@ -557,7 +557,7 @@ const handlePaymentUpdate = async () => {
 <style scoped>
 /* フォント統合 - @import文最優先 */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
 
 /* InfluBerry カラーパレット統合 */
 :root {
@@ -574,7 +574,7 @@ const handlePaymentUpdate = async () => {
 }
 
 .font-noto {
-  font-family: 'M PLUS Rounded 1c', sans-serif !important;
+  font-family: 'Noto Sans JP', sans-serif;
 }
 
 /* スムーズなトランジション */

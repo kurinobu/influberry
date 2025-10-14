@@ -32,9 +32,9 @@ module.exports = {
         'influberry-beige-light': '#FFF3C4',
         },
       fontFamily: {
-        'sans': ['M PLUS Rounded 1c', 'Poppins', 'Inter', 'sans-serif'],
+        'sans': ['Poppins', 'Nunito', 'Inter', 'sans-serif'],
         'poppins': ['Poppins', 'sans-serif'],
-        'noto': ['M PLUS Rounded 1c', 'sans-serif'],
+        'noto': ['Nunito', 'sans-serif'],
       },
     },
   },

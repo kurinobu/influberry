@@ -45,14 +45,14 @@ import FixedFooter from '@/components/FixedFooter.vue'
 
 /* グローバルフォント設定 */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap');
 
 .font-poppins {
   font-family: 'Poppins', sans-serif;
 }
 
 .font-noto {
-  font-family: 'M PLUS Rounded 1c', sans-serif !important;
+  font-family: 'Noto Sans JP', sans-serif;
 }
 
 /* ベース設定 */
@@ -63,7 +63,7 @@ import FixedFooter from '@/components/FixedFooter.vue'
 body {
   margin: 0;
   padding: 0;
-  font-family: 'M PLUS Rounded 1c', sans-serif !important;
+  font-family: 'Noto Sans JP', sans-serif;
   background-color: #f9fafb;
 }
 
