@@ -193,16 +193,6 @@ const getPriorityColor = (priority) => {
   }
 }
 
-// 優先度フレーム色
-const getPriorityFrameColor = (priority) => {
-  switch (priority) {
-    case 'high': return 'border-gradient-red-pink'
-    case 'medium': return 'border-gradient-amber-yellow'
-    case 'low': return 'border-gradient-green-emerald'
-    default: return 'border-gradient-gray'
-  }
-}
-
 // ステータス表示色
 const getStatusColor = (status) => {
   switch (status) {
@@ -487,21 +477,21 @@ const getStatusColor = (status) => {
                   
                   <!-- メタ情報 -->
                   <div class="flex flex-wrap gap-3 text-sm">
-                    <span class="berry-badge-frame" :class="getPriorityFrameColor(todo.todo_priority)">
+                    <span class="berry-badge bg-gradient-to-r" :class="getPriorityColor(todo.todo_priority)">
                       優先度: {{ todo.todo_priority }}
                     </span>
-                    <span class="berry-badge-frame border-gradient-blue-indigo">
+                    <span class="berry-badge bg-gradient-to-r from-blue-300 to-indigo-400">
                       重要度: {{ '⭐'.repeat(todo.todo_importance) }} {{ todo.todo_importance }}
                     </span>
-                    <span v-if="todo.todo_due_date" class="berry-badge-frame border-gradient-purple-pink">
+                    <span v-if="todo.todo_due_date" class="berry-badge bg-gradient-to-r from-purple-300 to-pink-400">
                       期限: {{ todo.todo_due_date }}
                     </span>
-                    <span v-if="todo.linked_project_id" class="berry-badge-frame border-gradient-blue-cyan flex items-center gap-1">
-                      <FolderIcon :size="14" color="#6b7280" />
+                    <span v-if="todo.linked_project_id" class="berry-badge bg-gradient-to-r from-blue-300 to-cyan-400 flex items-center gap-1">
+                      <FolderIcon :size="14" color="#ffffff" />
                       案件: {{ getProjectName(todo.linked_project_id) }}
                     </span>
-                    <span v-if="todo.linked_invoice_id" class="berry-badge-frame border-gradient-green-emerald flex items-center gap-1">
-                      <MoneyIcon :size="14" color="#6b7280" />
+                    <span v-if="todo.linked_invoice_id" class="berry-badge bg-gradient-to-r from-green-300 to-emerald-400 flex items-center gap-1">
+                      <MoneyIcon :size="14" color="#ffffff" />
                       請求書: {{ getInvoiceName(todo.linked_invoice_id) }}
                     </span>
                   </div>
@@ -853,158 +843,6 @@ const getStatusColor = (status) => {
   font-weight: 700;
   color: #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* === フレーム化バッジ（透明背景・枠線のみ） === */
-.berry-badge-frame {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.375rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  background: transparent;
-  border: 2px solid;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* グラデーション枠線のためのクラス（疑似要素使用） */
-.border-gradient-red-pink {
-  position: relative;
-  background: transparent;
-  border: none;
-  color: #dc2626;
-}
-
-.border-gradient-red-pink::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 9999px;
-  padding: 2px;
-  background: linear-gradient(to right, #fca5a5, #f9a8d4);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: xor;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-}
-
-.border-gradient-amber-yellow {
-  position: relative;
-  background: transparent;
-  border: none;
-  color: #d97706;
-}
-
-.border-gradient-amber-yellow::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 9999px;
-  padding: 2px;
-  background: linear-gradient(to right, #fcd34d, #facc15);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: xor;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-}
-
-.border-gradient-green-emerald {
-  position: relative;
-  background: transparent;
-  border: none;
-  color: #16a34a;
-}
-
-.border-gradient-green-emerald::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 9999px;
-  padding: 2px;
-  background: linear-gradient(to right, #86efac, #6ee7b7);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: xor;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-}
-
-.border-gradient-blue-indigo {
-  position: relative;
-  background: transparent;
-  border: none;
-  color: #2563eb;
-}
-
-.border-gradient-blue-indigo::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 9999px;
-  padding: 2px;
-  background: linear-gradient(to right, #93c5fd, #a5b4fc);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: xor;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-}
-
-.border-gradient-purple-pink {
-  position: relative;
-  background: transparent;
-  border: none;
-  color: #7c3aed;
-}
-
-.border-gradient-purple-pink::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 9999px;
-  padding: 2px;
-  background: linear-gradient(to right, #c4b5fd, #f9a8d4);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: xor;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-}
-
-.border-gradient-blue-cyan {
-  position: relative;
-  background: transparent;
-  border: none;
-  color: #0891b2;
-}
-
-.border-gradient-blue-cyan::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 9999px;
-  padding: 2px;
-  background: linear-gradient(to right, #93c5fd, #67e8f9);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: xor;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
 }
 
 /* === 空状態・エラー表示 === */
