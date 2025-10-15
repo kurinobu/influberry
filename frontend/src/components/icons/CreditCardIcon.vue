@@ -10,9 +10,8 @@
     stroke-linecap="round" 
     stroke-linejoin="round"
   >
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-    <circle cx="12" cy="16" r="1"></circle>
-    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+    <line x1="1" y1="10" x2="23" y2="10"></line>
   </svg>
 </template>
 

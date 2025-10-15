@@ -9,10 +9,9 @@
     stroke-width="2" 
     stroke-linecap="round" 
     stroke-linejoin="round"
+    class="animate-spin"
   >
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-    <circle cx="12" cy="16" r="1"></circle>
-    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+    <path d="M21 12a9 9 0 11-6.219-8.56"></path>
   </svg>
 </template>
 

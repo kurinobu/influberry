@@ -1,6 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth.js'
+import SettingsIcon from './icons/SettingsIcon.vue'
+import UserIcon from './icons/UserIcon.vue'
+import LockIcon from './icons/LockIcon.vue'
+import CreditCardIcon from './icons/CreditCardIcon.vue'
+import LoadingIcon from './icons/LoadingIcon.vue'
 
 // 認証ストア
 const authStore = useAuthStore()
@@ -221,8 +226,9 @@ const handlePaymentUpdate = async () => {
     <div class="w-full max-w-2xl space-y-6">
       <!-- ヘッダー -->
       <div class="text-center">
-        <h1 class="text-3xl font-bold text-gray-900 font-poppins mb-2">
-          ⚙️ ユーザー設定
+        <h1 class="text-3xl font-bold text-gray-900 font-poppins mb-2 flex items-center justify-center">
+          <SettingsIcon :size="32" color="#8B5CF6" class="mr-3" />
+          ユーザー設定
         </h1>
         <p class="text-gray-600 font-noto">
           プロフィール情報とパスワードの変更ができます
@@ -232,7 +238,8 @@ const handlePaymentUpdate = async () => {
       <!-- プロフィール編集セクション -->
       <div class="bg-white rounded-2xl shadow-xl p-8 border border-pink-100">
         <h2 class="text-xl font-semibold text-gray-900 font-poppins mb-6 flex items-center">
-          👤 プロフィール編集
+          <UserIcon :size="24" color="#EC4899" class="mr-3" />
+          プロフィール編集
         </h2>
         
         <form @submit.prevent="handleProfileUpdate" class="space-y-6">
@@ -345,7 +352,7 @@ const handlePaymentUpdate = async () => {
             class="w-full flex justify-center items-center px-6 py-3 font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-poppins bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700"
             style="box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3)"
           >
-            <span v-if="isProfileLoading" class="mr-2">🔄</span>
+            <LoadingIcon v-if="isProfileLoading" :size="20" color="#ffffff" class="mr-2" />
             {{ isProfileLoading ? '更新中...' : 'プロフィールを更新' }}
           </button>
         </form>
@@ -354,7 +361,8 @@ const handlePaymentUpdate = async () => {
       <!-- パスワード変更セクション -->
       <div class="bg-white rounded-2xl shadow-xl p-8 border border-purple-100">
         <h2 class="text-xl font-semibold text-gray-900 font-poppins mb-6 flex items-center">
-          🔐 パスワード変更
+          <LockIcon :size="24" color="#8B5CF6" class="mr-3" />
+          パスワード変更
         </h2>
         
         <form @submit.prevent="handlePasswordChange" class="space-y-6">
@@ -422,7 +430,7 @@ const handlePaymentUpdate = async () => {
             class="w-full flex justify-center items-center px-6 py-3 font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-poppins bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700"
             style="box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3)"
           >
-            <span v-if="isPasswordLoading" class="mr-2">🔄</span>
+            <LoadingIcon v-if="isPasswordLoading" :size="20" color="#ffffff" class="mr-2" />
             {{ isPasswordLoading ? '変更中...' : 'パスワードを変更' }}
           </button>
         </form>
@@ -430,7 +438,8 @@ const handlePaymentUpdate = async () => {
       <!-- 支払い情報セクション -->
       <div class="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
         <h2 class="text-xl font-semibold text-gray-900 font-poppins mb-6 flex items-center">
-          💳 支払い情報
+          <CreditCardIcon :size="24" color="#3B82F6" class="mr-3" />
+          支払い情報
         </h2>
         
         <form @submit.prevent="handlePaymentUpdate" class="space-y-6">
@@ -545,7 +554,7 @@ const handlePaymentUpdate = async () => {
             class="w-full flex justify-center items-center px-6 py-3 font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-poppins bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700"
             style="box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3)"
           >
-            <span v-if="isPaymentLoading" class="mr-2">🔄</span>
+            <LoadingIcon v-if="isPaymentLoading" :size="20" color="#ffffff" class="mr-2" />
             {{ isPaymentLoading ? '更新中...' : '支払い情報を更新' }}
           </button>
         </form>
