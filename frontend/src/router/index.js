@@ -13,6 +13,8 @@ import PrivacyPage from '../views/legal/PrivacyPage.vue'
 import TermsPage from '../views/legal/TermsPage.vue'
 import CompanyPage from '../views/legal/CompanyPage.vue'
 import TokushoPage from '../views/legal/TokushoPage.vue'
+import BlogPage from '../views/BlogPage.vue'
+import FAQPage from '../views/FAQPage.vue'
 
 // ルート定義（3層分離アーキテクチャ）
 const routes = [
@@ -23,7 +25,9 @@ const routes = [
     component: AuthPage,
     meta: { 
       requiresGuest: true,  // 未認証ユーザーのみアクセス可能
-      title: 'InfluBerry - ログイン'
+      title: 'InfluBerry - ログイン',
+      description: 'InfluBerryにログインして、インフルエンサー・クリエイター向けの案件管理・請求書自動生成SaaSツールを利用開始。効率化・省力化でDXを推進。',
+      keywords: 'InfluBerry,ログイン,インフルエンサー,クリエイター,SaaS,DX,効率化,省力化'
     }
   },
   
@@ -34,7 +38,9 @@ const routes = [
     component: DashboardPage,
     meta: { 
       requiresAuth: true,   // 認証必須
-      title: 'InfluBerry - ダッシュボード'
+      title: 'InfluBerry - ダッシュボード',
+      description: 'InfluBerryダッシュボードで案件管理・請求書管理・タスク管理を一元化。インフルエンサー・クリエイターの効率化・省力化をサポートするSaaSツール。',
+      keywords: 'ダッシュボード,案件管理,請求書管理,タスク管理,インフルエンサー,クリエイター,SaaS,DX,効率化,省力化'
     }
   },
   
@@ -45,7 +51,9 @@ const routes = [
     component: ProjectApp,
     meta: { 
       requiresAuth: true,   // 認証必須
-      title: 'InfluBerry - スポンサー案件管理'
+      title: 'InfluBerry - スポンサー案件管理',
+      description: 'スポンサー案件の進捗管理・納期管理を効率化。インフルエンサー・クリエイター向け案件管理SaaSツールで省力化・DXを実現。',
+      keywords: 'スポンサー案件,案件管理,進捗管理,納期管理,インフルエンサー,クリエイター,SaaS,DX,効率化,省力化,バックヤード'
     }
   },
   {
@@ -54,7 +62,9 @@ const routes = [
     component: InvoiceApp,
     meta: { 
       requiresAuth: true,   // 認証必須
-      title: 'InfluBerry - 請求書管理'
+      title: 'InfluBerry - 請求書管理',
+      description: '請求書自動生成・管理で事務作業を効率化。インフルエンサー・クリエイター向け請求書管理SaaSツールで省力化・DXを推進。',
+      keywords: '請求書管理,請求書自動生成,事務作業効率化,インフルエンサー,クリエイター,SaaS,DX,省力化,バックオフィス'
     }
   },
   
@@ -65,7 +75,9 @@ const routes = [
     component: TodoApp,
     meta: { 
       requiresAuth: true,
-      title: 'BerryDo｜タスク管理 - InfluBerry'
+      title: 'BerryDo｜タスク管理 - InfluBerry',
+      description: 'タスク管理・todoリストで作業効率を最大化。インフルエンサー・クリエイター向けタスク管理SaaSツールで省力化・DXを実現。',
+      keywords: 'タスク管理,todoリスト,作業効率化,インフルエンサー,クリエイター,SaaS,DX,省力化,バックヤード,効率化'
     }
   },
   
@@ -76,7 +88,9 @@ const routes = [
     component: AboutPage,
     meta: { 
       requiresAuth: false,  // 認証不要（法的要件）
-      title: 'InfluBerry - アプリ説明'
+      title: 'InfluBerry - アプリ説明',
+      description: 'InfluBerryはインフルエンサー・クリエイター向けの案件管理・請求書自動生成SaaSツール。効率化・省力化でDXを推進し、Z世代女子のバックヤード業務をサポート。',
+      keywords: 'InfluBerry,アプリ説明,インフルエンサー,クリエイター,SaaS,DX,効率化,省力化,Z世代女子,バックヤード,案件管理,請求書自動生成'
     }
   },
   {
@@ -85,7 +99,9 @@ const routes = [
     component: PrivacyPage,
     meta: { 
       requiresAuth: false,  // 認証不要（法的要件）
-      title: 'InfluBerry - プライバシーポリシー'
+      title: 'InfluBerry - プライバシーポリシー',
+      description: 'InfluBerryのプライバシーポリシー。インフルエンサー・クリエイターの個人情報保護とセキュリティについて。SaaSツールとしての信頼性を確保。',
+      keywords: 'プライバシーポリシー,個人情報保護,セキュリティ,インフルエンサー,クリエイター,SaaS,信頼性'
     }
   },
   {
@@ -94,7 +110,9 @@ const routes = [
     component: TermsPage,
     meta: { 
       requiresAuth: false,  // 認証不要（法的要件）
-      title: 'InfluBerry - ご利用規約'
+      title: 'InfluBerry - ご利用規約',
+      description: 'InfluBerryのご利用規約。インフルエンサー・クリエイター向けSaaSツールの利用条件とサービス内容について。',
+      keywords: 'ご利用規約,利用条件,サービス内容,インフルエンサー,クリエイター,SaaS,利用規約'
     }
   },
   {
@@ -103,7 +121,9 @@ const routes = [
     component: CompanyPage,
     meta: { 
       requiresAuth: false,  // 認証不要（法的要件）
-      title: 'InfluBerry - 運営会社情報'
+      title: 'InfluBerry - 運営会社情報',
+      description: 'InfluBerryの運営会社Air Edison（エアエジソン）の情報。インフルエンサー・クリエイター向けSaaSツールの開発・運営会社。',
+      keywords: '運営会社,Air Edison,エアエジソン,会社情報,インフルエンサー,クリエイター,SaaS,開発会社'
     }
   },
   {
@@ -112,7 +132,35 @@ const routes = [
     component: TokushoPage,
     meta: { 
       requiresAuth: false,  // 認証不要（法的要件）
-      title: 'InfluBerry - 特定商取引法に基づく表記'
+      title: 'InfluBerry - 特定商取引法に基づく表記',
+      description: 'InfluBerryの特定商取引法に基づく表記。インフルエンサー・クリエイター向けSaaSツールの法的情報と取引条件。',
+      keywords: '特定商取引法,法的表記,取引条件,インフルエンサー,クリエイター,SaaS,法的情報'
+    }
+  },
+  
+  // ブログページ
+  {
+    path: '/blog',
+    name: 'Blog',
+    component: BlogPage,
+    meta: { 
+      requiresAuth: false,  // 認証不要（SEO用）
+      title: 'InfluBerry Blog - インフルエンサー・クリエイター向け効率化・省力化ブログ',
+      description: 'インフルエンサー・クリエイター向けの効率化・省力化ブログ。SaaSツール活用、DX推進、バックヤード業務最適化のノウハウを発信。Z世代女子クリエイターの成功をサポート。',
+      keywords: 'インフルエンサー,クリエイター,効率化,省力化,SaaS,DX,バックヤード,案件管理,請求書自動生成,タスク管理,todoリスト,Z世代女子,ブログ'
+    }
+  },
+  
+  // FAQページ
+  {
+    path: '/faq',
+    name: 'FAQ',
+    component: FAQPage,
+    meta: { 
+      requiresAuth: false,  // 認証不要（SEO用）
+      title: 'InfluBerry FAQ - よくある質問・効率化・省力化SaaS',
+      description: 'InfluBerryのよくある質問と回答。インフルエンサー・クリエイター向け案件管理・請求書自動生成SaaSツールの使い方、料金、セキュリティについて。効率化・省力化でDXを推進。',
+      keywords: 'FAQ,よくある質問,インフルエンサー,クリエイター,効率化,省力化,SaaS,DX,案件管理,請求書自動生成,タスク管理,todoリスト,Z世代女子'
     }
   },
 

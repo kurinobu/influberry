@@ -59,6 +59,7 @@ const comingSoonFeatures = [
           <button
             @click="goHome"
             class="text-gray-600 hover:text-pink-500 transition-colors"
+            aria-label="InfluBerryログインページに戻る"
           >
             ← ログインに戻る
           </button>
@@ -70,13 +71,13 @@ const comingSoonFeatures = [
     <main class="max-w-4xl mx-auto px-4 py-8">
       <!-- ヒーローセクション -->
       <section class="text-center mb-16">
-        <h2 class="text-4xl font-bold text-gray-900 mb-4">
-          インフルエンサーのための
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">
+          インフルエンサー・クリエイター向け
           <br>
           <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
-            オールインワンツール
+            案件管理・請求書自動生成SaaS
           </span>
-        </h2>
+        </h1>
         <p class="text-xl text-gray-600 mb-8">
           案件管理から請求書作成まで、面倒な事務作業はInfluBerryにお任せ！<br>
           あなたはコンテンツ作りに集中できます。
@@ -90,9 +91,9 @@ const comingSoonFeatures = [
 
       <!-- 現在の機能セクション -->
       <section class="mb-16">
-        <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center">
-          今すぐ使える機能
-        </h3>
+        <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">
+          今すぐ使える機能 - 効率化・省力化でDXを推進
+        </h2>
         <div class="grid md:grid-cols-3 gap-8">
           <div
             v-for="feature in features"
@@ -100,7 +101,7 @@ const comingSoonFeatures = [
             class="berry-card"
           >
             <div class="text-4xl mb-4">{{ feature.icon }}</div>
-            <h4 class="text-lg font-semibold text-gray-900 mb-2">{{ feature.title }}</h4>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ feature.title }}</h3>
             <p class="text-gray-600">{{ feature.description }}</p>
           </div>
         </div>
@@ -108,9 +109,9 @@ const comingSoonFeatures = [
 
       <!-- 将来追加予定機能セクション -->
       <section class="mb-16">
-        <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center">
-          これから追加される機能
-        </h3>
+        <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">
+          これから追加される機能 - さらなる効率化・省力化
+        </h2>
         <div class="grid md:grid-cols-3 gap-8">
           <div
             v-for="feature in comingSoonFeatures"
@@ -123,7 +124,7 @@ const comingSoonFeatures = [
               </span>
             </div>
             <div class="text-4xl mb-4 opacity-60">{{ feature.icon }}</div>
-            <h4 class="text-lg font-semibold text-gray-700 mb-2">{{ feature.title }}</h4>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">{{ feature.title }}</h3>
             <p class="text-gray-500">{{ feature.description }}</p>
           </div>
         </div>
@@ -131,35 +132,35 @@ const comingSoonFeatures = [
 
       <!-- ターゲット説明セクション -->
       <section class="bg-white rounded-lg shadow-md p-8 mb-8">
-        <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">
-          こんな方におすすめ
-        </h3>
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
+          こんな方におすすめ - Z世代女子・クリエイター向け
+        </h2>
         <div class="grid md:grid-cols-2 gap-6">
           <div class="flex items-start space-x-4">
             <div class="text-2xl">🌟</div>
             <div>
-              <h4 class="font-semibold text-gray-900 mb-2">インフルエンサー初心者</h4>
+              <h3 class="font-semibold text-gray-900 mb-2">インフルエンサー初心者</h3>
               <p class="text-gray-600">案件管理や請求書作成などの事務作業に慣れていない方</p>
             </div>
           </div>
           <div class="flex items-start space-x-4">
             <div class="text-2xl">📱</div>
             <div>
-              <h4 class="font-semibold text-gray-900 mb-2">Z世代クリエイター</h4>
+              <h3 class="font-semibold text-gray-900 mb-2">Z世代クリエイター</h3>
               <p class="text-gray-600">TikTok、Instagram、YouTubeなどで活動中の方</p>
             </div>
           </div>
           <div class="flex items-start space-x-4">
             <div class="text-2xl">⏰</div>
             <div>
-              <h4 class="font-semibold text-gray-900 mb-2">効率化したい方</h4>
+              <h3 class="font-semibold text-gray-900 mb-2">効率化したい方</h3>
               <p class="text-gray-600">事務作業の時間を減らして、コンテンツ作りに集中したい方</p>
             </div>
           </div>
           <div class="flex items-start space-x-4">
             <div class="text-2xl">💎</div>
             <div>
-              <h4 class="font-semibold text-gray-900 mb-2">収益アップを目指す方</h4>
+              <h3 class="font-semibold text-gray-900 mb-2">収益アップを目指す方</h3>
               <p class="text-gray-600">案件の見える化で収益管理を徹底したい方</p>
             </div>
           </div>
@@ -168,9 +169,9 @@ const comingSoonFeatures = [
 
       <!-- 使い方セクション -->
       <section class="bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg text-white p-8 text-center">
-        <h3 class="text-2xl font-bold mb-4">
-          使い方はとってもシンプル！
-        </h3>
+        <h2 class="text-2xl font-bold mb-4">
+          使い方はとってもシンプル！ - 3ステップで始められるSaaS
+        </h2>
         <div class="grid md:grid-cols-3 gap-6 mb-6">
           <div>
             <div class="text-3xl mb-2">1️⃣</div>
@@ -185,12 +186,46 @@ const comingSoonFeatures = [
             <p>請求書を自動生成</p>
           </div>
         </div>
-        <button
-          @click="goHome"
-          class="bg-white text-pink-500 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          今すぐ始める
-        </button>
+        <div class="space-y-4">
+          <button
+            @click="goHome"
+            class="bg-white text-pink-500 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label="InfluBerryにログインして案件管理・請求書自動生成SaaSを開始"
+          >
+            今すぐ始める
+          </button>
+          
+          <!-- ソーシャルシェア -->
+          <div class="flex justify-center space-x-4 mt-6">
+            <a
+              href="https://twitter.com/intent/tweet?text=InfluBerryでインフルエンサー・クリエイターの効率化・省力化を実現！案件管理・請求書自動生成SaaS&url=https://influberry.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm"
+              aria-label="Twitterでシェア"
+            >
+              🐦 Twitter
+            </a>
+            <a
+              href="https://www.facebook.com/sharer/sharer.php?u=https://influberry.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              aria-label="Facebookでシェア"
+            >
+              📘 Facebook
+            </a>
+            <a
+              href="https://line.me/R/msg/text/?InfluBerryでインフルエンサー・クリエイターの効率化・省力化を実現！案件管理・請求書自動生成SaaS https://influberry.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm"
+              aria-label="LINEでシェア"
+            >
+              💬 LINE
+            </a>
+          </div>
+        </div>
       </section>
     </main>
 

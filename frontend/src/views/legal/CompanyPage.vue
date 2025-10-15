@@ -37,8 +37,8 @@ const lastUpdated = '2025年9月17日'
     <div class="max-w-4xl mx-auto px-4 py-8">
       <!-- タイトルセクション -->
       <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold text-gray-800 mb-4">運営会社情報</h1>
-        <p class="text-gray-600 text-lg">InfluBerryを運営しているチームについて</p>
+        <h1 class="text-4xl font-bold text-gray-800 mb-4">運営会社情報 - Air Edison（エアエジソン）</h1>
+        <p class="text-gray-600 text-lg">神戸市兵庫区のSaaS開発会社が運営するInfluBerryについて</p>
         <p class="text-sm text-gray-500 mt-2">最終更新日: {{ lastUpdated }}</p>
       </div>
 
@@ -47,7 +47,7 @@ const lastUpdated = '2025年9月17日'
         
         <!-- 1. 会社概要 -->
         <section>
-          <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b border-pink-200 pb-2">会社概要</h2>
+          <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b border-pink-200 pb-2">会社概要 - 神戸市兵庫区のSaaS開発会社</h2>
           <div class="grid md:grid-cols-2 gap-6">
             <div class="space-y-4">
               <div class="bg-pink-50 p-6 rounded-lg">

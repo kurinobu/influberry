@@ -43,9 +43,8 @@ import FixedFooter from '@/components/FixedFooter.vue'
   --influberry-green-dark: #48BB78;
 }
 
-/* グローバルフォント設定 */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500;600;700&display=swap');
+/* グローバルフォント設定 - 最適化済み */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=M+PLUS+Rounded+1c:wght@300;400;500;600;700&display=swap');
 
 .font-poppins {
   font-family: 'Poppins', sans-serif;
