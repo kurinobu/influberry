@@ -744,14 +744,6 @@ const getStatusColor = (status) => {
   background-color: #f9fafb;
 }
 
-/* スマホ時：カードフレームをヘッダー幅に合わせる */
-@media (max-width: 640px) {
-  .berry-card {
-    width: 100%;
-    max-width: 100%;
-  }
-}
-
 /* フォーカス状態 */
 .focus\:ring-2:focus {
   box-shadow: 0 0 0 2px rgba(ec, 4a, 99, 0.5);

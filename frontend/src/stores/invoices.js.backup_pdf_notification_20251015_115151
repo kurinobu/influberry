@@ -345,9 +345,9 @@ export const useInvoicesStore = defineStore('invoices', () => {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      
-      // URLを返す（通知モーダルで使用）
-      return { success: true, pdfUrl: url }
+      window.URL.revokeObjectURL(url)
+
+      return { success: true }
     } catch (error) {
       console.error('PDF生成エラー:', error)
       error.value = error.message

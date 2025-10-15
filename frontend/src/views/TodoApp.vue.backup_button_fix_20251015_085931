@@ -727,34 +727,6 @@ const getStatusColor = (status) => {
   box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
 }
 
-.berry-primary-button {
-  display: inline-flex;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  border-radius: 0.75rem;
-  font-weight: 700;
-  color: #ffffff;
-  background: linear-gradient(45deg, #ec4899, #be185d);
-  border: none;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  transform: scale(1);
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
-  cursor: pointer;
-}
-
-.berry-primary-button:hover {
-  background: linear-gradient(45deg, #be185d, #9d174d);
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
-}
-
-.berry-primary-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: scale(1);
-}
-
 .berry-secondary-button {
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;

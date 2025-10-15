@@ -13,8 +13,6 @@ import CloseIcon from './icons/CloseIcon.vue'
 import PdfIcon from './icons/PdfIcon.vue'
 import SendIcon from './icons/SendIcon.vue'
 import AlertIcon from './icons/AlertIcon.vue'
-// 通知モーダル
-import NotificationModal from './NotificationModal.vue'
 
 // Invoice管理ストア
 const invoicesStore = useInvoicesStore()
@@ -25,14 +23,6 @@ const selectedStatus = ref('')
 const showDetailModal = ref(false)
 const selectedInvoice = ref(null)
 const pdfGenerating = ref(false)
-
-// 通知モーダル状態
-const showNotification = ref(false)
-const notificationType = ref('success')
-const notificationTitle = ref('')
-const notificationMessage = ref('')
-const notificationActionText = ref('')
-const notificationActionUrl = ref('')
 
 // インライン編集状態（ProjectList.vue統一）
 const editingInvoice = ref(null)  // null = 表示モード、ID = 編集モード
@@ -62,43 +52,16 @@ const generatePDF = async (invoiceId) => {
     const result = await invoicesStore.generatePDF(invoiceId)
     if (!result.success) {
       trackError('pdf_generation', result.error, 'InvoiceList')
-      // エラー通知を表示
-      showErrorNotification('PDF生成エラー', result.error)
+      alert(`PDF生成エラー: ${result.error}`)
     } else {
       trackPdfDownload('invoice')
-      // 成功通知を表示
-      showSuccessNotification('PDF生成完了', '請求書がPDFで発行されました。', '開く', result.pdfUrl)
     }
   } catch (error) {
     trackError('pdf_generation', error.message, 'InvoiceList')
-    showErrorNotification('PDF生成エラー', error.message)
+    alert(`PDF生成エラー: ${error.message}`)
   } finally {
     pdfGenerating.value = false
   }
-}
-
-// 通知表示メソッド
-const showSuccessNotification = (title, message, actionText = '', actionUrl = '') => {
-  notificationType.value = 'success'
-  notificationTitle.value = title
-  notificationMessage.value = message
-  notificationActionText.value = actionText
-  notificationActionUrl.value = actionUrl
-  showNotification.value = true
-}
-
-const showErrorNotification = (title, message) => {
-  notificationType.value = 'error'
-  notificationTitle.value = title
-  notificationMessage.value = message
-  notificationActionText.value = ''
-  notificationActionUrl.value = ''
-  showNotification.value = true
-}
-
-// 通知モーダルを閉じる
-const closeNotification = () => {
-  showNotification.value = false
 }
 
 
@@ -777,18 +740,6 @@ const formatDate = (dateString) => {
   </div>
   <!-- Invoice編集フォーム -->
   
-  <!-- 通知モーダル -->
-  <NotificationModal
-    :is-visible="showNotification"
-    :type="notificationType"
-    :title="notificationTitle"
-    :message="notificationMessage"
-    :action-text="notificationActionText"
-    :action-url="notificationActionUrl"
-    @close="closeNotification"
-    @action="closeNotification"
-  />
-  
 </template>
 
 
@@ -838,14 +789,6 @@ const formatDate = (dateString) => {
 /* グラデーション強化 */
 .bg-gradient-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops));
-}
-
-/* スマホ時：カードフレームをヘッダー幅に合わせる */
-@media (max-width: 640px) {
-  .berry-card {
-    width: 100%;
-    max-width: 100%;
-  }
 }
 
 /* berry-action-button（TodoAppパターン統一） */
