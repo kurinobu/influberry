@@ -344,49 +344,66 @@ const getStatusColor = (status) => {
       </div>
     </div>
 
+    <!-- ステータスフィルター -->
+    <div class="berry-card">
+      <h3 class="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
+        <DashboardIcon :size="20" color="#a855f7" />
+        ステータス別フィルター
+      </h3>
+      <div class="flex flex-wrap gap-2">
+        <button
+          @click="handleStatusFilter('')"
+          :class="[
+            'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+            selectedStatus === '' 
+              ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          ]"
+        >
+          すべて ({{ projectsStore.projects.filter(p => p.is_todo !== 1).length }})
+        </button>
+        
+        <button
+          @click="handleStatusFilter('proposed')"
+          :class="[
+            'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+            selectedStatus === 'proposed' 
+              ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          ]"
+        >
+          提案中 ({{ projectsStore.proposedCount }})
+        </button>
+        
+        <button
+          @click="handleStatusFilter('contracted')"
+          :class="[
+            'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+            selectedStatus === 'contracted' 
+              ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          ]"
+        >
+          契約中 ({{ projectsStore.contractedCount }})
+        </button>
+        
+        <button
+          @click="handleStatusFilter('completed')"
+          :class="[
+            'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+            selectedStatus === 'completed' 
+              ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          ]"
+        >
+          完了 ({{ projectsStore.completedCount }})
+        </button>
+      </div>
+    </div>
+
     <!-- 操作バー -->
     <div class="berry-card">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-        <!-- ステータスフィルター -->
-        <div class="flex items-center space-x-2">
-          <span class="text-sm font-medium text-gray-700">フィルター:</span>
-          <div class="flex space-x-2">
-            <button
-              @click="handleStatusFilter('proposed')"
-              :class="[
-                'px-3 py-1 rounded-full text-xs font-medium transition-colors',
-                selectedStatus === 'proposed' 
-                  ? 'bg-yellow-200 text-yellow-800' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              ]"
-            >
-              提案中 ({{ projectsStore.proposedCount }})
-            </button>
-            <button
-              @click="handleStatusFilter('contracted')"
-              :class="[
-                'px-3 py-1 rounded-full text-xs font-medium transition-colors',
-                selectedStatus === 'contracted' 
-                  ? 'bg-blue-200 text-blue-800' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              ]"
-            >
-              契約中 ({{ projectsStore.contractedCount }})
-            </button>
-            <button
-              @click="handleStatusFilter('completed')"
-              :class="[
-                'px-3 py-1 rounded-full text-xs font-medium transition-colors',
-                selectedStatus === 'completed' 
-                  ? 'bg-green-200 text-green-800' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              ]"
-            >
-              完了 ({{ projectsStore.completedCount }})
-            </button>
-          </div>
-        </div>
-
         <!-- 新規作成ボタン -->
         <button
           @click="startCreate"

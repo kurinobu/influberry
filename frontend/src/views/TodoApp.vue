@@ -30,6 +30,14 @@ const newTodo = ref({
 const projectOptions = ref([])
 const invoiceOptions = ref([])
 
+// フィルター状態
+const selectedStatus = ref('')
+const selectedPriority = ref('')
+const selectedImportance = ref('')
+
+// フォーム表示状態
+const showCreateForm = ref(false)
+
 onMounted(async () => {
   await todosStore.fetchTodos()
   await fetchProjectOptions()
@@ -64,6 +72,96 @@ const getInvoiceName = (invoiceId) => {
   return invoice ? `${invoice.client_company}` : '不明'
 }
 
+// フィルター機能
+const handleStatusFilter = (status) => {
+  selectedStatus.value = status === selectedStatus.value ? '' : status
+}
+
+const handlePriorityFilter = (priority) => {
+  selectedPriority.value = priority === selectedPriority.value ? '' : priority
+}
+
+const handleImportanceFilter = (importance) => {
+  selectedImportance.value = importance === selectedImportance.value ? '' : importance
+}
+
+// フィルタリングされたタスク一覧
+const filteredTodos = computed(() => {
+  let todos = todosStore.sortedTodos || []
+  
+  if (selectedStatus.value) {
+    todos = todos.filter(todo => todo.todo_status === selectedStatus.value)
+  }
+  
+  if (selectedPriority.value) {
+    todos = todos.filter(todo => todo.todo_priority === selectedPriority.value)
+  }
+  
+  if (selectedImportance.value) {
+    todos = todos.filter(todo => todo.todo_importance === parseInt(selectedImportance.value))
+  }
+  
+  return todos
+})
+
+// ステータス表示名
+const getStatusDisplay = (status) => {
+  const statusMap = {
+    pending: '未完了',
+    completed: '完了'
+  }
+  return statusMap[status] || status
+}
+
+// 優先度表示名
+const getPriorityDisplay = (priority) => {
+  const priorityMap = {
+    low: '🟢 低',
+    medium: '🟡 中',
+    high: '🔴 高'
+  }
+  return priorityMap[priority] || priority
+}
+
+// 重要度表示名
+const getImportanceDisplay = (importance) => {
+  const importanceMap = {
+    1: '⭐ 低',
+    2: '⭐⭐ 中',
+    3: '⭐⭐⭐ 高',
+    4: '⭐⭐⭐⭐ 最高',
+    5: '⭐⭐⭐⭐⭐ 最重要'
+  }
+  return importanceMap[importance] || importance
+}
+
+// フォーム制御
+const startCreate = () => {
+  showCreateForm.value = true
+  newTodo.value = {
+    title: '',
+    description: '',
+    due_date: '',
+    priority: 'medium',
+    importance: 3,
+    linked_project_id: null,
+    linked_invoice_id: null
+  }
+}
+
+const cancelCreate = () => {
+  showCreateForm.value = false
+  newTodo.value = {
+    title: '',
+    description: '',
+    due_date: '',
+    priority: 'medium',
+    importance: 3,
+    linked_project_id: null,
+    linked_invoice_id: null
+  }
+}
+
 // Todo作成
 const createNewTodo = async () => {
   try {
@@ -82,7 +180,8 @@ const createNewTodo = async () => {
     await todosStore.fetchTodos() // 表示問題根本解決パターン適用
     trackTaskComplete('todo_create')
 
-    // フォームリセット
+    // フォームリセットと閉じる
+    showCreateForm.value = false
     newTodo.value = {
       title: '',
       description: '',
@@ -253,10 +352,30 @@ const getStatusColor = (status) => {
       <!-- Todo管理メイン -->
       <div v-else class="space-y-8">
         
-        <!-- Todo作成フォーム（Phase 4デザイン改革完了） -->
-        <div class="berry-card-form">
+        <!-- 新規作成ボタン -->
+        <div class="berry-card">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+            <button
+              @click="startCreate"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition-colors"
+            >
+              ➕ 新規タスク作成
+            </button>
+          </div>
+        </div>
+        
+        <!-- Todo作成フォーム（条件付き表示） -->
+        <div v-if="showCreateForm" class="berry-card-form">
           <div class="berry-card-header">
             <h2 class="text-xl font-bold text-gray-900">新しいタスクを作成</h2>
+            <button
+              @click="cancelCreate"
+              class="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
           </div>
           
           <form @submit.prevent="createNewTodo" class="space-y-6">
@@ -349,7 +468,14 @@ const getStatusColor = (status) => {
             </div>
 
             <!-- 作成ボタン -->
-            <div class="flex justify-end">
+            <div class="flex justify-end space-x-3">
+              <button
+                type="button"
+                @click="cancelCreate"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                キャンセル
+              </button>
               <button type="submit" class="berry-primary-button">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -360,11 +486,193 @@ const getStatusColor = (status) => {
           </form>
         </div>
 
+        <!-- フィルター -->
+        <div class="berry-card">
+          <h3 class="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
+            <ChecklistIcon :size="20" color="#a855f7" />
+            タスクフィルター
+          </h3>
+          
+          <!-- ステータスフィルター -->
+          <div class="mb-4">
+            <h4 class="text-sm font-medium text-gray-700 mb-2">ステータス</h4>
+            <div class="flex flex-wrap gap-2">
+              <button
+                @click="handleStatusFilter('')"
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  selectedStatus === '' 
+                    ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                すべて ({{ todosStore.sortedTodos?.length || 0 }})
+              </button>
+              
+              <button
+                @click="handleStatusFilter('pending')"
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  selectedStatus === 'pending' 
+                    ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                未完了 ({{ todosStore.sortedTodos?.filter(t => t.todo_status === 'pending').length || 0 }})
+              </button>
+              
+              <button
+                @click="handleStatusFilter('completed')"
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  selectedStatus === 'completed' 
+                    ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                完了 ({{ todosStore.sortedTodos?.filter(t => t.todo_status === 'completed').length || 0 }})
+              </button>
+            </div>
+          </div>
+          
+          <!-- 優先度フィルター -->
+          <div class="mb-4">
+            <h4 class="text-sm font-medium text-gray-700 mb-2">優先度</h4>
+            <div class="flex flex-wrap gap-2">
+              <button
+                @click="handlePriorityFilter('')"
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  selectedPriority === '' 
+                    ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                すべて
+              </button>
+              
+              <button
+                @click="handlePriorityFilter('low')"
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  selectedPriority === 'low' 
+                    ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                🟢 低
+              </button>
+              
+              <button
+                @click="handlePriorityFilter('medium')"
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  selectedPriority === 'medium' 
+                    ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                🟡 中
+              </button>
+              
+              <button
+                @click="handlePriorityFilter('high')"
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  selectedPriority === 'high' 
+                    ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                🔴 高
+              </button>
+            </div>
+          </div>
+          
+          <!-- 重要度フィルター -->
+          <div>
+            <h4 class="text-sm font-medium text-gray-700 mb-2">重要度</h4>
+            <div class="flex flex-wrap gap-2">
+              <button
+                @click="handleImportanceFilter('')"
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  selectedImportance === '' 
+                    ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                すべて
+              </button>
+              
+              <button
+                @click="handleImportanceFilter('1')"
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  selectedImportance === '1' 
+                    ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                ⭐ 低
+              </button>
+              
+              <button
+                @click="handleImportanceFilter('2')"
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  selectedImportance === '2' 
+                    ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                ⭐⭐ 中
+              </button>
+              
+              <button
+                @click="handleImportanceFilter('3')"
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  selectedImportance === '3' 
+                    ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                ⭐⭐⭐ 高
+              </button>
+              
+              <button
+                @click="handleImportanceFilter('4')"
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  selectedImportance === '4' 
+                    ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                ⭐⭐⭐⭐ 最高
+              </button>
+              
+              <button
+                @click="handleImportanceFilter('5')"
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  selectedImportance === '5' 
+                    ? 'bg-purple-100 text-purple-800 border-2 border-purple-500' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                ⭐⭐⭐⭐⭐ 最重要
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Todoリスト（Phase 4カードベースUI完全実装） -->
-        <div v-if="todosStore.sortedTodos?.length" class="space-y-4">
+        <div v-if="filteredTodos?.length" class="space-y-4">
           <h2 class="text-xl font-bold text-gray-900 mb-6">タスク一覧</h2>
           
-          <div v-for="todo in todosStore.sortedTodos" :key="todo.id" 
+          <div v-for="todo in filteredTodos" :key="todo.id" 
                class="berry-todo-card"
                :class="getStatusColor(todo.todo_status)">
             
