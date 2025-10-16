@@ -19,7 +19,7 @@ const lastUpdated = '2025年9月17日'
       <div class="max-w-4xl mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
+            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-noto">
               🍓 InfluBerry
             </h1>
           </div>

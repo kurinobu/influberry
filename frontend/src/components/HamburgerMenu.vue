@@ -12,6 +12,7 @@ import DiamondIcon from './icons/DiamondIcon.vue'
 import SmartphoneIcon from './icons/SmartphoneIcon.vue'
 import FolderIcon from './icons/FolderIcon.vue'
 import LogoutIcon from './icons/LogoutIcon.vue'
+import HelpIcon from './icons/HelpIcon.vue'
 
 // コンポーネントマッピング用オブジェクト
 const iconComponents = {
@@ -23,7 +24,8 @@ const iconComponents = {
   DiamondIcon,
   SmartphoneIcon,
   FolderIcon,
-  LogoutIcon
+  LogoutIcon,
+  HelpIcon
 }
 
 const router = useRouter()
@@ -122,6 +124,11 @@ const settingsItems = ref([
     action: 'about'
   },
   {
+    icon: 'HelpIcon',
+    name: 'FAQ',
+    action: 'faq'
+  },
+  {
     icon: 'FolderIcon',
     name: '基本データ',
     action: 'basicData'
@@ -149,6 +156,11 @@ const handleAction = (action) => {
     case 'about':
       // アプリ説明ページへ直接リンク
       window.open('/about', '_blank')
+      closeMenu()
+      break
+    case 'faq':
+      // FAQページへ直接リンク
+      window.open('/faq', '_blank')
       closeMenu()
       break
     case 'basicData':

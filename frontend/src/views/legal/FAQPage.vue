@@ -13,7 +13,7 @@ const goHome = () => {
 const faqCategories = [
   {
     name: '基本機能について',
-    icon: '🔧',
+    icon: 'tools',
     faqs: [
       {
         question: 'InfluBerryでできることは何ですか？',
@@ -21,7 +21,7 @@ const faqCategories = [
       },
       {
         question: '請求書自動生成機能の使い方を教えてください',
-        answer: '案件情報を登録すると、自動的に請求書が生成されます。PDF出力、メール送信、会計ソフト連携（予定）でバックオフィス業務を効率化できます。'
+        answer: '案件情報を登録し請求書ボタンをタップすると、自動的に請求書が生成されます。PDF出力もできます。メール送信、会計ソフト連携（予定）でバックオフィス業務を効率化できます。'
       },
       {
         question: 'タスク管理機能（BerryDo）の特徴は？',
@@ -31,7 +31,7 @@ const faqCategories = [
   },
   {
     name: '料金・プランについて',
-    icon: '💰',
+    icon: 'money',
     faqs: [
       {
         question: '料金プランはどのようになっていますか？',
@@ -45,7 +45,7 @@ const faqCategories = [
   },
   {
     name: '技術・セキュリティについて',
-    icon: '🔒',
+    icon: 'security',
     faqs: [
       {
         question: 'データのセキュリティは大丈夫ですか？',
@@ -59,7 +59,7 @@ const faqCategories = [
   },
   {
     name: '効率化・省力化について',
-    icon: '⚡',
+    icon: 'lightning',
     faqs: [
       {
         question: 'どの程度の効率化・省力化が期待できますか？',
@@ -83,6 +83,17 @@ const openItems = ref({})
 const toggleItem = (categoryIndex, faqIndex) => {
   const key = `${categoryIndex}-${faqIndex}`
   openItems.value[key] = !openItems.value[key]
+}
+
+// アイコンマッピング
+const getIcon = (iconName) => {
+  const icons = {
+    tools: 'tools',
+    money: 'money',
+    security: 'security',
+    lightning: 'lightning'
+  }
+  return icons[iconName] || 'tools'
 }
 </script>
 
@@ -131,7 +142,19 @@ const toggleItem = (categoryIndex, faqIndex) => {
           class="bg-white rounded-lg shadow-md p-8"
         >
           <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-            <span class="text-3xl mr-3">{{ category.icon }}</span>
+            <svg v-if="category.icon === 'tools'" class="w-8 h-8 text-pink-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <svg v-else-if="category.icon === 'money'" class="w-8 h-8 text-pink-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+            </svg>
+            <svg v-else-if="category.icon === 'security'" class="w-8 h-8 text-pink-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+            <svg v-else-if="category.icon === 'lightning'" class="w-8 h-8 text-pink-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
             {{ category.name }}
           </h2>
           
@@ -199,7 +222,7 @@ const toggleItem = (categoryIndex, faqIndex) => {
     <!-- フッター -->
     <footer class="berry-footer">
       <div class="berry-footer-inner">
-        <p class="text-gray-400">© 2025 InfluBerry FAQ - Air Edison. All rights reserved.</p>
+        <p class="text-white">© 2025 InfluBerry FAQ - Air Edison. All rights reserved.</p>
       </div>
     </footer>
   </div>
@@ -214,7 +237,7 @@ const toggleItem = (categoryIndex, faqIndex) => {
 }
 
 .berry-footer {
-  background: linear-gradient(135deg, #1f2937 0%, #374151 100%) !important;
+  background: linear-gradient(to right, #ec4899 0%, #9333ea 100%) !important;
   border-top: 2px solid #f9a8d4 !important;
   color: #ffffff !important;
   padding: 2rem 0 !important;

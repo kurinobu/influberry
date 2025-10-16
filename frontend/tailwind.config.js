@@ -17,7 +17,16 @@ module.exports = {
     'hover:text-gray-900',
     'transition-colors',
     'text-lg',
-    'mr-3'
+    'mr-3',
+    // 間隔関連クラスを追加
+    'mb-6',
+    'mb-8', 
+    'mb-12',
+    'mb-16',
+    'mt-12',
+    'mt-16',
+    'space-y-8',
+    'space-y-12'
   ],
   theme: {
     extend: {

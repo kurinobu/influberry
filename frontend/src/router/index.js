@@ -13,8 +13,8 @@ import PrivacyPage from '../views/legal/PrivacyPage.vue'
 import TermsPage from '../views/legal/TermsPage.vue'
 import CompanyPage from '../views/legal/CompanyPage.vue'
 import TokushoPage from '../views/legal/TokushoPage.vue'
-import BlogPage from '../views/BlogPage.vue'
-import FAQPage from '../views/FAQPage.vue'
+import BlogPage from '../views/legal/BlogPage.vue'
+import FAQPage from '../views/legal/FAQPage.vue'
 
 // ルート定義（3層分離アーキテクチャ）
 const routes = [
