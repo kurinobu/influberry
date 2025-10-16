@@ -260,7 +260,7 @@ const comingSoonFeatures = [
               style="background-color: #000000 !important; color: #ffffff !important;"
               aria-label="Threadsでシェア"
             >
-              <img src="/images/sns/threads-logo.svg" alt="Threads" class="h-4 w-auto" style="filter: invert(1);" />
+              <img src="/static/images/sns/threads-logo.svg" alt="Threads" class="h-4 w-auto" style="filter: invert(1);" />
               <span></span>
             </a>
             <a
