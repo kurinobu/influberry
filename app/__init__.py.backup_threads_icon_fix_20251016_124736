@@ -84,13 +84,6 @@ def create_app(config_name='development'):
             except FileNotFoundError:
                 pass
         
-        # Images directory (SVG, PNG, etc.)
-        if filename.startswith('images/'):
-            try:
-                return send_from_directory('static', filename)
-            except FileNotFoundError:
-                pass
-        
         # Everything else -> SPA (Vue Router handles it)
         return send_from_directory('static', 'index.html')
 
