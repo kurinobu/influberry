@@ -15,9 +15,6 @@ import FixedFooter from '@/components/FixedFooter.vue'
 </template>
 
 <style>
-/* グローバルフォント設定 - 最適化済み */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=M+PLUS+Rounded+1c:wght@300;400;500;600;700&display=swap');
-
 /* InfluBerry カスタムカラーパレット（CSS変数定義） */
 :root {
   /* スポンサー案件管理 - ピンク系 */
@@ -45,6 +42,9 @@ import FixedFooter from '@/components/FixedFooter.vue'
   --influberry-green-light: #9AE6B4;
   --influberry-green-dark: #48BB78;
 }
+
+/* グローバルフォント設定 - 最適化済み */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=M+PLUS+Rounded+1c:wght@300;400;500;600;700&display=swap');
 
 .font-poppins {
   font-family: 'Poppins', sans-serif;
