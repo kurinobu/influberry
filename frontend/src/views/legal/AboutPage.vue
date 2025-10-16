@@ -260,8 +260,7 @@ const comingSoonFeatures = [
               style="background-color: #000000 !important; color: #ffffff !important;"
               aria-label="Threadsでシェア"
             >
-              <img src="/images/sns/threads-logo.svg" alt="Threads" class="h-4 w-auto" style="filter: invert(1);" />
-              <span></span>
+              <span>Threads</span>
             </a>
             <a
               href="https://line.me/R/msg/text/?InfluBerryでインフルエンサー・クリエイターの効率化・省力化を実現！案件管理・請求書自動生成SaaS https://influberry.com"
