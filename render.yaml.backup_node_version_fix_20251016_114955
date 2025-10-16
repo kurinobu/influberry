@@ -16,8 +16,6 @@ services:
     
     # ビルドコマンド（Backend + Frontend統合ビルド）
     buildCommand: |
-      echo "=== Node.js バージョン確認 ==="
-      node --version
       echo "=== InfluBerry 統合ビルド開始 ==="
       pip install -r requirements.txt
       echo "=== Frontend ビルド開始 ==="
