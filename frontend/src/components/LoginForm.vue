@@ -59,6 +59,36 @@
               ログイン状態を保持する
             </label>
           </div>
+          <!-- 年齢・規約同意チェックボックス（新規追加） -->
+          <div class="space-y-3 pt-2">
+            <p class="text-sm font-medium text-gray-600">利用を開始する前に、以下のチェックをお願いします。</p>
+            
+            <div class="flex items-start">
+              <input
+                id="age-check-login"
+                v-model="formData.isOver18"
+                type="checkbox"
+                class="berry-checkbox"
+                :disabled="authStore.isLoading"
+              />
+              <label for="age-check-login" class="ml-2 text-sm text-gray-600">
+                私は18歳以上です
+              </label>
+            </div>
+            
+            <div class="flex items-start">
+              <input
+                id="terms-check-login"
+                v-model="formData.agreedToTerms"
+                type="checkbox"
+                class="berry-checkbox"
+                :disabled="authStore.isLoading"
+              />
+              <label for="terms-check-login" class="ml-2 text-sm text-gray-600">
+                <router-link to="/terms" target="_blank" class="text-pink-600 hover:text-pink-800 underline">利用規約</router-link><span class="text-gray-600">と</span><router-link to="/privacy" target="_blank" class="text-pink-600 hover:text-pink-800 underline">プライバシーポリシー</router-link><span class="text-gray-600">に同意します</span>
+              </label>
+            </div>
+          </div>
         </div>
 
         <!-- ログインボタン -->
@@ -130,12 +160,17 @@ const authStore = useAuthStore()
 const formData = reactive({
   email: '',
   password: '',
-  remember: false
+  remember: false,
+  isOver18: false,      // 新規追加
+  agreedToTerms: false  // 新規追加
 })
 
 // フォームバリデーション
 const isFormValid = computed(() => {
-  return formData.email.trim() !== '' && formData.password.trim() !== ''
+  return formData.email.trim() !== '' && 
+         formData.password.trim() !== '' &&
+         formData.isOver18 &&        // 新規追加
+         formData.agreedToTerms      // 新規追加
 })
 
 // ログイン処理
