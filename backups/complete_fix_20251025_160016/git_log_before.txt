@@ -1,0 +1,5 @@
+33876b7 fix: Render.comのpackage.json参照問題を修正
+152ae9c fix: ステージング環境の月次管理機能完全同期
+1e19911 docs: 月次管理機能アーキテクチャ設計書に残存課題を記録
+4d67dc7 fix: FAQPage.vueファイルの同期と削除されたファイルの整理
+cd77f0a fix: BlogPage.vueファイルの同期と削除されたファイルの整理

@@ -122,7 +122,7 @@ def create_app(config_name='development'):
     csrf.exempt(monthly_bp)
     csrf.exempt(monthly_snapshot_bp)
     csrf.exempt(scheduler_bp)
-    csrf.exempt(auth_bp)    # Plugin System Integration
+    # Plugin System Integration
     try:
         plugin_manager.initialize_plugins()
         plugin_manager.register_blueprints(app)
