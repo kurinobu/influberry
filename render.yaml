@@ -45,7 +45,7 @@ services:
     # ヘルスチェック
     healthCheckPath: /api/auth/me
 
-  # PostgreSQL データベース
+  # PostgreSQL データベース（本番環境）
   - type: pgsql
     name: influberry-db
     plan: free  # 開始時無料プラン
@@ -55,3 +55,55 @@ services:
     # データベース初期化（オプション）
     initCommand: |
       echo "PostgreSQL データベース初期化完了"
+
+  # ステージング環境（Webアプリケーション）
+  - type: web
+    name: influberry-staging
+    runtime: python
+    pythonVersion: "3.12.6"
+    plan: free  # 開始時無料プラン
+    branch: staging
+    repo: https://github.com/kurinobu/influberry
+    
+    # ビルドコマンド（Backend + Frontend統合ビルド）
+    buildCommand: |
+      echo "=== ステージング環境 ビルド開始 ==="
+      echo "=== Node.js バージョン確認 ==="
+      node --version
+      echo "=== InfluBerry ステージング統合ビルド開始 ==="
+      pip install -r requirements.txt
+      echo "=== Frontend ビルド開始 ==="
+      cd frontend && npm install && npm run build
+      echo "=== 静的ファイル統合 ==="
+      cd .. && mkdir -p app/static && cp -r frontend/dist/* app/static/
+      echo "=== ステージング環境ビルド完了 ==="
+    
+    # 起動コマンド
+    startCommand: gunicorn wsgi:app
+    
+    # 環境変数（ステージング環境）
+    envVars:
+      - key: FLASK_ENV
+        value: staging
+      - key: DATABASE_URL
+        fromDatabase:
+          name: influberry-staging-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://influberry-staging.onrender.com
+    
+    # ヘルスチェック
+    healthCheckPath: /api/auth/me
+
+  # PostgreSQL データベース（ステージング環境）
+  - type: pgsql
+    name: influberry-staging-db
+    plan: free  # 開始時無料プラン
+    databaseName: influberry_staging
+    user: influberry_staging_user
+    
+    # データベース初期化（オプション）
+    initCommand: |
+      echo "PostgreSQL ステージングデータベース初期化完了"
