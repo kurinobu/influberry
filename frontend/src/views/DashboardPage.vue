@@ -1,24 +1,4 @@
 <script setup>
-// 月次切り替えテスト関数
-async function testMonthlyRotation() {
-  console.log('=== 月次切り替えテスト開始 ===')
-  console.log('現在の状態:', {
-    rotationState: rotationStore.rotationState,
-    currentMonth: rotationStore.currentMonth,
-    previousMonth: rotationStore.previousMonth
-  })
-  
-  alert('月次切り替えを実行します')
-  
-  try {
-    await rotationStore.triggerManualRotation()
-    alert('月次切り替え完了！コンソールを確認してください')
-    console.log('=== テスト完了 ===')
-  } catch (error) {
-    alert('エラー: ' + error.message)
-    console.error('テストエラー:', error)
-  }
-}
 import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
@@ -1082,13 +1062,7 @@ console.log('🔧 Phase 4: 利用可能なデバッグ関数:', [
   </div>
   <!-- ホーム画面追加促進モーダル -->
   <AddToHomePrompt page-name="dashboard" />
-  <!-- デバッグ用テストボタン -->
-<button 
-  @click="testMonthlyRotation"
-  class="fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-red-600 z-50"
->
-  月次切替テスト
-</button>
+
 </template>
 
 <style scoped>
