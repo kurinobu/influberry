@@ -61,7 +61,7 @@ services:
     name: influberry-staging
     runtime: python
     pythonVersion: "3.12.6"
-    plan: free  # 開始時無料プラン
+    plan: free
     branch: staging
     repo: https://github.com/kurinobu/influberry
     
@@ -100,7 +100,7 @@ services:
   # PostgreSQL データベース（ステージング環境）
   - type: pgsql
     name: influberry-staging-db
-    plan: free  # 開始時無料プラン
+    plan: free
     databaseName: influberry_staging
     user: influberry_staging_user
     
