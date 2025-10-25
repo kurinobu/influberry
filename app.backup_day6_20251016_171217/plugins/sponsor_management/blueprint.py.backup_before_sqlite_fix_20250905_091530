@@ -1,0 +1,244 @@
+"""
+SponsorManagementPlugin - スポンサー案件管理プラグイン
+InfluBerry v2 - 既存projects.pyとの統合・BasePlugin継承
+Phase 1実装：案件管理CRUD・進捗管理・統計機能
+"""
+
+from flask import Blueprint, request, jsonify
+from flask_login import login_required, current_user
+from datetime import datetime, timedelta
+from typing import List, Dict
+
+from ..base import BasePlugin
+from app.models.project import Project
+from app.models.user import User
+from app import db
+
+class SponsorManagementPlugin(BasePlugin):
+    """スポンサー案件管理プラグイン"""
+    
+    def __init__(self):
+        super().__init__(
+            name='sponsor_management',
+            display_name='スポンサー案件管理',
+            version='1.0.0'
+        )
+        self.description = '案件の登録・管理・進捗追跡・自動請求書発行'
+    
+    def create_blueprint(self) -> Blueprint:
+        """プラグイン専用Blueprint作成"""
+        bp = Blueprint('sponsor_management', __name__)
+        
+        @bp.route('/dashboard', methods=['GET'])
+        @login_required
+        def get_sponsor_dashboard():
+            """スポンサー案件ダッシュボード"""
+            try:
+                # 案件統計
+                total_projects = Project.query.filter_by(user_id=current_user.id).count()
+                active_projects = Project.query.filter_by(
+                    user_id=current_user.id, 
+                    status='contracted'
+                ).count()
+                completed_projects = Project.query.filter_by(
+                    user_id=current_user.id, 
+                    status='completed'
+                ).count()
+                
+                # 収益統計
+                total_revenue = db.session.query(db.func.sum(Project.amount)).filter_by(
+                    user_id=current_user.id,
+                    status='completed'
+                ).scalar() or 0
+                
+                # 今月の案件
+                this_month = datetime.utcnow().replace(day=1)
+                this_month_projects = Project.query.filter(
+                    Project.user_id == current_user.id,
+                    Project.created_at >= this_month
+                ).count()
+                
+                # 近日締切案件
+                upcoming_deadline = datetime.utcnow() + timedelta(days=7)
+                upcoming_projects = Project.query.filter(
+                    Project.user_id == current_user.id,
+                    Project.status == 'contracted',
+                    Project.deadline <= upcoming_deadline
+                ).all()
+                
+                dashboard_data = {
+                    'summary': {
+                        'total_projects': total_projects,
+                        'active_projects': active_projects,
+                        'completed_projects': completed_projects,
+                        'completion_rate': (completed_projects / total_projects * 100) if total_projects > 0 else 0,
+                        'total_revenue': float(total_revenue),
+                        'this_month_projects': this_month_projects
+                    },
+                    'upcoming_deadlines': [
+                        {
+                            'id': p.id,
+                            'company_name': p.company_name,
+                            'amount': float(p.amount),
+                            'deadline': p.deadline.isoformat(),
+                            'days_remaining': (p.deadline - datetime.utcnow().date()).days
+                        }
+                        for p in upcoming_projects
+                    ],
+                    'recent_projects': [
+                        p.to_dict() for p in Project.query.filter_by(
+                            user_id=current_user.id
+                        ).order_by(Project.created_at.desc()).limit(5)
+                    ]
+                }
+                
+                return jsonify(dashboard_data), 200
+                
+            except Exception as e:
+                return jsonify({'error': 'ダッシュボード取得エラー'}), 500
+        
+        @bp.route('/analytics', methods=['GET'])
+        @login_required
+        def get_sponsor_analytics():
+            """詳細分析データ"""
+            try:
+                # 月別収益分析
+                monthly_revenue = db.session.query(
+                    db.func.date_format(Project.created_at, '%Y-%m').label('month'),
+                    db.func.sum(Project.amount).label('revenue'),
+                    db.func.count(Project.id).label('project_count')
+                ).filter(
+                    Project.user_id == current_user.id,
+                    Project.status == 'completed'
+                ).group_by('month').order_by('month').all()
+                
+                # ステータス別分布
+                status_distribution = db.session.query(
+                    Project.status,
+                    db.func.count(Project.id).label('count'),
+                    db.func.sum(Project.amount).label('total_amount')
+                ).filter_by(user_id=current_user.id).group_by(Project.status).all()
+                
+                # 平均案件単価
+                avg_amount = db.session.query(db.func.avg(Project.amount)).filter_by(
+                    user_id=current_user.id
+                ).scalar() or 0
+                
+                analytics_data = {
+                    'monthly_trends': [
+                        {
+                            'month': row.month,
+                            'revenue': float(row.revenue or 0),
+                            'project_count': row.project_count
+                        }
+                        for row in monthly_revenue
+                    ],
+                    'status_distribution': [
+                        {
+                            'status': row.status,
+                            'count': row.count,
+                            'total_amount': float(row.total_amount or 0)
+                        }
+                        for row in status_distribution
+                    ],
+                    'performance_metrics': {
+                        'average_project_value': float(avg_amount),
+                        'total_projects': sum(row.count for row in status_distribution),
+                        'success_rate': (len([r for r in status_distribution if r.status == 'completed']) / 
+                                       len(status_distribution) * 100) if status_distribution else 0
+                    }
+                }
+                
+                return jsonify(analytics_data), 200
+                
+            except Exception as e:
+                return jsonify({'error': '分析データ取得エラー'}), 500
+        
+        @bp.route('/templates', methods=['GET'])
+        @login_required
+        def get_project_templates():
+            """案件テンプレート（将来機能）"""
+            try:
+                templates = [
+                    {
+                        'id': 'instagram_post',
+                        'name': 'Instagram投稿',
+                        'description': 'Instagram投稿案件のテンプレート',
+                        'default_amount': 50000,
+                        'default_description': 'Instagram投稿による商品紹介'
+                    },
+                    {
+                        'id': 'youtube_review',
+                        'name': 'YouTube商品レビュー',
+                        'description': 'YouTube動画レビュー案件のテンプレート',
+                        'default_amount': 100000,
+                        'default_description': 'YouTube動画での商品詳細レビュー'
+                    }
+                ]
+                
+                return jsonify({'templates': templates}), 200
+                
+            except Exception as e:
+                return jsonify({'error': 'テンプレート取得エラー'}), 500
+        
+        return bp
+    
+    def get_api_endpoints(self) -> List[str]:
+        """APIエンドポイント一覧"""
+        return [
+            '/api/plugins/sponsor_management/dashboard',
+            '/api/plugins/sponsor_management/analytics',
+            '/api/plugins/sponsor_management/templates',
+            # 既存projects.pyエンドポイントも含める
+            '/api/projects',
+            '/api/projects/stats'
+        ]
+    
+    def get_usage_stats(self, user_id: int) -> Dict:
+        """使用統計取得"""
+        try:
+            project_count = Project.query.filter_by(user_id=user_id).count()
+            completed_projects = Project.query.filter_by(
+                user_id=user_id, 
+                status='completed'
+            ).count()
+            
+            # 今月の使用量
+            this_month = datetime.utcnow().replace(day=1)
+            this_month_usage = Project.query.filter(
+                Project.user_id == user_id,
+                Project.created_at >= this_month
+            ).count()
+            
+            # 最終使用日
+            last_project = Project.query.filter_by(user_id=user_id).order_by(
+                Project.updated_at.desc()
+            ).first()
+            
+            return {
+                'plugin_name': self.name,
+                'total_usage': project_count,
+                'this_month_usage': this_month_usage,
+                'features_used': ['project_creation', 'status_management', 'analytics'],
+                'last_used': last_project.updated_at.isoformat() if last_project else None,
+                'efficiency_score': (completed_projects / project_count * 100) if project_count > 0 else 0,
+                'completion_rate': completed_projects,
+                'active_projects': Project.query.filter_by(
+                    user_id=user_id, 
+                    status='contracted'
+                ).count()
+            }
+            
+        except Exception:
+            return super().get_usage_stats(user_id)
+    
+    def _check_free_plan_limits(self, user_id: int) -> bool:
+        """フリープラン制限チェック"""
+        # Phase 1-3: 全機能無料
+        # Phase 4以降: 月5件まで制限予定
+        return True
+    
+    def validate_plugin_settings(self, settings: Dict) -> bool:
+        """プラグイン設定バリデーション"""
+        required_settings = ['auto_notifications', 'default_currency']
+        return all(key in settings for key in required_settings)

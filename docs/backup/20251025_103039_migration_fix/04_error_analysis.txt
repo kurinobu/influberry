@@ -1,0 +1,10 @@
+=== マイグレーションエラー分析 ===
+エラー発生日時: Sat Oct 25 10:50:05 JST 2025
+
+エラー内容:
+psycopg2.errors.UndefinedColumn: column "secondary_color" of relation "users" does not exist
+
+問題の根本原因:
+1. マイグレーションファイル264c518cdcf3が存在しないカラムを削除しようとしている
+2. ステージング環境のusersテーブルにsecondary_colorカラムが存在しない
+3. 本番環境とステージング環境でスキーマが異なる

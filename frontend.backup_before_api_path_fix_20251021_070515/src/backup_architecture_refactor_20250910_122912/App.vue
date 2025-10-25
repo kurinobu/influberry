@@ -1,0 +1,212 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useAuthStore } from './stores/auth.js'
+import { useProjectsStore } from './stores/projects.js'
+import { useInvoicesStore } from './stores/invoices.js'
+import LoginForm from './components/LoginForm.vue'
+import RegisterForm from './components/RegisterForm.vue'
+import ProjectList from './components/ProjectList.vue'
+import InvoiceList from './components/InvoiceList.vue'
+import UserSettings from './components/UserSettings.vue'
+
+// 認証ストア
+const authStore = useAuthStore()
+// プロジェクト管理ストア
+const projectsStore = useProjectsStore()
+// 請求書管理ストア
+const invoicesStore = useInvoicesStore()
+// タブ切り替え状態
+const activeTab = ref('projects')
+// 認証フォーム切り替え状態（login or register）
+const authMode = ref('login')
+
+// アプリ初期化時に認証状態チェック
+onMounted(async () => {
+  await authStore.checkAuthStatus()
+  // ログイン済みの場合、プロジェクト一覧取得
+  if (authStore.isLoggedIn) {
+    await projectsStore.fetchProjects()
+  }
+})
+
+// ログアウト処理
+const handleLogout = async () => {
+  const result = await authStore.logout()
+  if (result.success) {
+    console.log('ログアウト完了')
+  }
+}
+
+// 認証フォーム切り替え
+const switchToLogin = () => {
+  authMode.value = 'login'
+}
+
+const switchToRegister = () => {
+  authMode.value = 'register'
+}
+</script>
+
+<template>
+  <!-- 未認証時: ログイン/新規登録フォーム表示 -->
+  <LoginForm v-if="!authStore.isLoggedIn && authMode === 'login'" @switch-to-register="switchToRegister" />
+  <RegisterForm v-if="!authStore.isLoggedIn && authMode === 'register'" @switch-to-login="switchToLogin" />
+  
+  <!-- 認証済み時: メイン管理画面 -->
+  <div v-else class="min-h-screen bg-gray-50">
+    <!-- ヘッダー -->
+    <header class="shadow-lg border-b-2" style="background: linear-gradient(to right, var(--influberry-pink-light), var(--influberry-lavender-light)); border-color: var(--influberry-pink);">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <!-- InfluBerry ロゴ -->
+          <div class="flex items-center">
+            <h1 class="text-xl font-bold text-white font-poppins">
+              🍓 InfluBerry
+            </h1>
+            <span class="ml-2 text-sm text-white/80 font-noto">
+              案件管理システム
+            </span>
+          </div>
+          
+          <!-- ユーザー情報・ログアウト -->
+          <div class="flex items-center space-x-4">
+            <span class="text-sm text-white font-poppins">
+              こんにちは、{{ authStore.userName }}さん ✨
+            </span>
+            <button
+              @click="handleLogout"
+              :disabled="authStore.isLoading"
+              class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+            >
+              {{ authStore.isLoading ? '処理中...' : 'ログアウト' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+<main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <div class="px-4 py-6 sm:px-0">
+    <!-- タブナビゲーション -->
+    <div class="bg-white rounded-lg shadow-sm mb-6">
+      <div class="border-b border-gray-200">
+        <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+          <button
+            @click="activeTab = 'projects'"
+            :class="[
+              'py-4 px-1 border-b-2 font-medium text-sm',
+              activeTab === 'projects'
+                ? 'font-semibold'
+                : 'border-transparent text-gray-500 hover:border-gray-300'
+            ]"
+            :style="activeTab === 'projects' 
+              ? { borderColor: 'var(--influberry-pink)', color: 'var(--influberry-pink)' }
+              : {}"
+          >
+            🏢 プロジェクト管理
+          </button>
+          <button
+            @click="activeTab = 'invoices'"
+            :class="[
+              'py-4 px-1 border-b-2 font-medium text-sm',
+              activeTab === 'invoices'
+                ? 'font-semibold'
+                : 'border-transparent text-gray-500 hover:border-gray-300'
+            ]"
+            :style="activeTab === 'invoices'
+              ? { borderColor: 'var(--influberry-lavender)', color: 'var(--influberry-lavender)' }
+              : {}"
+          >
+            📋 請求書管理
+          </button>
+          <!-- 設定タブボタン -->
+          <button
+            @click="activeTab = 'settings'"
+            :class="[
+              'px-4 py-2 font-medium text-sm border-b-2 transition-colors',
+              activeTab === 'settings'
+                ? 'border-gray-600 text-gray-900'
+                : 'border-transparent text-gray-500 hover:border-gray-300'
+            ]"
+            :style="activeTab === 'settings'
+              ? { borderColor: 'var(--influberry-green)', color: 'var(--influberry-green)' }
+              : {}"
+          >
+            ⚙️ 設定
+          </button>
+        </nav>
+      </div>
+      
+      <div v-show="activeTab === 'settings'">
+      <UserSettings />
+      </div>
+    </div>
+
+    <!-- タブコンテンツ -->
+    <div v-show="activeTab === 'projects'">
+      <ProjectList />
+    </div>
+    
+    <div v-show="activeTab === 'invoices'">
+      <InvoiceList />
+    </div>
+  </div>
+</main>
+  </div>
+</template>
+
+<style scoped>
+/* InfluBerry カスタムスタイル */
+header {
+  backdrop-filter: blur(10px);
+}
+
+/* スムーズなトランジション */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+/* モバイルファースト最適化 */
+@media (max-width: 640px) {
+  /* ヘッダー最適化 */
+  .max-w-7xl {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* タブナビゲーション最適化 */
+  nav {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  nav button {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* 超小画面対応 */
+  .flex.items-center.space-x-4 {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+  
+  nav {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  nav button {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.8rem;
+  }
+}
+</style>

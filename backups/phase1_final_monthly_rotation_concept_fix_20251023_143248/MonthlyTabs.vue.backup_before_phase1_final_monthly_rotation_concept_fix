@@ -1,0 +1,268 @@
+<template>
+  <div class="monthly-tabs bg-white rounded-t-lg shadow">
+    <div class="flex border-b border-gray-200 overflow-x-auto">
+      <button 
+        v-for="tab in tabs" 
+        :key="tab.id"
+        @click="selectTab(tab.id)"
+        :class="[
+          'px-6 py-3 font-medium transition-colors whitespace-nowrap',
+          currentTab === tab.id 
+            ? 'border-b-2 border-pink-500 text-pink-600 bg-pink-50' 
+            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+        ]"
+      >
+        <component :is="tab.icon" class="w-5 h-5 inline mr-2" />
+        {{ tab.label }}
+      </button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ChartBarIcon, CalendarIcon } from '@heroicons/vue/24/outline'
+import { useMonthlyRotationStore } from '../stores/monthlyRotation.js'
+
+const props = defineProps({
+  modelValue: {
+    type: String,
+    default: 'overview'
+  }
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const currentTab = computed({
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value)
+})
+
+// 月次切り替えストアの取得
+const rotationStore = useMonthlyRotationStore()
+
+// 強制的なタブ再生成のためのカウンター
+const forceRegeneration = ref(0)
+
+// 動的タブ生成ロジック
+// 根本原因修正: 月次切り替え状態に基づく適切なタブ生成
+const generateDynamicTabs = () => {
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1 // 0-basedなので+1
+  
+  // 月次切り替え状態を監視
+  const rotationState = rotationStore.rotationState
+  const lastRotationCheck = rotationStore.lastRotationCheck
+  
+  console.log('🔧 根本原因修正: 月次切り替え状態に基づくタブ生成', {
+    rotationState,
+    lastRotationCheck,
+    currentMonth,
+    currentYear,
+    forceRegeneration: forceRegeneration.value
+  })
+  
+  // 根本原因修正: 月次切り替え状態に基づく適切なタブ生成
+  if (rotationState === 'completed' && lastRotationCheck) {
+    console.log('🎉 月次切り替え完了 - 新しい月のタブを生成')
+    return generateTabsForNewMonth()
+  }
+  
+  if (rotationState === 'running') {
+    console.log('🔄 月次切り替え実行中 - 特別なタブを生成')
+    return generateTabsForRunningRotation()
+  }
+  
+  // 通常のタブ生成
+  console.log('📅 通常のタブ生成')
+  return generateNormalTabs(currentYear, currentMonth)
+}
+
+// 新しい月のタブ生成（月次切り替え完了時）
+const generateTabsForNewMonth = () => {
+  console.log('🎉 月次切り替え完了 - 新しい月のタブを生成')
+  
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1
+  
+  const tabs = [
+    { id: 'overview', label: '概要', icon: ChartBarIcon }
+  ]
+  
+  // 月次切り替え完了時の特別なタブ生成
+  for (let i = 2; i >= 0; i--) {
+    const targetDate = new Date(currentYear, currentMonth - 1 - i, 1)
+    const targetYear = targetDate.getFullYear()
+    const targetMonth = targetDate.getMonth() + 1
+    
+    const monthId = `${targetYear}-${targetMonth.toString().padStart(2, '0')}`
+    const monthLabel = `${targetMonth}月`
+    
+    const isNewMonth = i === 0
+    const isPreviousMonth = i === 1
+    
+    tabs.push({
+      id: monthId,
+      label: monthLabel,
+      icon: CalendarIcon,
+      isNewMonth: isNewMonth,
+      isPreviousMonth: isPreviousMonth,
+      highlight: isNewMonth,
+      monthlyRotation: true,
+      rotationBased: true
+    })
+  }
+  
+  console.log('🎉 新しい月のタブ生成完了:', tabs)
+  return tabs
+}
+
+// 月次切り替え実行中の特別なタブ生成
+const generateTabsForRunningRotation = () => {
+  console.log('🔄 月次切り替え実行中 - 特別なタブを生成')
+  
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1
+  
+  const tabs = [
+    { id: 'overview', label: '概要', icon: ChartBarIcon }
+  ]
+  
+  for (let i = 2; i >= 0; i--) {
+    const targetDate = new Date(currentYear, currentMonth - 1 - i, 1)
+    const targetYear = targetDate.getFullYear()
+    const targetMonth = targetDate.getMonth() + 1
+    
+    const monthId = `${targetYear}-${targetMonth.toString().padStart(2, '0')}`
+    const monthLabel = `${targetMonth}月`
+    
+    const isCurrentMonth = i === 0
+    const isPreviousMonth = i === 1
+    
+    tabs.push({
+      id: monthId,
+      label: monthLabel,
+      icon: CalendarIcon,
+      isCurrentMonth: isCurrentMonth,
+      isPreviousMonth: isPreviousMonth,
+      highlight: false,
+      rotationRunning: true,
+      rotationBased: true
+    })
+  }
+  
+  console.log('🔄 月次切り替え実行中のタブ生成完了:', tabs)
+  return tabs
+}
+
+// 通常のタブ生成
+const generateNormalTabs = (year, month) => {
+  console.log('📅 通常のタブを生成:', { year, month })
+  
+  const tabs = [
+    { id: 'overview', label: '概要', icon: ChartBarIcon }
+  ]
+  
+  for (let i = 2; i >= 0; i--) {
+    const targetDate = new Date(year, month - 1 - i, 1)
+    const targetYear = targetDate.getFullYear()
+    const targetMonth = targetDate.getMonth() + 1
+    
+    const monthId = `${targetYear}-${targetMonth.toString().padStart(2, '0')}`
+    const monthLabel = `${targetMonth}月`
+    
+    tabs.push({
+      id: monthId,
+      label: monthLabel,
+      icon: CalendarIcon
+    })
+  }
+  
+  console.log('📅 通常のタブ生成完了:', tabs)
+  return tabs
+}
+
+const tabs = computed(() => generateDynamicTabs())
+
+const selectTab = (tabId) => {
+  currentTab.value = tabId
+  
+  console.log('🔧 根本原因修正: タブ選択', { 
+    selectedTab: tabId,
+    timestamp: new Date().toISOString()
+  })
+}
+
+// 月次切り替え状態の監視
+watch(() => rotationStore.rotationState, (newState, oldState) => {
+  console.log('🔧 根本原因修正: 月次切り替え状態変更を検知', { newState, oldState })
+  if (newState === 'completed' && oldState === 'running') {
+    console.log('🎉 月次切り替え完了を検知 - タブ再生成を実行')
+    regenerateTabs()
+  }
+})
+
+// 月次切り替えチェック時刻の監視
+watch(() => rotationStore.lastRotationCheck, (newValue, oldValue) => {
+  console.log('🔧 根本原因修正: 月次切り替えチェック時刻変更を検知', { newValue, oldValue })
+  if (newValue !== oldValue) {
+    console.log('🔄 月次切り替えチェック時刻更新 - タブ再生成を実行')
+    regenerateTabs()
+  }
+})
+
+// タブ再生成
+const regenerateTabs = () => {
+  console.log('🔧 根本原因修正: タブ再生成を実行')
+  forceRegeneration.value++
+  console.log('🔧 根本原因修正: タブ再生成完了')
+}
+
+// 根本原因修正: 月次切り替えイベントの監視
+const handleMonthlyRotation = (event) => {
+  console.log('🔧 根本原因修正: 月次切り替えイベントを受信', event.detail)
+  regenerateTabs()
+}
+
+// コンポーネントマウント時の初期化
+onMounted(() => {
+  console.log('🔧 根本原因修正: コンポーネントマウント完了')
+  // 月次切り替えイベントのリスナーを追加
+  window.addEventListener('monthly-rotation-completed', handleMonthlyRotation)
+})
+
+// コンポーネントアンマウント時のクリーンアップ
+onUnmounted(() => {
+  console.log('🔧 根本原因修正: コンポーネントアンマウント')
+  // 月次切り替えイベントのリスナーを削除
+  window.removeEventListener('monthly-rotation-completed', handleMonthlyRotation)
+})
+</script>
+
+<style scoped>
+.monthly-tabs {
+  /* 横スクロール対応 */
+  scrollbar-width: thin;
+  scrollbar-color: #f3f4f6 #ffffff;
+}
+
+.monthly-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.monthly-tabs::-webkit-scrollbar-track {
+  background: #ffffff;
+}
+
+.monthly-tabs::-webkit-scrollbar-thumb {
+  background: #f3f4f6;
+  border-radius: 2px;
+}
+
+.monthly-tabs::-webkit-scrollbar-thumb:hover {
+  background: #e5e7eb;
+}
+</style>

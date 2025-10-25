@@ -1,0 +1,10 @@
+1e19911 docs: 月次管理機能アーキテクチャ設計書に残存課題を記録
+4d67dc7 fix: FAQPage.vueファイルの同期と削除されたファイルの整理
+cd77f0a fix: BlogPage.vueファイルの同期と削除されたファイルの整理
+1bb3f6b fix: /settings ルートを追加してUserSettings.vueを直接表示
+368bade fix: ProgressBar.vueコンポーネントをステージング環境に追加
+6b2201b fix: 月次管理機能のフロントエンドビルド問題修正
+212eff5 fix: マイグレーションファイル264c518cdcf3のエラー修正をstagingに反映
+15dd455 fix: マイグレーションファイル264c518cdcf3のエラー修正
+bf89065 sync: staging を main に同期（月次管理機能復元含む）
+823f401 fix: 月次管理機能のマイグレーションファイルとステージング環境設定を復元

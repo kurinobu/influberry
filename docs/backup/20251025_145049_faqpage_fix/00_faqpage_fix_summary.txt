@@ -1,0 +1,12 @@
+=== FAQPage.vueファイル修正 - 実行前バックアップ ===
+バックアップ作成日時: Sat Oct 25 14:50:55 JST 2025
+バックアップディレクトリ: docs/backup/20251025_145049_faqpage_fix
+
+問題の概要:
+Could not resolve "../views/FAQPage.vue" from "src/router/index.js"
+
+修正予定項目:
+1. FAQPage.vueファイルのバックアップ
+2. FAQPage.vueファイルをGitに追加
+3. 削除されたファイルをGitから削除
+4. ステージング環境での再ビルド

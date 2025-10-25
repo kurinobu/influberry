@@ -1,0 +1,2624 @@
+# 月次管理機能実装 完全計画書 v1.0
+
+## 📋 目次
+1. [プロジェクト概要](#1-プロジェクト概要)
+2. [データベース設計](#2-データベース設計)
+3. [API設計](#3-api設計)
+4. [フロントエンド設計](#4-フロントエンド設計)
+5. [段階的実装ステップ](#5-段階的実装ステップ)
+6. [テスト計画](#6-テスト計画)
+7. [ロールバック手順](#7-ロールバック手順)
+8. [リスク管理](#8-リスク管理)
+
+---
+
+## 1. プロジェクト概要
+
+### 1.1 目的
+ユーザーが月次で案件管理の進捗を可視化し、目標設定と達成度評価を行える機能を実装する。
+
+### 1.2 目標とする効果
+- **安心感**: "ちゃんと進んでる"の可視化
+- **達成感**: "努力が可視化される"体験
+- **継続性**: 興味増→定着→利用頻度増
+
+### 1.3 実装スコープ
+
+#### ✅ 今回実装
+- 月次目標設定機能（月別・可変）
+- ステータス変更履歴記録（Project/Invoice）
+- 月次集計API
+- **動的タブ切替UI**（概要/過去3ヶ月の動的表示）
+- プログレスバー表示
+- **実用的な月次管理**（過去の実績確認と当月の目標設定）
+
+#### ❌ 今回対象外（次回フェーズ）
+- マイクロインタラクション
+- アニメーション演出
+- バッジ獲得システム
+
+### 1.4 技術スタック
+- **Backend**: Python 3.11, Flask, SQLAlchemy
+- **Frontend**: Vue 3.5.18, Pinia, Tailwind CSS 4
+- **Database**: PostgreSQL (本番), SQLite (ローカル)
+- **Deploy**: Render.com
+
+### 1.5 環境差異記録
+
+| 項目 | 本番環境 | ローカル環境 |
+|------|---------|-------------|
+| DB | PostgreSQL | SQLite |
+
+### 1.6 年月表示期間の技術仕様
+
+#### 1.6.1 現在の実装制限
+- **表示期間**: 過去3ヶ月のみ（アプリケーション設計による制限）
+- **動的生成**: 現在の月から過去3ヶ月を自動計算
+- **期間制限**: アプリケーション側で制御（技術的制限ではない）
+
+#### 1.6.2 技術的制限
+- **JavaScript Date オブジェクト**:
+  - 最小値: 西暦前271821年
+  - 最大値: 西暦275760年
+  - 実用範囲: 西暦1970年〜2038年（32bit整数制限）
+  - 64bit整数制限: 西暦275760年まで
+
+#### 1.6.3 年月表示の期間
+- **技術的には**: 西暦275760年まで表示可能（半永久的）
+- **現在の制限**: 過去3ヶ月のみ（アプリケーション設計による制限）
+- **拡張可能性**: 設定で期間変更可能（過去6ヶ月、過去12ヶ月等）
+- **実装コスト**: 低（設定値の変更のみ）
+
+#### 1.6.4 他のコンポーネントとの制限比較
+- **案件納期**: 1年前以降（バリデーション制限）
+- **請求書**: 制限なし（技術的制限のみ）
+- **月次管理**: 過去3ヶ月（アプリケーション設計による制限）
+
+---
+
+## 🚨 残存課題とトラブルシューティング
+
+### 1.7 月次自動切り替え機能の残存課題
+
+#### 1.7.1 重大な問題
+**問題**: 月次切り替え監視機能は動作するが、フロントエンドのタブ表示が更新されない
+
+**詳細**:
+- ✅ バックエンドのスケジューラーは正常動作
+- ✅ スナップショット作成は成功
+- ❌ フロントエンドのタブが「8月」「9月」「10月」のまま更新されない
+- ❌ ユーザーには視覚的な変化が見えない
+
+#### 1.7.2 技術的原因
+1. **MonthlyTabs.vue の静的実装**
+   - `generateDynamicTabs()` がリアクティブ更新されない
+   - 監視機能が月次切り替えを検知してもタブ再生成処理が呼ばれない
+
+2. **MonthlyRotationStore の不備**
+   - `startRotationMonitoring()` はバックエンドAPI呼び出しのみ
+   - フロントエンドのタブ更新処理が含まれていない
+
+3. **データ同期の欠如**
+   - バックエンドでスナップショット作成成功
+   - フロントエンドのタブ表示が古いまま
+
+#### 1.7.3 修正が必要な箇所
+1. **MonthlyTabs.vue**: リアクティブなタブ生成機能の追加
+2. **MonthlyRotationStore**: フロントエンドタブ更新処理の追加
+3. **DashboardPage.vue**: タブ更新のトリガー処理の追加
+
+### 1.8 テスト方法とトラブルシューティング
+
+#### 1.8.1 月次自動切り替え機能のテスト方法
+
+**A. 手動テスト（即座に実行可能）**
+```javascript
+// ブラウザコンソールで実行
+fetch('/api/scheduler/trigger-rotation', { 
+  method: 'POST', 
+  credentials: 'include' 
+}).then(response => response.json()).then(data => console.log(data))
+```
+
+**期待される結果**:
+- 成功時: `{success: true, message: "月次切り替えタスクが手動で実行されました"}`
+- 失敗時: エラーメッセージが表示される
+
+**B. スケジューラー状態確認**
+```javascript
+// ブラウザコンソールで実行
+fetch('/api/scheduler/status', { 
+  credentials: 'include' 
+}).then(response => response.json()).then(data => console.log(data))
+```
+
+**期待される結果**:
+```json
+{
+  "status": "running",
+  "jobs": [
+    {
+      "id": "monthly_rotation",
+      "name": "Monthly Data Rotation and Snapshot",
+      "trigger": "cron[day=1, hour=0, minute=0]",
+      "next_run_time": "2025-11-01 00:00:00+00:00"
+    }
+  ]
+}
+```
+
+**C. フロントエンド監視状態確認**
+```javascript
+// ブラウザコンソールで実行
+console.log('月次切り替え監視状況:', '監視開始メッセージが表示されているか確認')
+```
+
+#### 1.8.2 トラブルシューティング手順
+
+**1. バックエンド確認**
+- スケジューラーが起動しているか
+- データベースにスナップショットが作成されているか
+- APIエンドポイントが正常に応答するか
+
+**2. フロントエンド確認**
+- 監視機能が開始されているか
+- タブの動的生成が動作するか
+- データ同期が正常に行われているか
+
+**3. 統合テスト**
+- 手動実行でバックエンド処理が成功するか
+- フロントエンドのタブが更新されるか
+- データの整合性が保たれているか
+
+### 1.9 今後の改善点
+
+#### 1.9.1 緊急修正が必要な項目
+1. **フロントエンドタブのリアクティブ更新機能**
+2. **月次切り替え検知時のUI更新処理**
+3. **データ同期の確実化**
+
+#### 1.9.2 長期的な改善項目
+1. **監視機能の最適化**（5分間隔→1分間隔など）
+2. **エラーハンドリングの強化**
+3. **ユーザーフィードバック機能の追加**
+
+### 1.10 開発ルールと制約
+
+#### 1.10.1 厳格な開発ルール
+- **承認されていないテストボタンやUI要素の実装は禁止**
+- **ユーザーの明示的な指示なしに機能追加は行わない**
+- **すべての変更は事前にバックアップを取得する**
+- **実装前に詳細な調査とレポートを提出する**
+
+#### 1.10.2 品質管理
+- **すべての機能は段階的に実装する**
+- **各段階でテストと検証を行う**
+- **問題が発生した場合は即座にロールバックする**
+- **残存課題は詳細に記録する**
+| URL | influberry.jp | http://127.0.0.1:5173 |
+| Branch | staging | local development |
+
+---
+
+## 2. データベース設計
+
+### 2.1 新規テーブル: monthly_targets
+
+#### 目的
+ユーザーごと・月ごとに異なる目標を設定可能にする。
+
+#### DDL (PostgreSQL)
+```sql
+CREATE TABLE monthly_targets (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    target_month DATE NOT NULL,  -- '2025-10-01'形式（月初日）
+    target_projects INTEGER,      -- 目標案件数
+    target_income INTEGER,         -- 目標報酬額（円）
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, target_month)
+);
+
+CREATE INDEX ix_monthly_targets_user_month ON monthly_targets(user_id, target_month);
+```
+
+#### DDL (SQLite - ローカル)
+```sql
+CREATE TABLE monthly_targets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    target_month DATE NOT NULL,
+    target_projects INTEGER,
+    target_income INTEGER,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, target_month),
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX ix_monthly_targets_user_month ON monthly_targets(user_id, target_month);
+```
+
+### 2.2 新規テーブル: project_status_history
+
+#### 目的
+Projectのステータス変更履歴を記録し、月次集計を可能にする。
+
+#### DDL (PostgreSQL)
+```sql
+CREATE TABLE project_status_history (
+    id SERIAL PRIMARY KEY,
+    project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    old_status VARCHAR(20),       -- 変更前ステータス（初回はNULL）
+    new_status VARCHAR(20) NOT NULL CHECK (new_status IN ('proposed', 'contracted', 'completed')),
+    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    changed_by INTEGER REFERENCES users(id),  -- 将来の拡張用
+    notes TEXT                                 -- 変更理由等（オプション）
+);
+
+CREATE INDEX ix_project_status_history_project ON project_status_history(project_id);
+CREATE INDEX ix_project_status_history_changed_at ON project_status_history(changed_at);
+CREATE INDEX ix_project_status_history_new_status ON project_status_history(new_status);
+```
+
+#### DDL (SQLite - ローカル)
+```sql
+CREATE TABLE project_status_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id INTEGER NOT NULL,
+    old_status VARCHAR(20),
+    new_status VARCHAR(20) NOT NULL CHECK (new_status IN ('proposed', 'contracted', 'completed')),
+    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    changed_by INTEGER,
+    notes TEXT,
+    FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY(changed_by) REFERENCES users(id)
+);
+
+CREATE INDEX ix_project_status_history_project ON project_status_history(project_id);
+CREATE INDEX ix_project_status_history_changed_at ON project_status_history(changed_at);
+CREATE INDEX ix_project_status_history_new_status ON project_status_history(new_status);
+```
+
+### 2.3 新規テーブル: invoice_status_history
+
+#### 目的
+Invoiceのステータス変更履歴を記録し、月次売上・入金を正確にカウントする。
+
+#### DDL (PostgreSQL)
+```sql
+CREATE TABLE invoice_status_history (
+    id SERIAL PRIMARY KEY,
+    invoice_id INTEGER NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+    old_status VARCHAR(20),
+    new_status VARCHAR(20) NOT NULL CHECK (new_status IN ('draft', 'sent', 'paid', 'canceled', 'overdue')),
+    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    changed_by INTEGER REFERENCES users(id),
+    notes TEXT
+);
+
+CREATE INDEX ix_invoice_status_history_invoice ON invoice_status_history(invoice_id);
+CREATE INDEX ix_invoice_status_history_changed_at ON invoice_status_history(changed_at);
+CREATE INDEX ix_invoice_status_history_new_status ON invoice_status_history(new_status);
+```
+
+#### DDL (SQLite - ローカル)
+```sql
+CREATE TABLE invoice_status_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    invoice_id INTEGER NOT NULL,
+    old_status VARCHAR(20),
+    new_status VARCHAR(20) NOT NULL CHECK (new_status IN ('draft', 'sent', 'paid', 'canceled', 'overdue')),
+    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    changed_by INTEGER,
+    notes TEXT,
+    FOREIGN KEY(invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
+    FOREIGN KEY(changed_by) REFERENCES users(id)
+);
+
+CREATE INDEX ix_invoice_status_history_invoice ON invoice_status_history(invoice_id);
+CREATE INDEX ix_invoice_status_history_changed_at ON invoice_status_history(changed_at);
+CREATE INDEX ix_invoice_status_history_new_status ON invoice_status_history(new_status);
+```
+
+### 2.4 既存データへの対応
+
+#### 問題
+既存のProjectとInvoiceにはステータス変更履歴が存在しない。
+
+#### 解決策
+1. **新規データ**: 今後は履歴を完全記録
+2. **既存データ**: `created_at`/`updated_at`で近似カウント
+3. **UI表示**: 注釈表示「※2025年10月以前のデータは推定値です」
+
+#### 既存データ移行スクリプト（オプション）
+```python
+# 既存Projectの初期履歴作成（created_at時点でproposedとして記録）
+for project in Project.query.all():
+    history = ProjectStatusHistory(
+        project_id=project.id,
+        old_status=None,
+        new_status='proposed',
+        changed_at=project.created_at
+    )
+    db.session.add(history)
+    
+    # 現在のステータスが異なる場合、updated_at時点で変更
+    if project.status != 'proposed':
+        history2 = ProjectStatusHistory(
+            project_id=project.id,
+            old_status='proposed',
+            new_status=project.status,
+            changed_at=project.updated_at
+        )
+        db.session.add(history2)
+
+db.session.commit()
+```
+
+---
+
+## 3. API設計
+
+### 3.1 月次目標管理API
+
+#### GET /api/monthly-targets
+**説明**: ユーザーの月次目標一覧取得
+
+**リクエスト**
+```http
+GET /api/monthly-targets?year=2025&months=10,11,12
+Authorization: Bearer <token>
+```
+
+**レスポンス**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "target_month": "2025-10-01",
+      "target_projects": 5,
+      "target_income": 200000,
+      "created_at": "2025-10-01T00:00:00Z",
+      "updated_at": "2025-10-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+#### POST /api/monthly-targets
+**説明**: 月次目標設定・更新（UPSERT）
+
+**リクエスト**
+```json
+{
+  "target_month": "2025-10-01",
+  "target_projects": 5,
+  "target_income": 200000
+}
+```
+
+**レスポンス**
+```json
+{
+  "success": true,
+  "message": "目標を設定しました",
+  "data": {
+    "id": 1,
+    "target_month": "2025-10-01",
+    "target_projects": 5,
+    "target_income": 200000
+  }
+}
+```
+
+#### DELETE /api/monthly-targets/{target_month}
+**説明**: 特定月の目標削除
+
+**レスポンス**
+```json
+{
+  "success": true,
+  "message": "目標を削除しました"
+}
+```
+
+### 3.2 月次集計API
+
+#### GET /api/monthly-stats/{year}/{month}
+**説明**: 指定月の実績集計
+
+**リクエスト**
+```http
+GET /api/monthly-stats/2025/10
+Authorization: Bearer <token>
+```
+
+**レスポンス**
+```json
+{
+  "success": true,
+  "data": {
+    "month": "2025-10-01",
+    "target": {
+      "projects": 5,
+      "income": 200000
+    },
+    "actual": {
+      "acquired_projects": 3,      // 契約になった件数
+      "completed_projects": 2,     // 完了した件数
+      "sent_invoices_count": 4,    // 送信済請求書件数
+      "sent_invoices_amount": 180000,  // 今月発生売上
+      "paid_invoices_count": 2,    // 入金済件数
+      "paid_invoices_amount": 150000   // 今月入金額
+    },
+    "achievement": {
+      "projects_rate": 0.60,       // 60%
+      "income_rate": 0.75          // 75%
+    },
+    "note": "※2025年10月以前のデータは推定値です"
+  }
+}
+```
+
+#### 集計ロジック詳細
+
+##### 獲得案件（acquired_projects）
+```sql
+-- project_status_historyから集計
+SELECT COUNT(DISTINCT project_id)
+FROM project_status_history
+WHERE user_id = :user_id
+  AND new_status = 'contracted'
+  AND DATE_TRUNC('month', changed_at) = :target_month
+```
+
+##### 完了案件（completed_projects）
+```sql
+SELECT COUNT(DISTINCT project_id)
+FROM project_status_history
+WHERE user_id = :user_id
+  AND new_status = 'completed'
+  AND DATE_TRUNC('month', changed_at) = :target_month
+```
+
+##### 今月発生売上（sent_invoices）
+```sql
+SELECT 
+  COUNT(*) as count,
+  SUM(total_amount) as amount
+FROM invoice_status_history ish
+JOIN invoices i ON ish.invoice_id = i.id
+WHERE i.user_id = :user_id
+  AND ish.new_status = 'sent'
+  AND DATE_TRUNC('month', ish.changed_at) = :target_month
+```
+
+##### 今月入金（paid_invoices）
+```sql
+SELECT 
+  COUNT(*) as count,
+  SUM(total_amount) as amount
+FROM invoices
+WHERE user_id = :user_id
+  AND status = 'paid'
+  AND DATE_TRUNC('month', payment_date) = :target_month
+```
+
+### 3.3 概要タブAPI
+
+#### GET /api/monthly-stats/overview
+**説明**: 全期間の総合統計
+
+**レスポンス**
+```json
+{
+  "success": true,
+  "data": {
+    "total_projects": 50,
+    "total_income": 5000000,
+    "recent_months": [
+      {
+        "month": "2025-10-01",
+        "acquired": 3,
+        "completed": 2,
+        "income": 150000
+      },
+      {
+        "month": "2025-11-01",
+        "acquired": 4,
+        "completed": 3,
+        "income": 200000
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 4. フロントエンド設計
+
+### 4.1 コンポーネント構造
+
+```
+DashboardPage.vue
+├─ MonthlyTabs.vue（NEW）
+│   ├─ Tab: 概要
+│   ├─ Tab: 10月
+│   ├─ Tab: 11月
+│   └─ Tab: 12月
+├─ MonthlyStatsSection.vue（NEW）
+│   ├─ StatsCard.vue（獲得案件）
+│   │   └─ ProgressBar.vue（NEW）
+│   ├─ StatsCard.vue（完了案件）
+│   │   └─ ProgressBar.vue
+│   └─ StatsCard.vue（報酬）
+│       └─ ProgressBar.vue
+└─ 既存コンポーネント（維持）
+    ├─ ProjectsCard
+    ├─ InvoicesCard
+    └─ TodoCard
+
+SettingsModal.vue（拡張）
+└─ MonthlyTargetSettings.vue（NEW）
+    ├─ 月選択ドロップダウン
+    ├─ 目標案件数入力
+    ├─ 目標報酬額入力
+    └─ 保存ボタン
+```
+
+### 4.2 新規アイコン
+
+#### 使用アイコン（@heroicons/vue から）
+```javascript
+import { 
+  ChartBarIcon,      // 📊 統計用（オレンジ #f59e0b）
+  CalendarIcon,      // 📅 月次用（アンバー #f59e0b）
+  FlagIcon           // 🎯 目標用（インディゴ #6366f1）
+} from '@heroicons/vue/24/outline'
+```
+
+#### 既存アイコンとの競合チェック
+```
+✅ BriefcaseIcon（青 #3b82f6）- 案件管理
+✅ InvoiceIcon（紫 #a855f7）- 請求書
+✅ ChecklistIcon（緑 #10b981）- Todo
+✅ DashboardIcon（ピンク #ec4899）- DB
+✅ FolderIcon（グレー #6b7280）- 基本データ
+→ 競合なし
+```
+
+### 4.3 状態管理（Pinia）
+
+#### 新規Store: monthlyStore.js
+```javascript
+import { defineStore } from 'pinia'
+import axios from 'axios'
+
+export const useMonthlyStore = defineStore('monthly', {
+  state: () => ({
+    targets: {},           // { '2025-10-01': { projects: 5, income: 200000 } }
+    stats: {},             // { '2025-10-01': { acquired: 3, completed: 2 ... } }
+    currentMonth: null,    // '2025-10-01'
+    loading: false,
+    error: null
+  }),
+  
+  getters: {
+    getTargetByMonth: (state) => (month) => state.targets[month] || null,
+    getStatsByMonth: (state) => (month) => state.stats[month] || null,
+    achievementRate: (state) => (month) => {
+      const target = state.targets[month]
+      const stat = state.stats[month]
+      if (!target || !stat) return null
+      
+      return {
+        projects: target.projects ? stat.actual.acquired_projects / target.projects : 0,
+        income: target.income ? stat.actual.paid_invoices_amount / target.income : 0
+      }
+    }
+  },
+  
+  actions: {
+    async fetchTargets(year, months) {
+      this.loading = true
+      try {
+        const response = await axios.get(`/api/monthly-targets`, {
+          params: { year, months: months.join(',') }
+        })
+        
+        response.data.data.forEach(target => {
+          this.targets[target.target_month] = target
+        })
+      } catch (error) {
+        this.error = error.message
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    async fetchStats(year, month) {
+      this.loading = true
+      try {
+        const response = await axios.get(`/api/monthly-stats/${year}/${month}`)
+        this.stats[response.data.data.month] = response.data.data
+      } catch (error) {
+        this.error = error.message
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    async saveTarget(targetMonth, data) {
+      try {
+        const response = await axios.post('/api/monthly-targets', {
+          target_month: targetMonth,
+          ...data
+        })
+        
+        this.targets[targetMonth] = response.data.data
+        return { success: true }
+      } catch (error) {
+        return { success: false, error: error.message }
+      }
+    }
+  }
+})
+```
+
+### 4.4 UI仕様
+
+#### タブ切替UI
+```vue
+<template>
+  <div class="monthly-tabs">
+    <div class="flex border-b border-gray-200">
+      <button 
+        v-for="tab in tabs" 
+        :key="tab.id"
+        @click="currentTab = tab.id"
+        :class="[
+          'px-4 py-2 font-medium transition-colors',
+          currentTab === tab.id 
+            ? 'border-b-2 border-pink-500 text-pink-600' 
+            : 'text-gray-500 hover:text-gray-700'
+        ]"
+      >
+        {{ tab.label }}
+      </button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+
+const tabs = [
+  { id: 'overview', label: '概要' },
+  { id: '2025-10', label: '10月' },
+  { id: '2025-11', label: '11月' },
+  { id: '2025-12', label: '12月' }
+]
+
+const currentTab = ref('overview')
+</script>
+```
+
+#### プログレスバー
+```vue
+<template>
+  <div class="progress-bar">
+    <div class="flex justify-between mb-2">
+      <span class="text-sm font-medium text-gray-700">{{ label }}</span>
+      <span class="text-sm font-medium text-gray-900">
+        {{ current }} / {{ target }} {{ unit }}
+      </span>
+    </div>
+    
+    <div class="w-full bg-gray-200 rounded-full h-3">
+      <div 
+        class="h-3 rounded-full transition-all duration-300"
+        :class="progressColor"
+        :style="{ width: `${percentage}%` }"
+      ></div>
+    </div>
+    
+    <div class="text-right mt-1">
+      <span class="text-xs font-medium" :class="percentageColor">
+        {{ percentage }}% 達成
+      </span>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { computed } from 'vue'
+
+const props = defineProps({
+  label: String,
+  current: Number,
+  target: Number,
+  unit: String
+})
+
+const percentage = computed(() => {
+  if (!props.target) return 0
+  return Math.min(Math.round((props.current / props.target) * 100), 100)
+})
+
+const progressColor = computed(() => {
+  if (percentage.value >= 100) return 'bg-green-500'
+  if (percentage.value >= 80) return 'bg-blue-500'
+  if (percentage.value >= 50) return 'bg-yellow-500'
+  return 'bg-pink-500'
+})
+
+const percentageColor = computed(() => {
+  if (percentage.value >= 100) return 'text-green-600'
+  if (percentage.value >= 80) return 'text-blue-600'
+  if (percentage.value >= 50) return 'text-yellow-600'
+  return 'text-pink-600'
+})
+</script>
+```
+
+#### 月次統計セクション
+```vue
+<template>
+  <div class="monthly-stats-section bg-white rounded-lg shadow p-6">
+    <div class="flex items-center mb-4">
+      <CalendarIcon class="w-6 h-6 text-amber-500 mr-2" />
+      <h2 class="text-xl font-bold text-gray-900">
+        📊 {{ monthLabel }}の実績
+      </h2>
+    </div>
+    
+    <!-- 注釈（過去データの場合） -->
+    <div v-if="showNote" class="mb-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+      <p class="text-sm text-yellow-700">
+        ℹ️ ※2025年10月以前のデータは推定値です
+      </p>
+    </div>
+    
+    <!-- 統計カード -->
+    <div class="space-y-4">
+      <ProgressBar 
+        label="獲得案件"
+        :current="stats.actual.acquired_projects"
+        :target="stats.target.projects"
+        unit="件"
+      />
+      
+      <ProgressBar 
+        label="完了案件"
+        :current="stats.actual.completed_projects"
+        :target="stats.target.projects"
+        unit="件"
+      />
+      
+      <ProgressBar 
+        label="報酬額"
+        :current="stats.actual.paid_invoices_amount"
+        :target="stats.target.income"
+        unit="円"
+      />
+    </div>
+  </div>
+</template>
+```
+
+---
+
+## 5. 段階的実装ステップ
+
+### ✅ Phase 1: データベース基盤構築（完了）
+- データベースバックアップ作成
+- 新規テーブル作成（monthly_targets, project_status_history, invoice_status_history）
+- インデックス・制約設定
+- テーブル構造確認
+
+### ✅ Phase 2: バックエンドAPI実装（完了）
+- モデルクラス実装
+- ステータス変更トリガー実装
+- 月次管理API実装
+- Blueprint登録
+- API動作確認
+
+### ✅ Phase 3: フロントエンド実装（完了）
+- Piniaストア作成
+- 新規コンポーネント作成（MonthlyTabs.vue, ProgressBar.vue, MonthlyStatsSection.vue）
+- 既存コンポーネント統合（DashboardPage.vue, SettingsModal.vue）
+- UIStore拡張
+
+### 🔄 Phase 4: 動的月次管理機能実装（進行中）
+- 動的タブ表示実装（現在の月を基準に過去3ヶ月を表示）
+- 目標設定の簡素化（当月のみ、ドロップダウン削除）
+- ユーザビリティ改善（実用的なデータ表示）
+- フロントエンド動作確認
+- ローカル統合テスト
+- ステージングデプロイ・テスト
+- 本番デプロイ・監視
+
+## 🎯 **動的月次管理機能の詳細仕様**
+
+### 現在の問題点
+- **固定月表示**: 10月、11月、12月が固定で表示
+- **実用性ゼロ**: 6月でも10月の目標設定しかできない
+- **無意味なデータ**: 未来の実績（常にゼロ）を表示
+
+### 改善後の仕様
+- **タブ表示**: 現在の月を基準に過去3ヶ月を動的表示
+  - 6月の場合: 4月、5月、6月
+  - 12月の場合: 10月、11月、12月
+- **目標設定**: 当月のみ、シンプルなUI
+- **実用性**: 過去の実績確認と当月の目標設定に特化
+
+### Step 1: データベース実装（2時間）
+
+#### 1.1 マイグレーション準備
+```bash
+# 実行場所: ローカル
+
+# バックアップ作成
+cp instance/influberry_dev.db instance/influberry_dev_backup_monthly_migration_$(date +%Y%m%d_%H%M%S).db
+```
+
+#### 1.2 モデル定義ファイル確認・共有
+```bash
+# 実行場所: ローカル
+# 以下のファイルを共有
+./app/models/user.py
+./app/models/project.py
+```
+
+#### 1.3 新規モデルクラス作成
+```python
+# ファイル: ./app/models/monthly_target.py (NEW)
+```
+
+#### 1.4 履歴記録モデル作成
+```python
+# ファイル: ./app/models/project_status_history.py (NEW)
+# ファイル: ./app/models/invoice_status_history.py (NEW)
+```
+
+#### 1.5 マイグレーション実行
+```bash
+# ローカル
+python manage.py db migrate -m "Add monthly management tables"
+python manage.py db upgrade
+
+# 本番（Renderシェル）
+cd ~/project/src
+flask db migrate -m "Add monthly management tables"
+flask db upgrade
+```
+
+#### 1.6 動作確認
+```bash
+# ローカル
+sqlite3 instance/influberry_dev.db ".schema monthly_targets"
+sqlite3 instance/influberry_dev.db ".schema project_status_history"
+sqlite3 instance/influberry_dev.db ".schema invoice_status_history"
+
+# 本番
+psql $DATABASE_URL -c "\d monthly_targets"
+psql $DATABASE_URL -c "\d project_status_history"
+psql $DATABASE_URL -c "\d invoice_status_history"
+```
+
+**✅ 完了条件**: 3つの新規テーブルがローカル・本番両方に存在
+
+---
+
+### Step 2: ステータス変更トリガー実装（3時間）
+
+#### 2.1 Project更新時の履歴記録
+```python
+# ファイル: ./app/routes/projects.py（既存ファイル拡張）
+
+@projects_bp.route('/<int:project_id>', methods=['PUT'])
+@jwt_required()
+def update_project(project_id):
+    # 既存のプロジェクト取得
+    project = Project.query.get_or_404(project_id)
+    
+    # ステータス変更検知
+    data = request.get_json()
+    new_status = data.get('status')
+    
+    if new_status and new_status != project.status:
+        # 履歴記録
+        history = ProjectStatusHistory(
+            project_id=project.id,
+            old_status=project.status,
+            new_status=new_status,
+            changed_at=datetime.utcnow(),
+            changed_by=get_jwt_identity()
+        )
+        db.session.add(history)
+    
+    # 既存の更新処理
+    project.status = new_status
+    # ... 他のフィールド更新 ...
+    
+    db.session.commit()
+```
+
+#### 2.2 Invoice更新時の履歴記録
+```python
+# ファイル: ./app/routes/invoices.py（既存ファイル拡張）
+
+@invoices_bp.route('/<int:invoice_id>', methods=['PUT'])
+@jwt_required()
+def update_invoice(invoice_id):
+    invoice = Invoice.query.get_or_404(invoice_id)
+    
+    data = request.get_json()
+    new_status = data.get('status')
+    
+    if new_status and new_status != invoice.status:
+        history = InvoiceStatusHistory(
+            invoice_id=invoice.id,
+            old_status=invoice.status,
+            new_status=new_status,
+            changed_at=datetime.utcnow(),
+            changed_by=get_jwt_identity()
+        )
+        db.session.add(history)
+    
+    invoice.status = new_status
+    # payment_dateの更新も記録
+    if new_status == 'paid' and data.get('payment_date'):
+        invoice.payment_date = data.get('payment_date')
+    
+    db.session.commit()
+```
+
+#### 2.3 動作確認テスト
+```bash
+# 実行場所: ローカル
+
+# 1. ローカルサーバー起動
+python run.py
+
+# 2. ブラウザでテスト
+# - 案件のステータスを変更
+# - DBで履歴確認
+sqlite3 instance/influberry_dev.db "SELECT * FROM project_status_history ORDER BY changed_at DESC LIMIT 5;"
+```
+
+**✅ 完了条件**: ステータス変更時に履歴テーブルにレコードが追加される
+
+---
+
+### Step 3: API実装（4時間）
+
+#### 3.1 月次目標API
+```python
+# ファイル: ./app/routes/monthly.py (NEW)
+
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from app.models import MonthlyTarget
+from app import db
+from datetime import datetime
+
+monthly_bp = Blueprint('monthly', __name__, url_prefix='/api/monthly-targets')
+
+@monthly_bp.route('', methods=['GET'])
+@jwt_required()
+def get_targets():
+    user_id = get_jwt_identity()
+    year = request.args.get('year', type=int)
+    months_str = request.args.get('months', '')
+    
+    query = MonthlyTarget.query.filter_by(user_id=user_id)
+    
+    if year and months_str:
+        months = [int(m) for m in months_str.split(',')]
+        # 年月でフィルタリング
+        # ... 実装 ...
+    
+    targets = query.all()
+    return jsonify({
+        'success': True,
+        'data': [t.to_dict() for t in targets]
+    })
+
+@monthly_bp.route('', methods=['POST'])
+@jwt_required()
+def save_target():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    
+    target_month = data.get('target_month')
+    
+    # UPSERT処理
+    target = MonthlyTarget.query.filter_by(
+        user_id=user_id,
+        target_month=target_month
+    ).first()
+    
+    if target:
+        target.target_projects = data.get('target_projects')
+        target.target_income = data.get('target_income')
+        target.updated_at = datetime.utcnow()
+    else:
+        target = MonthlyTarget(
+            user_id=user_id,
+            target_month=target_month,
+            target_projects=data.get('target_projects'),
+            target_income=data.get('target_income')
+        )
+        db.session.add(target)
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': '目標を設定しました',
+        'data': target.to_dict()
+    })
+```
+
+#### 3.2 月次集計API
+```python
+# ファイル: ./app/routes/monthly_stats.py (NEW)
+
+from flask import Blueprint, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from app.models import (
+    Project, Invoice, MonthlyTarget,
+    ProjectStatusHistory, InvoiceStatusHistory
+)
+from sqlalchemy import func, extract
+from datetime import datetime
+
+monthly_stats_bp = Blueprint('monthly_stats', __name__, url_prefix='/api/monthly-stats')
+
+@monthly_stats_bp.route('/<int:year>/<int:month>', methods=['GET'])
+@jwt_required()
+def get_monthly_stats(year, month):
+    user_id = get_jwt_identity()
+    target_date = datetime(year, month, 1)
+    
+    # 目標取得
+    target = MonthlyTarget.query.filter_by(
+        user_id=user_id,
+        target_month=target_date
+    ).first()
+    
+    target_data = {
+        'projects': target.target_projects if target else 0,
+        'income': target.target_income if target else 0
+    }
+    
+    # 獲得案件数（contracted になった件数）
+    acquired_projects = db.session.query(
+        func.count(func.distinct(ProjectStatusHistory.project_id))
+    ).join(Project).filter(
+        Project.user_id == user_id,
+        ProjectStatusHistory.new_status == 'contracted',
+        extract('year', ProjectStatusHistory.changed_at) == year,
+        extract('month', ProjectStatusHistory.changed_at) == month
+    ).scalar() or 0
+    
+    # 完了案件数（completed になった件数）
+    completed_projects = db.session.query(
+        func.count(func.distinct(ProjectStatusHistory.project_id))
+    ).join(Project).filter(
+        Project.user_id == user_id,
+        ProjectStatusHistory.new_status == 'completed',
+        extract('year', ProjectStatusHistory.changed_at) == year,
+        extract('month', ProjectStatusHistory.changed_at) == month
+    ).scalar() or 0
+    
+    # 今月発生売上（sent になった請求書）
+    sent_invoices = db.session.query(
+        func.count(func.distinct(InvoiceStatusHistory.invoice_id)),
+        func.sum(Invoice.total_amount)
+    ).join(Invoice).filter(
+        Invoice.user_id == user_id,
+        InvoiceStatusHistory.new_status == 'sent',
+        extract('year', InvoiceStatusHistory.changed_at) == year,
+        extract('month', InvoiceStatusHistory.changed_at) == month
+    ).first()
+    
+    sent_count = sent_invoices[0] or 0
+    sent_amount = float(sent_invoices[1] or 0)
+    
+    # 今月入金（paid で payment_date が当月）
+    paid_invoices = db.session.query(
+        func.count(Invoice.id),
+        func.sum(Invoice.total_amount)
+    ).filter(
+        Invoice.user_id == user_id,
+        Invoice.status == 'paid',
+        extract('year', Invoice.payment_date) == year,
+        extract('month', Invoice.payment_date) == month
+    ).first()
+    
+    paid_count = paid_invoices[0] or 0
+    paid_amount = float(paid_invoices[1] or 0)
+    
+    # 達成率計算
+    projects_rate = (acquired_projects / target_data['projects']) if target_data['projects'] > 0 else 0
+    income_rate = (paid_amount / target_data['income']) if target_data['income'] > 0 else 0
+    
+    # 過去データ注釈判定（2025年10月以前）
+    cutoff_date = datetime(2025, 10, 1)
+    show_note = target_date < cutoff_date
+    
+    return jsonify({
+        'success': True,
+        'data': {
+            'month': target_date.strftime('%Y-%m-%d'),
+            'target': target_data,
+            'actual': {
+                'acquired_projects': acquired_projects,
+                'completed_projects': completed_projects,
+                'sent_invoices_count': sent_count,
+                'sent_invoices_amount': sent_amount,
+                'paid_invoices_count': paid_count,
+                'paid_invoices_amount': paid_amount
+            },
+            'achievement': {
+                'projects_rate': round(projects_rate, 2),
+                'income_rate': round(income_rate, 2)
+            },
+            'note': '※2025年10月以前のデータは推定値です' if show_note else None
+        }
+    })
+
+@monthly_stats_bp.route('/overview', methods=['GET'])
+@jwt_required()
+def get_overview():
+    user_id = get_jwt_identity()
+    
+    # 全期間の総合統計
+    total_projects = Project.query.filter_by(user_id=user_id).count()
+    
+    total_income = db.session.query(
+        func.sum(Invoice.total_amount)
+    ).filter(
+        Invoice.user_id == user_id,
+        Invoice.status == 'paid'
+    ).scalar() or 0
+    
+    # 直近3ヶ月の実績
+    from dateutil.relativedelta import relativedelta
+    today = datetime.now()
+    recent_months = []
+    
+    for i in range(3):
+        month_date = today - relativedelta(months=i)
+        year = month_date.year
+        month = month_date.month
+        
+        # 簡易集計（詳細はget_monthly_statsと同様）
+        acquired = db.session.query(
+            func.count(func.distinct(ProjectStatusHistory.project_id))
+        ).join(Project).filter(
+            Project.user_id == user_id,
+            ProjectStatusHistory.new_status == 'contracted',
+            extract('year', ProjectStatusHistory.changed_at) == year,
+            extract('month', ProjectStatusHistory.changed_at) == month
+        ).scalar() or 0
+        
+        recent_months.append({
+            'month': month_date.strftime('%Y-%m-%d'),
+            'acquired': acquired
+        })
+    
+    return jsonify({
+        'success': True,
+        'data': {
+            'total_projects': total_projects,
+            'total_income': float(total_income),
+            'recent_months': recent_months
+        }
+    })
+```
+
+#### 3.3 Blueprintの登録
+```python
+# ファイル: ./app/__init__.py（既存ファイル拡張）
+
+def create_app():
+    app = Flask(__name__)
+    
+    # ... 既存の設定 ...
+    
+    # Blueprint登録
+    from app.routes.monthly import monthly_bp
+    from app.routes.monthly_stats import monthly_stats_bp
+    
+    app.register_blueprint(monthly_bp)
+    app.register_blueprint(monthly_stats_bp)
+    
+    return app
+```
+
+#### 3.4 API動作確認
+```bash
+# 実行場所: ローカル
+
+# 1. サーバー起動
+python run.py
+
+# 2. API テスト（ターミナル）
+# ログインしてトークン取得
+TOKEN="your_jwt_token"
+
+# 目標設定テスト
+curl -X POST http://127.0.0.1:5000/api/monthly-targets \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target_month": "2025-10-01",
+    "target_projects": 5,
+    "target_income": 200000
+  }'
+
+# 月次統計取得テスト
+curl -X GET http://127.0.0.1:5000/api/monthly-stats/2025/10 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**✅ 完了条件**: 
+- 目標設定APIが正常動作
+- 月次統計APIが正確な数値を返す
+- DBに正しくデータが保存される
+
+---
+
+### Step 4: フロントエンド実装（5時間）
+
+#### 4.1 Pinia Store作成
+```bash
+# 実行場所: ローカル
+
+# バックアップ作成
+cp -r frontend/src/stores frontend.backup_monthly_store_$(date +%Y%m%d_%H%M%S)
+```
+
+```javascript
+// ファイル: ./frontend/src/stores/monthly.js (NEW)
+// 上記「4.3 状態管理」のコード全文を実装
+```
+
+#### 4.2 新規コンポーネント作成
+
+##### MonthlyTabs.vue
+```bash
+# 実行場所: ローカル
+# ファイル作成: ./frontend/src/components/MonthlyTabs.vue (NEW)
+```
+
+```vue
+<template>
+  <div class="monthly-tabs bg-white rounded-t-lg shadow">
+    <div class="flex border-b border-gray-200 overflow-x-auto">
+      <button 
+        v-for="tab in tabs" 
+        :key="tab.id"
+        @click="selectTab(tab.id)"
+        :class="[
+          'px-6 py-3 font-medium transition-colors whitespace-nowrap',
+          currentTab === tab.id 
+            ? 'border-b-2 border-pink-500 text-pink-600 bg-pink-50' 
+            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+        ]"
+      >
+        <component :is="tab.icon" class="w-5 h-5 inline mr-2" />
+        {{ tab.label }}
+      </button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { ChartBarIcon, CalendarIcon } from '@heroicons/vue/24/outline'
+
+const props = defineProps({
+  modelValue: {
+    type: String,
+    default: 'overview'
+  }
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const currentTab = computed({
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value)
+})
+
+const tabs = [
+  { id: 'overview', label: '概要', icon: ChartBarIcon },
+  { id: '2025-10', label: '10月', icon: CalendarIcon },
+  { id: '2025-11', label: '11月', icon: CalendarIcon },
+  { id: '2025-12', label: '12月', icon: CalendarIcon }
+]
+
+const selectTab = (tabId) => {
+  currentTab.value = tabId
+}
+</script>
+```
+
+##### ProgressBar.vue
+```bash
+# ファイル作成: ./frontend/src/components/ProgressBar.vue (NEW)
+```
+
+```vue
+<template>
+  <div class="progress-bar">
+    <div class="flex justify-between items-center mb-2">
+      <span class="text-sm font-medium text-gray-700">{{ label }}</span>
+      <span class="text-sm font-semibold text-gray-900">
+        {{ formatNumber(current) }} / {{ formatNumber(target) }} {{ unit }}
+      </span>
+    </div>
+    
+    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+      <div 
+        class="h-3 rounded-full transition-all duration-300"
+        :class="progressColor"
+        :style="{ width: `${percentage}%` }"
+      ></div>
+    </div>
+    
+    <div class="flex justify-between items-center mt-1">
+      <span class="text-xs text-gray-500">
+        {{ motivationMessage }}
+      </span>
+      <span class="text-xs font-bold" :class="percentageColor">
+        {{ percentage }}%
+      </span>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { computed } from 'vue'
+
+const props = defineProps({
+  label: {
+    type: String,
+    required: true
+  },
+  current: {
+    type: Number,
+    default: 0
+  },
+  target: {
+    type: Number,
+    default: 0
+  },
+  unit: {
+    type: String,
+    default: '件'
+  }
+})
+
+const percentage = computed(() => {
+  if (!props.target) return 0
+  return Math.min(Math.round((props.current / props.target) * 100), 100)
+})
+
+const progressColor = computed(() => {
+  const p = percentage.value
+  if (p >= 100) return 'bg-gradient-to-r from-green-400 to-green-600'
+  if (p >= 80) return 'bg-gradient-to-r from-blue-400 to-blue-600'
+  if (p >= 50) return 'bg-gradient-to-r from-yellow-400 to-yellow-600'
+  return 'bg-gradient-to-r from-pink-400 to-pink-600'
+})
+
+const percentageColor = computed(() => {
+  const p = percentage.value
+  if (p >= 100) return 'text-green-600'
+  if (p >= 80) return 'text-blue-600'
+  if (p >= 50) return 'text-yellow-600'
+  return 'text-pink-600'
+})
+
+const motivationMessage = computed(() => {
+  const p = percentage.value
+  if (p >= 100) return '🎉 目標達成！'
+  if (p >= 80) return '💪 あと少し！'
+  if (p >= 50) return '📈 順調です'
+  return '🚀 がんばろう'
+})
+
+const formatNumber = (num) => {
+  if (props.unit === '円') {
+    return new Intl.NumberFormat('ja-JP').format(num)
+  }
+  return num
+}
+</script>
+```
+
+##### MonthlyStatsSection.vue
+```bash
+# ファイル作成: ./frontend/src/components/MonthlyStatsSection.vue (NEW)
+```
+
+```vue
+<template>
+  <div v-if="!loading" class="monthly-stats-section bg-white rounded-b-lg shadow p-6">
+    <!-- 概要タブ -->
+    <div v-if="currentTab === 'overview'" class="overview-section">
+      <div class="flex items-center mb-6">
+        <ChartBarIcon class="w-8 h-8 text-amber-500 mr-3" />
+        <h2 class="text-2xl font-bold text-gray-900">全体の実績</h2>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="stat-card bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
+          <div class="text-sm text-blue-600 font-medium mb-2">累計案件数</div>
+          <div class="text-4xl font-bold text-blue-900">
+            {{ overviewData?.total_projects || 0 }} 件
+          </div>
+        </div>
+        
+        <div class="stat-card bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg">
+          <div class="text-sm text-green-600 font-medium mb-2">累計報酬額</div>
+          <div class="text-4xl font-bold text-green-900">
+            ¥{{ formatCurrency(overviewData?.total_income || 0) }}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 月次タブ -->
+    <div v-else class="monthly-section">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center">
+          <CalendarIcon class="w-8 h-8 text-amber-500 mr-3" />
+          <h2 class="text-2xl font-bold text-gray-900">
+            📊 {{ monthLabel }}の実績
+          </h2>
+        </div>
+        
+        <!-- 目標設定ボタン -->
+        <button 
+          @click="openTargetSettings"
+          class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors flex items-center"
+        >
+          <FlagIcon class="w-5 h-5 mr-2" />
+          目標設定
+        </button>
+      </div>
+      
+      <!-- 注釈（過去データ） -->
+      <div v-if="stats?.note" class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+        <p class="text-sm text-yellow-700 flex items-center">
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+          </svg>
+          {{ stats.note }}
+        </p>
+      </div>
+      
+      <!-- プログレスバー群 -->
+      <div class="space-y-6">
+        <ProgressBar 
+          label="📦 獲得案件"
+          :current="stats?.actual.acquired_projects || 0"
+          :target="stats?.target.projects || 0"
+          unit="件"
+        />
+        
+        <ProgressBar 
+          label="✅ 完了案件"
+          :current="stats?.actual.completed_projects || 0"
+          :target="stats?.target.projects || 0"
+          unit="件"
+        />
+        
+        <ProgressBar 
+          label="💰 報酬額"
+          :current="stats?.actual.paid_invoices_amount || 0"
+          :target="stats?.target.income || 0"
+          unit="円"
+        />
+      </div>
+    </div>
+  </div>
+  
+  <!-- ローディング -->
+  <div v-else class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue'
+import { useMonthlyStore } from '@/stores/monthly'
+import { useUIStore } from '@/stores/ui'
+import ProgressBar from './ProgressBar.vue'
+import { ChartBarIcon, CalendarIcon, FlagIcon } from '@heroicons/vue/24/outline'
+
+const props = defineProps({
+  currentTab: {
+    type: String,
+    required: true
+  }
+})
+
+const monthlyStore = useMonthlyStore()
+const uiStore = useUIStore()
+
+const loading = ref(false)
+const stats = ref(null)
+const overviewData = ref(null)
+
+const monthLabel = computed(() => {
+  const months = {
+    '2025-10': '2025年10月',
+    '2025-11': '2025年11月',
+    '2025-12': '2025年12月'
+  }
+  return months[props.currentTab] || ''
+})
+
+const loadData = async () => {
+  loading.value = true
+  
+  try {
+    if (props.currentTab === 'overview') {
+      const response = await monthlyStore.fetchOverview()
+      overviewData.value = response
+    } else {
+      const [year, month] = props.currentTab.split('-')
+      await monthlyStore.fetchStats(parseInt(year), parseInt(month))
+      stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
+    }
+  } catch (error) {
+    console.error('データ読み込みエラー:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const openTargetSettings = () => {
+  // 設定モーダルを開き、月次目標タブを選択
+  uiStore.openSettings()
+  uiStore.setSettingsTab('monthly-target')
+}
+
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('ja-JP').format(amount)
+}
+
+watch(() => props.currentTab, () => {
+  loadData()
+})
+
+onMounted(() => {
+  loadData()
+})
+</script>
+```
+
+#### 4.3 DashboardPage.vue への統合
+```bash
+# 実行場所: ローカル
+
+# バックアップ作成
+cp frontend/src/views/DashboardPage.vue frontend/src/views/DashboardPage_backup_before_monthly_$(date +%Y%m%d_%H%M%S).vue
+```
+
+```vue
+<!-- ファイル: ./frontend/src/views/DashboardPage.vue（既存ファイル拡張） -->
+
+<template>
+  <div class="dashboard-page">
+    <!-- 既存のヘッダー等 -->
+    
+    <!-- 月次管理セクション（NEW） -->
+    <div class="monthly-management-section mb-8">
+      <MonthlyTabs v-model="currentMonthTab" />
+      <MonthlyStatsSection :current-tab="currentMonthTab" />
+    </div>
+    
+    <!-- 既存のコンテンツ -->
+    <div class="existing-content">
+      <!-- ProjectsCard, InvoicesCard, TodoCard など -->
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import MonthlyTabs from '@/components/MonthlyTabs.vue'
+import MonthlyStatsSection from '@/components/MonthlyStatsSection.vue'
+// ... 既存のimport ...
+
+const currentMonthTab = ref('overview')
+</script>
+```
+
+#### 4.4 設定モーダルへの目標設定UI追加
+```bash
+# バックアップ作成
+cp frontend/src/components/SettingsModal.vue frontend/src/components/SettingsModal_backup_monthly_$(date +%Y%m%d_%H%M%S).vue
+```
+
+```vue
+<!-- ファイル: ./frontend/src/components/SettingsModal.vue（既存ファイル拡張） -->
+
+<template>
+  <div class="settings-modal">
+    <!-- 既存のタブ -->
+    <div class="tabs">
+      <button @click="currentTab = 'profile'">プロフィール</button>
+      <button @click="currentTab = 'monthly-target'">月次目標</button>
+      <!-- 他の既存タブ -->
+    </div>
+    
+    <!-- 月次目標タブ（NEW） -->
+    <div v-if="currentTab === 'monthly-target'" class="monthly-target-settings p-6">
+      <div class="flex items-center mb-6">
+        <FlagIcon class="w-8 h-8 text-indigo-500 mr-3" />
+        <h3 class="text-xl font-bold text-gray-900">🎯 月次目標設定</h3>
+      </div>
+      
+      <!-- 月選択 -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          対象月
+        </label>
+        <select 
+          v-model="selectedMonth"
+          @change="loadTarget"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+        >
+          <option value="2025-10-01">2025年10月</option>
+          <option value="2025-11-01">2025年11月</option>
+          <option value="2025-12-01">2025年12月</option>
+        </select>
+      </div>
+      
+      <!-- 目標案件数 -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          目標案件数
+        </label>
+        <div class="relative">
+          <input 
+            v-model.number="targetForm.projects"
+            type="number"
+            min="0"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            placeholder="例: 5"
+          />
+          <span class="absolute right-4 top-2 text-gray-500">件</span>
+        </div>
+      </div>
+      
+      <!-- 目標報酬額 -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          目標報酬額
+        </label>
+        <div class="relative">
+          <input 
+            v-model.number="targetForm.income"
+            type="number"
+            min="0"
+            step="10000"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            placeholder="例: 200000"
+          />
+          <span class="absolute right-4 top-2 text-gray-500">円</span>
+        </div>
+      </div>
+      
+      <!-- 保存ボタン -->
+      <button 
+        @click="saveTarget"
+        :disabled="saving"
+        class="w-full py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-medium rounded-lg hover:from-pink-600 hover:to-purple-700 transition-colors disabled:opacity-50"
+      >
+        {{ saving ? '保存中...' : '目標を保存' }}
+      </button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useMonthlyStore } from '@/stores/monthly'
+import { FlagIcon } from '@heroicons/vue/24/outline'
+
+const monthlyStore = useMonthlyStore()
+
+const currentTab = ref('profile')
+const selectedMonth = ref('2025-10-01')
+const saving = ref(false)
+
+const targetForm = ref({
+  projects: 0,
+  income: 0
+})
+
+const loadTarget = async () => {
+  const target = monthlyStore.getTargetByMonth(selectedMonth.value)
+  if (target) {
+    targetForm.value.projects = target.target_projects || 0
+    targetForm.value.income = target.target_income || 0
+  } else {
+    targetForm.value.projects = 0
+    targetForm.value.income = 0
+  }
+}
+
+const saveTarget = async () => {
+  saving.value = true
+  
+  try {
+    await monthlyStore.saveTarget(selectedMonth.value, {
+      target_projects: targetForm.value.projects,
+      target_income: targetForm.value.income
+    })
+    
+    alert('目標を保存しました！')
+  } catch (error) {
+    alert('保存に失敗しました: ' + error.message)
+  } finally {
+    saving.value = false
+  }
+}
+
+onMounted(async () => {
+  await monthlyStore.fetchTargets(2025, [10, 11, 12])
+  loadTarget()
+})
+</script>
+```
+
+#### 4.5 フロントエンド動作確認
+```bash
+# 実行場所: ローカル
+
+# 1. 依存関係インストール（@heroicons/vue確認）
+cd frontend
+npm install
+
+# 2. 開発サーバー起動
+npm run dev
+
+# 3. ブラウザテスト
+# http://127.0.0.1:5173/dashboard
+# - タブ切替動作確認
+# - プログレスバー表示確認
+# - 設定モーダルで目標設定確認
+```
+
+**✅ 完了条件**:
+- タブ切替がスムーズに動作
+- プログレスバーが正確な数値を表示
+- 目標設定が保存される
+- デザインが統一されている
+
+---
+
+### Step 5: 本番デプロイ（2時間）
+
+#### 5.1 ブランチ戦略確認
+```bash
+# 実行場所: ローカル
+
+# 現在のブランチ確認
+git branch
+
+# staging ブランチで作業していることを確認
+# ※Render.comはstagingブランチを監視
+```
+
+#### 5.2 コミット前の最終確認
+```bash
+# 実行場所: ローカル
+
+# 構文チェック（Python）
+python -m py_compile app/routes/monthly.py
+python -m py_compile app/routes/monthly_stats.py
+python -m py_compile app/models/monthly_target.py
+
+# 構文チェック（Vue）
+cd frontend
+npm run build
+
+# エラーがないことを確認
+```
+
+#### 5.3 Git コミット
+```bash
+# 実行場所: ローカル
+
+# 日時付きバックアップコマンドは実行済み前提
+
+# 変更をステージング
+git add .
+
+# コミット
+git commit -m "feat: 月次管理機能実装
+
+- 月次目標設定機能追加(monthly_targets テーブル)
+- ステータス変更履歴記録(project_status_history, invoice_status_history)
+- 月次集計API実装(/api/monthly-stats)
+- タブ切替UI実装(概要/10月/11月/12月)
+- プログレスバー表示実装
+- 設定モーダルに目標設定UI追加"
+
+# stagingブランチにプッシュ
+git push origin staging
+```
+
+#### 5.4 Render.com 自動デプロイ確認
+```bash
+# Render.comのダッシュボードで確認
+# 1. https://dashboard.render.com にアクセス
+# 2. influberryサービスを選択
+# 3. "Events" タブで自動デプロイ開始を確認
+# 4. ビルドログを監視
+```
+
+#### 5.5 本番環境でのマイグレーション実行
+```bash
+# 実行場所: Renderシェル
+
+cd ~/project/src
+
+# マイグレーション実行
+flask db upgrade
+
+# テーブル作成確認
+psql $DATABASE_URL -c "\d monthly_targets"
+psql $DATABASE_URL -c "\d project_status_history"
+psql $DATABASE_URL -c "\d invoice_status_history"
+```
+
+#### 5.6 本番環境動作確認
+```bash
+# ブラウザで確認
+# https://influberry.jp/dashboard
+
+# 確認項目:
+# ✅ タブが表示される
+# ✅ プログレスバーが表示される
+# ✅ 設定モーダルで目標設定可能
+# ✅ エラーが発生しない
+```
+
+#### 5.7 本番データ確認
+```bash
+# 実行場所: Renderシェル
+
+# テストデータ確認
+psql $DATABASE_URL -c "SELECT COUNT(*) FROM monthly_targets;"
+psql $DATABASE_URL -c "SELECT * FROM monthly_targets LIMIT 5;"
+
+# 既存案件でステータス変更テスト
+# ブラウザで案件のステータスを変更
+# 履歴が記録されることを確認
+psql $DATABASE_URL -c "SELECT * FROM project_status_history ORDER BY changed_at DESC LIMIT 5;"
+```
+
+**✅ 完了条件**:
+- 本番環境でエラーなく動作
+- タブ切替・プログレスバー表示正常
+- 目標設定・保存が正常動作
+- ステータス変更履歴が記録される
+
+---
+
+## 6. テスト計画
+
+### 6.1 ユニットテスト
+
+#### データベースモデルテスト
+```python
+# ファイル: ./tests/test_monthly_models.py (NEW)
+
+import unittest
+from datetime import datetime
+from app import create_app, db
+from app.models import User, MonthlyTarget, ProjectStatusHistory
+
+class MonthlyModelsTestCase(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app('testing')
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        db.create_all()
+        
+        # テストユーザー作成
+        self.user = User(username='testuser', email='test@example.com')
+        self.user.set_password('password')
+        db.session.add(self.user)
+        db.session.commit()
+    
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
+    
+    def test_monthly_target_creation(self):
+        """月次目標の作成テスト"""
+        target = MonthlyTarget(
+            user_id=self.user.id,
+            target_month=datetime(2025, 10, 1),
+            target_projects=5,
+            target_income=200000
+        )
+        db.session.add(target)
+        db.session.commit()
+        
+        self.assertIsNotNone(target.id)
+        self.assertEqual(target.target_projects, 5)
+        self.assertEqual(target.target_income, 200000)
+    
+    def test_monthly_target_unique_constraint(self):
+        """月次目標のユニーク制約テスト"""
+        target1 = MonthlyTarget(
+            user_id=self.user.id,
+            target_month=datetime(2025, 10, 1),
+            target_projects=5,
+            target_income=200000
+        )
+        db.session.add(target1)
+        db.session.commit()
+        
+        # 同じ月の目標を追加（エラーになるべき）
+        target2 = MonthlyTarget(
+            user_id=self.user.id,
+            target_month=datetime(2025, 10, 1),
+            target_projects=8,
+            target_income=300000
+        )
+        db.session.add(target2)
+        
+        with self.assertRaises(Exception):
+            db.session.commit()
+```
+
+#### API テスト
+```python
+# ファイル: ./tests/test_monthly_api.py (NEW)
+
+import unittest
+import json
+from app import create_app, db
+from app.models import User
+
+class MonthlyAPITestCase(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app('testing')
+        self.client = self.app.test_client()
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        db.create_all()
+        
+        # テストユーザー作成・ログイン
+        self.user = User(username='testuser', email='test@example.com')
+        self.user.set_password('password')
+        db.session.add(self.user)
+        db.session.commit()
+        
+        # トークン取得
+        response = self.client.post('/api/auth/login', json={
+            'email': 'test@example.com',
+            'password': 'password'
+        })
+        self.token = json.loads(response.data)['access_token']
+    
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
+    
+    def test_create_monthly_target(self):
+        """月次目標作成APIテスト"""
+        response = self.client.post('/api/monthly-targets',
+            headers={'Authorization': f'Bearer {self.token}'},
+            json={
+                'target_month': '2025-10-01',
+                'target_projects': 5,
+                'target_income': 200000
+            }
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        self.assertEqual(data['data']['target_projects'], 5)
+    
+    def test_get_monthly_stats(self):
+        """月次統計取得APIテスト"""
+        response = self.client.get('/api/monthly-stats/2025/10',
+            headers={'Authorization': f'Bearer {self.token}'}
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        self.assertIn('actual', data['data'])
+        self.assertIn('achievement', data['data'])
+```
+
+### 6.2 統合テスト
+
+#### ステータス変更→履歴記録→月次集計の流れ
+```python
+# ファイル: ./tests/test_monthly_integration.py (NEW)
+
+def test_full_monthly_flow(self):
+    """月次管理の完全フローテスト"""
+    
+    # 1. 目標設定
+    response = self.client.post('/api/monthly-targets', ...)
+    self.assertEqual(response.status_code, 200)
+    
+    # 2. 案件作成
+    response = self.client.post('/api/projects', json={
+        'company_name': 'テスト会社',
+        'amount': 100000,
+        'status': 'proposed',
+        ...
+    })
+    project_id = json.loads(response.data)['data']['id']
+    
+    # 3. ステータスを契約に変更
+    response = self.client.put(f'/api/projects/{project_id}',
+        json={'status': 'contracted'}
+    )
+    
+    # 4. 履歴が記録されているか確認
+    history = ProjectStatusHistory.query.filter_by(
+        project_id=project_id,
+        new_status='contracted'
+    ).first()
+    self.assertIsNotNone(history)
+    
+    # 5. 月次統計に反映されているか確認
+    response = self.client.get('/api/monthly-stats/2025/10')
+    data = json.loads(response.data)
+    self.assertEqual(data['data']['actual']['acquired_projects'], 1)
+```
+
+### 6.3 ブラウザテスト（手動）
+
+#### テストケース一覧
+```markdown
+# 月次管理機能 ブラウザテスト チェックリスト
+
+## タブ切替
+- [ ] 概要タブが表示される
+- [ ] 10月タブが表示される
+- [ ] 11月タブが表示される
+- [ ] 12月タブが表示される
+- [ ] タブ切替がスムーズ（遅延なし）
+- [ ] 選択中タブのハイライト表示
+
+## プログレスバー表示
+- [ ] 獲得案件のプログレスバーが表示
+- [ ] 完了案件のプログレスバーが表示
+- [ ] 報酬額のプログレスバーが表示
+- [ ] パーセンテージが正確
+- [ ] バーの色が達成率に応じて変化
+
+## 目標設定
+- [ ] 設定モーダルが開く
+- [ ] 月次目標タブが表示される
+- [ ] 月選択ドロップダウンが動作
+- [ ] 目標案件数入力可能
+- [ ] 目標報酬額入力可能
+- [ ] 保存ボタンが動作
+- [ ] 保存後にプログレスバーに反映
+
+## データ精度
+- [ ] 案件ステータス変更→履歴記録
+- [ ] 月次統計に正確に反映
+- [ ] 過去データに注釈表示
+- [ ] 概要タブの総計が正確
+
+## レスポンシブ
+- [ ] スマホ表示で崩れない
+- [ ] タブが横スクロール可能
+- [ ] プログレスバーが適切にリサイズ
+
+## エラーハンドリング
+- [ ] API エラー時のメッセージ表示
+- [ ] 目標未設定時の適切な表示
+- [ ] データなし時の適切な表示
+```
+
+---
+
+## 7. ロールバック手順
+
+### 7.1 緊急ロールバックが必要な場合
+
+#### 症状
+- 本番環境でエラー頻発
+- データ破損の可能性
+- ユーザーが利用不可
+
+#### 即座の対応
+```bash
+# 実行場所: ローカル
+
+# 1. 前回の安定版ブランチに戻す
+git log --oneline  # 前回のコミットハッシュ確認
+git revert <commit_hash>
+git push origin staging
+
+# 2. Render.comで自動デプロイ実行される
+# 3. 確認後、問題があれば手動ロールバック
+
+# Renderダッシュボードで前回のデプロイに戻す
+# "Deploys" → "Rollback" ボタン
+```
+
+### 7.2 データベースロールバック
+
+#### 本番環境
+```bash
+# 実行場所: Renderシェル
+
+cd ~/project/src
+
+# マイグレーション履歴確認
+flask db history
+
+# 1つ前のバージョンに戻す
+flask db downgrade -1
+
+# または特定バージョンに戻す
+flask db downgrade <revision_id>
+```
+
+#### ローカル環境
+```bash
+# 実行場所: ローカル
+
+# バックアップから復元
+cp instance/influberry_dev_backup_monthly_migration_*.db instance/influberry_dev.db
+
+# またはマイグレーションダウングレード
+python manage.py db downgrade -1
+```
+
+### 7.3 段階的ロールバック（部分的な問題の場合）
+
+#### フロントエンドのみロールバック
+```bash
+# 実行場所: ローカル
+
+# バックアップから復元
+cp frontend/src/views/DashboardPage_backup_before_monthly_*.vue frontend/src/views/DashboardPage.vue
+
+# 不要なコンポーネント削除
+rm frontend/src/components/MonthlyTabs.vue
+rm frontend/src/components/MonthlyStatsSection.vue
+rm frontend/src/components/ProgressBar.vue
+rm frontend/src/stores/monthly.js
+
+# コミット・プッシュ
+git add .
+git commit -m "revert: 月次管理機能のフロントエンド部分を一時削除"
+git push origin staging
+```
+
+#### APIのみロールバック
+```bash
+# 実行場所: ローカル
+
+# 新規ファイル削除
+rm app/routes/monthly.py
+rm app/routes/monthly_stats.py
+
+# __init__.py から Blueprint登録削除（手動編集）
+
+# コミット・プッシュ
+git add .
+git commit -m "revert: 月次管理APIを一時削除"
+git push origin staging
+```
+
+### 7.4 ロールバック後の確認事項
+
+```bash
+# 実行場所: 本番環境
+
+# 1. 既存機能が正常動作するか確認
+# - ログイン
+# - 案件一覧表示
+# - 請求書一覧表示
+
+# 2. エラーログ確認
+# Renderダッシュボード → Logs
+
+# 3. データベース整合性確認
+psql $DATABASE_URL -c "SELECT COUNT(*) FROM projects;"
+psql $DATABASE_URL -c "SELECT COUNT(*) FROM invoices;"
+```
+
+---
+
+## 8. リスク管理
+
+### 8.1 想定リスクと対策
+
+#### リスク1: 既存データの履歴がない
+**影響度**: 中  
+**対策**: 
+- UI上で注釈表示「※2025年10月以前のデータは推定値です」
+- ユーザーへの事前告知
+- 段階的な履歴蓄積
+
+#### リスク2: パフォーマンス低下
+**影響度**: 低〜中  
+**原因**: 履歴テーブルのレコード増加  
+**対策**:
+- 適切なインデックス設定済み
+- 月次集計クエリの最適化
+- 将来的にキャッシュ導入検討
+
+#### リスク3: ユーザーの混乱
+**影響度**: 低  
+**原因**: 新機能の理解不足  
+**対策**:
+- 直感的なUI設計（タブ・プログレスバー）
+- ヘルプテキスト・ツールチップ
+- アプリ説明ページでの解説追加
+
+#### リスク4: 本番デプロイ時のダウンタイム
+**影響度**: 低  
+**原因**: マイグレーション実行  
+**対策**:
+- Render.comの自動デプロイ利用（ゼロダウンタイム）
+- マイグレーションは高速（新規テーブル追加のみ）
+
+### 8.2 モニタリング項目
+
+#### デプロイ後1週間の監視項目
+```markdown
+- [ ] エラーログの確認（毎日）
+- [ ] ページ読み込み速度（< 3秒）
+- [ ] API レスポンスタイム（< 500ms）
+- [ ] データベースサイズ増加率
+- [ ] ユーザーからの問い合わせ内容
+```
+
+### 8.3 緊急連絡先・手順
+
+#### 問題発生時の対応フロー
+```
+1. 症状の特定
+   └→ エラーメッセージ・ログ確認
+
+2. 影響範囲の確認
+   └→ 全ユーザー？特定機能のみ？
+
+3. 緊急度判定
+   高: 即座にロールバック
+   中: 調査・部分修正
+   低: 次回メンテナンスで対応
+
+4. 対応実施
+   └→ 本セクション「7. ロールバック手順」参照
+
+5. 事後報告
+   └→ 原因・対応内容・再発防止策
+```
+
+---
+
+## 9. 補足資料
+
+### 9.1 データベースER図（月次管理関連）
+
+```
+┌─────────────┐
+│   users     │
+├─────────────┤
+│ id (PK)     │
+│ username    │
+│ email       │
+└──────┬──────┘
+       │
+       │ 1:N
+       │
+┌──────▼──────────────┐
+│  monthly_targets    │
+├─────────────────────┤
+│ id (PK)             │
+│ user_id (FK)        │
+│ target_month (UK)   │
+│ target_projects     │
+│ target_income       │
+└─────────────────────┘
+
+┌─────────────┐
+│  projects   │
+├─────────────┤
+│ id (PK)     │
+│ user_id (FK)│
+│ status      │
+└──────┬──────┘
+       │
+       │ 1:N
+       │
+┌──────▼──────────────────┐
+│ project_status_history  │
+├─────────────────────────┤
+│ id (PK)                 │
+│ project_id (FK)         │
+│ old_status              │
+│ new_status              │
+│ changed_at              │
+└─────────────────────────┘
+
+┌─────────────┐
+│  invoices   │
+├─────────────┤
+│ id (PK)     │
+│ user_id (FK)│
+│ status      │
+│payment_date │
+└──────┬──────┘
+       │
+       │ 1:N
+       │
+┌──────▼──────────────────┐
+│ invoice_status_history  │
+├─────────────────────────┤
+│ id (PK)                 │
+│ invoice_id (FK)         │
+│ old_status              │
+│ new_status              │
+│ changed_at              │
+└─────────────────────────┘
+```
+
+### 9.2 API エンドポイント一覧
+
+| メソッド | エンドポイント | 説明 | 認証 |
+|---------|---------------|------|------|
+| GET | /api/monthly-targets | 月次目標一覧取得 | 必須 |
+| POST | /api/monthly-targets | 月次目標設定 | 必須 |
+| DELETE | /api/monthly-targets/{month} | 月次目標削除 | 必須 |
+| GET | /api/monthly-stats/{year}/{month} | 月次統計取得 | 必須 |
+| GET | /api/monthly-stats/overview | 全体統計取得 | 必須 |
+
+### 9.3 使用ライブラリ・バージョン
+
+#### バックエンド
+```
+Flask==2.3.x
+SQLAlchemy==2.0.x
+Flask-JWT-Extended==4.5.x
+psycopg2-binary==2.9.x (PostgreSQL)
+```
+
+#### フロントエンド
+```
+vue@3.5.18
+pinia@3.0.3
+@heroicons/vue@2.2.0
+tailwindcss@4.1.13
+axios@1.11.0
+```
+
+### 9.4 今後の拡張計画（次回フェーズ）
+
+#### Phase 2: マイクロインタラクション実装
+- 数値カウントアップアニメーション
+- プログレスバー充填アニメーション
+- 目標達成時のバッジ演出
+- スケルトンスクリーン
+
+#### Phase 3: 高度な分析機能
+- 月次比較グラフ（折れ線・棒グラフ）
+- 前月比・前年比表示
+- トレンド分析
+- 予測機能
+
+#### Phase 4: 通知機能
+- 目標達成時の通知
+- 月末リマインダー
+- 進捗遅延アラート
+
+---
+
+## 10. 完了チェックリスト
+
+### 実装完了の定義
+以下すべてにチェックが入ったら完了とする。
+
+#### データベース
+- [ ] monthly_targets テーブル作成（ローカル・本番）
+- [ ] project_status_history テーブル作成（ローカル・本番）
+- [ ] invoice_status_history テーブル作成（ローカル・本番）
+- [ ] インデックス作成確認
+- [ ] マイグレーション正常実行
+
+#### バックエンド
+- [ ] MonthlyTarget モデル実装
+- [ ] ProjectStatusHistory モデル実装
+- [ ] InvoiceStatusHistory モデル実装
+- [ ] ステータス変更時の履歴記録実装
+- [ ] 月次目標API実装（GET/POST/DELETE）
+- [ ] 月次統計API実装
+- [ ] 概要API実装
+- [ ] ユニットテスト合格
+
+#### フロントエンド
+- [ ] monthlyStore 実装
+- [ ] MonthlyTabs コンポーネント実装
+- [ ] ProgressBar コンポーネント実装
+- [ ] MonthlyStatsSection コンポーネント実装
+- [ ] DashboardPage統合
+- [ ] SettingsModal拡張（目標設定UI）
+- [ ] アイコン実装（競合なし確認）
+- [ ] レスポンシブ対応
+
+#### テスト
+- [ ] ローカル環境で全機能動作確認
+- [ ] ブラウザテスト完了
+- [ ] API テスト合格
+- [ ] 統合テスト合格
+
+#### デプロイ
+- [ ] staging ブランチにコミット
+- [ ] 本番環境デプロイ成功
+- [ ] 本番環境マイグレーション成功
+- [ ] 本番環境動作確認完了
+- [ ] エラーログ確認（問題なし）
+
+#### ドキュメント
+- [ ] 本計画書完成
+- [ ] README更新（機能追加記載）
+- [ ] API ドキュメント更新
+
+---
+
+## 11. 付録
+
+### 11.1 よくある質問（FAQ）
+
+**Q1: 既存の案件の履歴はどうなりますか？**  
+A1: 新規テーブル作成後、既存案件の履歴は記録されていません。今後のステータス変更から記録されます。過去データは `updated_at` で近似カウントし、UI上で注釈表示します。
+
+**Q2: 目標を設定しないとどうなりますか？**  
+A2: プログレスバーの目標値が0になり、達成率は計算されません。UI上で「目標未設定」と表示され、設定を促すメッセージが表示されます。
+
+**Q3: 月の途中で目標を変更できますか？**  
+A3: はい、いつでも変更可能です。変更後、プログレスバーの表示が即座に更新されます。
+
+**Q4: 概要タブには何が表示されますか？**  
+A4: 全期間の累計案件数・累計報酬額と、直近3ヶ月の簡易統計が表示されます。
+
+**Q5: パフォーマンスへの影響は？**  
+A5: 履歴テーブルには適切なインデックスが設定されており、月次集計クエリも最適化されているため、パフォーマンス影響は最小限です。
+
+### 11.2 トラブルシューティング
+
+#### 問題: プログレスバーが0%のまま
+**原因**: ステータス変更履歴が記録されていない  
+**解決**: 案件のステータスを一度変更してテスト
+
+#### 問題: 目標設定が保存されない
+**原因**: API エラー  
+**解決**: ブラウザの開発者ツールでネットワークタブ確認、エラーメッセージ特定
+
+#### 問題: タブ切替が動作しない
+**原因**: JavaScript エラー  
+**解決**: ブラウザコンソールでエラー確認、コンポーネントのimport確認
+
+#### 問題: マイグレーションエラー
+**原因**: テーブル名重複・外部キー制約  
+**解決**: `flask db downgrade` → 修正 → `flask db upgrade`
+
+---
+
+## 📌 計画書バージョン情報
+
+- **バージョン**: 1.0
+- **作成日**: 2025年10月21日
+- **対象システム**: InfluBerry
+- **実装範囲**: 月次管理機能（基本実装）
+- **次回フェーズ**: マイクロインタラクション実装
+
+---
+
+## 🚀 **進捗状況更新（2025年10月22日）**
+
+### **✅ 完了済み**
+#### **Phase 4: 動的月次管理機能実装**
+- **✅ 1. MonthlyTabs.vueの動的タブ生成実装** - **完了**
+  - 現在の月を基準に過去3ヶ月を動的表示
+  - 年跨ぎ処理の実装完了
+  - 例：10月 → 8月、9月、10月のタブ
+  - 動的タブ生成ロジック実装済み
+
+#### **✅ 認証問題の根本解決**
+- **CORS設定修正**: ローカル開発環境のオリジン追加
+- **ログアウトAPI修正**: `@login_required`デコレータ削除
+- **CSRF保護無効化**: 開発環境での設定
+- **認証機能完全復旧**: ログイン・ログアウト正常動作
+
+#### **✅ 安定状態のバックアップ作成**
+- 現在の正常動作状態を保存
+- 認証機能、CORS問題、月次管理機能の動的タブ生成がすべて正常動作
+
+### **🚨 発見された問題（2025年10月22日 18:00）**
+#### **月次目標設定の即時反映問題**
+- **問題**: 目標設定を保存してもダッシュボードの数値が即座に反映されない
+- **症状**: 他のページに行ってから戻ってくると変更されている
+- **根本原因**: ステータス変更履歴による複雑な集計処理が原因のデータ同期不整合
+
+#### **実施した修正トライ**
+1. **データフローの同期化修正** - 効果なし
+2. **リアクティブ更新の強制修正** - 効果なし  
+3. **データ同期の確実化修正** - 効果なし
+
+#### **技術的な問題点**
+- **ステータス変更履歴による複雑な集計処理**: `ProjectStatusHistory`と`InvoiceStatusHistory`を使用した正負集計ロジック
+- **データベースクエリの重さ**: 複数のJOINと集計処理が重い
+- **非同期処理の競合**: 統計データの取得とUI更新のタイミングがずれやすい
+- **キャッシュの複雑性**: 複雑な集計結果のキャッシュ管理が困難
+
+### **🔄 次のタスク**
+#### **1. 即時反映問題の根本解決**
+- ステータス変更履歴による複雑な集計処理の最適化
+- データ同期の根本的な改善
+- UI更新の確実化
+
+#### **2. UserSettings.vueの目標設定簡素化実装**
+- 当月のみの目標設定
+- ドロップダウン削除
+- シンプルなUI実装
+
+#### **3. 動的機能の動作確認とテスト**
+- 各月での表示テスト
+- 年跨ぎ処理のテスト
+- ユーザビリティ確認
+
+#### **4. ステージングデプロイ・テスト**
+- 動的機能のステージング環境でのテスト
+- 本番環境での動作確認
+
+#### **5. 本番デプロイ・監視**
+- 本番環境へのデプロイ
+- 動作監視とパフォーマンス確認
+
+## 🎯 **次のセッションの具体的な開始手順**
+### **1. 即時反映問題の根本解決**
+- ステータス変更履歴による複雑な集計処理の最適化
+- データ同期の根本的な改善
+- UI更新の確実化
+
+### **2. UserSettings.vueの簡素化実装**
+- 当月のみの目標設定UI実装
+- ドロップダウン削除
+- シンプルなUI実装
+
+### **3. 動作確認とテスト**
+- 動的タブ生成の動作確認
+- 各月での表示テスト
+- 年跨ぎ処理のテスト
+
+**動的タブ生成機能が完成し、認証問題も根本解決されました。次のセッションでは、UserSettings.vueの簡素化実装から開始します！**

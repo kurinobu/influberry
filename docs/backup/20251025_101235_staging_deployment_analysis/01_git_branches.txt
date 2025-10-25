@@ -1,0 +1,8 @@
+  feature/berrydo-sqlite-to-postgresql
+  feature/menu-system-refactor
+  main
+* staging
+  remotes/origin/feature/berrydo-sqlite-to-postgresql
+  remotes/origin/feature/menu-system-refactor
+  remotes/origin/main
+  remotes/origin/staging

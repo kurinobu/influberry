@@ -1,0 +1,20 @@
+total 176
+drwxr-xr-x@ 19 kurinobu  staff    608 Oct 25 10:13 .
+drwxr-xr-x@ 14 kurinobu  staff    448 Oct 20 18:13 ..
+-rw-r--r--@  1 kurinobu  staff   3122 Oct 20 18:13 085200113416_initial_migration_user_and_project_.py
+-rw-r--r--@  1 kurinobu  staff    571 Oct 20 18:13 1a0734b2b82b_make_invoices_influencer_name_nullable.py
+-rw-r--r--@  1 kurinobu  staff   1223 Oct 20 18:13 20251001132853_add_linked_columns_to_projects.py
+-rw-r--r--@  1 kurinobu  staff    854 Oct 20 18:13 5ed9c624af99_add_project_name_and_notes_fields_for_.py
+-rw-r--r--@  1 kurinobu  staff   1757 Oct 20 18:13 6202082e5d64_add_pdf_print_settings_to_user_model.py
+-rw-r--r--@  1 kurinobu  staff   1195 Oct 20 18:13 6202082e5d64_add_pdf_print_settings_to_user_model.py.backup
+-rw-r--r--@  1 kurinobu  staff   1543 Oct 20 18:13 784155763a1e_add_todo_fields_for_berrydo_task_.py
+-rw-r--r--@  1 kurinobu  staff    390 Oct 20 18:13 8040182793ab_add_todo_fields_to_projects_with_.py
+-rw-r--r--@  1 kurinobu  staff   1520 Oct 20 18:13 88202d3a053d_add_payment_info_fields_to_user_model.py
+-rw-r--r--@  1 kurinobu  staff   2504 Oct 20 18:13 97f40bb745e2_add_issuer_info_fields_to_users.py
+-rw-r--r--@  1 kurinobu  staff  23314 Oct 20 18:13 UserSettings_backup_axios_unification_20251011_114849.vue
+drwxr-xr-x@ 19 kurinobu  staff    608 Oct 23 10:03 __pycache__
+-rw-r--r--@  1 kurinobu  staff   6479 Oct 20 18:13 auth_backup_payment_info_unification_20251011_115813.js
+-rw-r--r--@  1 kurinobu  staff    839 Oct 20 18:13 d1ca214cfb05_add_project_name_column_to_invoices_.py
+-rw-r--r--@  1 kurinobu  staff    395 Oct 20 18:13 f12568e353c7_add_todo_fields_to_projects_table_for_.py
+-rw-r--r--@  1 kurinobu  staff   3602 Oct 20 18:13 f16dec33a250_add_invoice_model_for_automatic_invoice_.py
+-rw-r--r--@  1 kurinobu  staff    960 Oct 20 18:13 fb6bc9aa7119_make_influencer_name_nullable_in_.py
