@@ -13,8 +13,8 @@ import PrivacyPage from '../views/legal/PrivacyPage.vue'
 import TermsPage from '../views/legal/TermsPage.vue'
 import CompanyPage from '../views/legal/CompanyPage.vue'
 import TokushoPage from '../views/legal/TokushoPage.vue'
-import BlogPage from '../views/legal/BlogPage.vue'
-import FAQPage from '../views/legal/FAQPage.vue'
+import BlogPage from '../views/BlogPage.vue'
+import FAQPage from '../views/FAQPage.vue'
 
 // ルート定義（3層分離アーキテクチャ）
 const routes = [
@@ -78,6 +78,19 @@ const routes = [
       title: 'BerryDo｜タスク管理 - InfluBerry',
       description: 'タスク管理・todoリストで作業効率を最大化。インフルエンサー・クリエイター向けタスク管理SaaSツールで省力化・DXを実現。',
       keywords: 'タスク管理,todoリスト,作業効率化,インフルエンサー,クリエイター,SaaS,DX,省力化,バックヤード,効率化'
+    }
+  },
+  
+  // 設定ページ
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('../components/UserSettings.vue'),
+    meta: { 
+      requiresAuth: true,
+      title: 'InfluBerry - 設定',
+      description: 'InfluBerryの設定ページ。プロフィール編集、月次目標設定、支払い情報管理で効率化・省力化をサポート。',
+      keywords: '設定,プロフィール編集,月次目標設定,支払い情報,インフルエンサー,クリエイター,SaaS,DX,効率化,省力化'
     }
   },
   
