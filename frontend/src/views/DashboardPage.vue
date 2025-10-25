@@ -11,7 +11,7 @@ async function testMonthlyRotation() {
   alert('月次切り替えを実行します')
   
   try {
-    await rotationStore.performMonthlyRotation()
+    await rotationStore.triggerManualRotation()
     alert('月次切り替え完了！コンソールを確認してください')
     console.log('=== テスト完了 ===')
   } catch (error) {
