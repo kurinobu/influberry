@@ -84,9 +84,79 @@
     </div>
   </div>
   
-  <!-- ローディング -->
-  <div v-else class="flex justify-center items-center py-12">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
+  <!-- スケルトンローディング -->
+  <div v-else class="monthly-stats-section berry-card rounded-b-lg p-6">
+    <!-- 概要タブのスケルトン -->
+    <div v-if="currentTab === 'overview'" class="overview-section">
+      <div class="flex items-center mb-6">
+        <div class="w-8 h-8 bg-gray-300 rounded animate-pulse mr-3"></div>
+        <div class="h-8 w-48 bg-gray-300 rounded animate-pulse"></div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- スケルトンカード1 -->
+        <div class="stat-card bg-gradient-to-br from-gray-100 to-gray-200 p-6 rounded-lg">
+          <div class="h-4 w-32 bg-gray-300 rounded animate-pulse mb-2"></div>
+          <div class="h-10 w-24 bg-gray-300 rounded animate-pulse"></div>
+        </div>
+        
+        <!-- スケルトンカード2 -->
+        <div class="stat-card bg-gradient-to-br from-gray-100 to-gray-200 p-6 rounded-lg">
+          <div class="h-4 w-32 bg-gray-300 rounded animate-pulse mb-2"></div>
+          <div class="h-10 w-24 bg-gray-300 rounded animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 月次タブのスケルトン -->
+    <div v-else class="monthly-section">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center">
+          <div class="w-8 h-8 bg-gray-300 rounded animate-pulse mr-3"></div>
+          <div class="h-8 w-48 bg-gray-300 rounded animate-pulse"></div>
+        </div>
+        <div class="w-24 h-10 bg-gray-300 rounded animate-pulse"></div>
+      </div>
+      
+      <!-- スケルトンプログレスバー群 -->
+      <div class="space-y-6">
+        <!-- スケルトンプログレスバー1 -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <div class="h-5 w-24 bg-gray-300 rounded animate-pulse"></div>
+            <div class="h-5 w-16 bg-gray-300 rounded animate-pulse"></div>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-6">
+            <div class="h-6 w-1/2 bg-gray-300 rounded-full animate-pulse"></div>
+          </div>
+          <div class="h-4 w-32 bg-gray-300 rounded animate-pulse"></div>
+        </div>
+        
+        <!-- スケルトンプログレスバー2 -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <div class="h-5 w-24 bg-gray-300 rounded animate-pulse"></div>
+            <div class="h-5 w-16 bg-gray-300 rounded animate-pulse"></div>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-6">
+            <div class="h-6 w-1/3 bg-gray-300 rounded-full animate-pulse"></div>
+          </div>
+          <div class="h-4 w-32 bg-gray-300 rounded animate-pulse"></div>
+        </div>
+        
+        <!-- スケルトンプログレスバー3 -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <div class="h-5 w-24 bg-gray-300 rounded animate-pulse"></div>
+            <div class="h-5 w-16 bg-gray-300 rounded animate-pulse"></div>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-6">
+            <div class="h-6 w-2/3 bg-gray-300 rounded-full animate-pulse"></div>
+          </div>
+          <div class="h-4 w-32 bg-gray-300 rounded animate-pulse"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
