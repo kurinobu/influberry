@@ -53,8 +53,20 @@ const rotationStore = useMonthlyRotationStore()
 // 強制的なタブ再生成のためのカウンター
 const forceRegeneration = ref(0)
 
+// Debounce utility function
+const debounce = (func, wait) => {
+  let timeout
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
+
 // 動的タブ生成ロジック
-// 修正: 月次切り替え状態に基づく適切なタブ生成
 const generateDynamicTabs = () => {
   // 修正: 月次切り替え状態に基づく適切な日時計算
   const rotationState = rotationStore.rotationState
@@ -429,10 +441,10 @@ const updateTabContent = () => {
       console.log('🎉 タブの内容変化完了:', newTabs)
       
       // 4. タブの内容の変化を確実に実装
-      // 強制的なタブ再生成を実行
-      forceRegeneration.value++
+      // 改善案2: forceRegeneration削除（handleMonthlyRotationCompleteで既に実行済み）
+      // forceRegeneration.value++
       
-      console.log('🔧 タブ内容更新: タブの内容の変化を確実に実装')
+      console.log('🔧 タブ内容更新: タブの内容の変化を確実に実装（再生成は親関数で実行）')
     } else {
       console.log('⏳ 月次切り替え未完了 - タブ内容更新をスキップ')
     }
@@ -517,7 +529,8 @@ watch(() => [rotationStore.rotationState, rotationStore.lastRotationCheck], ([ne
 }, { deep: false }) // deep: false でパフォーマンス最適化
 
 // 根本原因修正: 月次切り替え完了時の処理をシンプル化（重複実行防止）
-const handleMonthlyRotationComplete = async () => {
+// 改善案2: debounceなしの内部実装
+const handleMonthlyRotationCompleteInternal = async () => {
   console.log('🔧 根本原因修正: 月次切り替え完了時の処理を開始')
   
   try {
@@ -550,6 +563,9 @@ const handleMonthlyRotationComplete = async () => {
     console.error('❌ 月次切り替え完了時の処理でエラー:', error)
   }
 }
+
+// 改善案2: debounce適用（300ms以内の連続実行を防止）
+const handleMonthlyRotationComplete = debounce(handleMonthlyRotationCompleteInternal, 300)
 
 
 
