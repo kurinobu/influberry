@@ -153,15 +153,10 @@ const syncReactiveUpdates = async (newTab, oldTab) => {
     await nextTick()
     console.log('🔧 Phase 2: 第2回nextTick完了')
     
-    // 2. データ同期（forceRerender内で実行 - 重複削除）
-    // await rotationStore.refreshFrontendData()
-    console.log('🔧 Phase 2: データ同期はforceRerender内で実行')
+    // 2. 改善案4: forceRerender削除（重複実行防止）
+    console.log('🔧 Phase 2: nextTickによる同期化完了（forceRerender削除）')
     
-    // 3. 強制的な再レンダリングを実行
-    await forceRerender()
-    console.log('🔧 Phase 2: 強制的な再レンダリング完了')
-    
-    // 4. 最終的なnextTickで確実に同期化
+    // 3. 最終的なnextTickで確実に同期化
     await nextTick()
     console.log('🔧 Phase 2: 最終nextTick完了')
     
@@ -216,9 +211,8 @@ const forceRerender = async () => {
       visualUpdateCounter: visualUpdateCounter.value
     })
     
-    // 5. データ同期を再実行
-    await rotationStore.refreshFrontendData()
-    console.log('🔧 Phase 3: 再レンダリング後のデータ同期完了')
+    // 5. 改善案4: refreshFrontendData削除（重複実行防止）
+    console.log('🔧 Phase 3: データ同期は他の箇所で実行（重複削除）')
     
     // 6. Phase 3: 視覚的な更新の確実化
     await ensureVisualUpdate()
@@ -428,13 +422,9 @@ onMounted(async () => {
     forceRerenderCounter: forceRerenderCounter.value
   })
   
-  // Phase 3: 初期化後の強制的な同期化と再レンダリング
+  // Phase 3: 初期化後の強制的な同期化
   await syncReactiveUpdates(currentMonthTab.value, 'overview')
-  console.log('🔧 Phase 3: 初期化後の強制的な同期化完了')
-  
-  // Phase 3: 初期化後の強制的な再レンダリング
-  await forceRerender()
-  console.log('🔧 Phase 3: 初期化後の強制的な再レンダリング完了')
+  console.log('🔧 Phase 3: 初期化後の同期化完了（改善案4: forceRerender削除）')
 })
 
 // 月次切り替え監視の強化（新規追加）
