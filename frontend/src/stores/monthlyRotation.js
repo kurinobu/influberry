@@ -376,11 +376,11 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
         await this.checkRotationStatus()
       }, 5 * 60 * 1000) // 5分 = 5 * 60 * 1000ms
       
-      // 初回チェックも実行
-      setTimeout(async () => {
+      // 初回チェックを即座に実行（1秒待機を削除）
+      Promise.resolve().then(async () => {
         console.log('🚀 初回チェック: バックエンドの月次切り替え状態を確認')
         await this.checkRotationStatus()
-      }, 1000) // 1秒後に初回チェック
+      })
       
       console.log('✅ 月次切り替え監視を開始しました（ポーリング機能付き）')
     },
