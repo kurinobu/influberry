@@ -313,24 +313,6 @@ watch(() => monthlyStore.targets, async (newTargets, oldTargets) => {
 }, { deep: true })
 
 // 月次切り替え状態の監視（新規追加）
-watch(() => rotationStore.rotationState, async (newState, oldState) => {
-  console.log('🔄 月次切り替え状態変更を検知:', { newState, oldState })
-  if (newState === 'completed' && oldState === 'running') {
-    console.log('🎉 月次切り替え完了を検知 - データを再読み込み')
-    // データを強制的に再読み込み
-    await loadData()
-  }
-})
-
-// 月次切り替えチェック時刻の監視（新規追加）
-watch(() => rotationStore.lastRotationCheck, async (newValue, oldValue) => {
-  console.log('🔄 月次切り替えチェック時刻変更を検知:', { newValue, oldValue })
-  if (newValue !== oldValue) {
-    console.log('🔄 月次切り替えチェック時刻更新 - データを再読み込み')
-    // データを強制的に再読み込み
-    await loadData()
-  }
-})
 
 onMounted(() => {
   loadData()
