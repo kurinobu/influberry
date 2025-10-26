@@ -525,9 +525,9 @@ const handleMonthlyRotationComplete = async () => {
     console.log('🔧 1. タブ再生成を実行')
     forceRegeneration.value++
     
-    // 2. データ同期（1回のみ）
-    console.log('🔧 2. データ同期を実行')
-    await refreshMonthlyData()
+    // 2. データ同期（checkRotationStatusで実行済み - 重複削除）
+    console.log('🔧 2. データ同期はcheckRotationStatusで実行済み')
+    // await refreshMonthlyData()
     
     // 3. Phase 1: タブの内容変化の実装
     console.log('🔧 3. タブの内容変化を実装')
@@ -541,9 +541,9 @@ const handleMonthlyRotationComplete = async () => {
     console.log('🔧 5. タブの自動選択機能を実装')
     await selectNewMonthTab()
     
-    // 6. 視覚的更新の確実化（新規追加）
-    console.log('🔧 6. 視覚的更新の確実化を実行')
-    await applyVisualChanges()
+    // 6. 視覚的更新（4で実行済み - 重複削除）
+    console.log('🔧 6. 視覚的更新は4で実行済み')
+    // await applyVisualChanges()
     
     console.log('🎉 月次切り替え完了時の処理が完了')
   } catch (error) {

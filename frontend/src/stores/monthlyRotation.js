@@ -235,8 +235,8 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
         await monthlyStore.fetchStats(currentYear, currentMonth)
         await monthlyStore.fetchTargets(currentYear, [currentMonth])
         
-        // タブ再生成のトリガー（1回のみ）
-        await this.triggerTabRegeneration()
+        // タブ再生成はcheckRotationStatusで実行済み（重複削除）
+        // await this.triggerTabRegeneration()
         
         console.log('🔧 フロントエンドデータの更新完了')
       } catch (error) {

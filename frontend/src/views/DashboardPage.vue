@@ -153,9 +153,9 @@ const syncReactiveUpdates = async (newTab, oldTab) => {
     await nextTick()
     console.log('🔧 Phase 2: 第2回nextTick完了')
     
-    // 2. データ同期を実行
-    await rotationStore.refreshFrontendData()
-    console.log('🔧 Phase 2: データ同期完了')
+    // 2. データ同期（forceRerender内で実行 - 重複削除）
+    // await rotationStore.refreshFrontendData()
+    console.log('🔧 Phase 2: データ同期はforceRerender内で実行')
     
     // 3. 強制的な再レンダリングを実行
     await forceRerender()
@@ -477,9 +477,9 @@ watch(() => currentMonthTab.value, async (newTab, oldTab) => {
       // 3. Phase 2: リアクティブな更新の同期化を強化
       await syncReactiveUpdates(newTab, oldTab)
       
-      // 4. 視覚的更新の確実化（新規追加）
-      console.log('🔧 Phase 2: 視覚的更新の確実化を実行')
-      await ensureVisualUpdate()
+      // 4. 視覚的更新（syncReactiveUpdates内で実行済み - 重複削除）
+      console.log('🔧 Phase 2: 視覚的更新はsyncReactiveUpdates内で実行済み')
+      // await ensureVisualUpdate()
       
     } else if (newTab === 'overview') {
       console.log('📋 Phase 2: 概要タブが選択されました')
@@ -487,9 +487,9 @@ watch(() => currentMonthTab.value, async (newTab, oldTab) => {
       // Phase 2: 概要タブ選択時の同期化
       await syncReactiveUpdates(newTab, oldTab)
       
-      // 4. 視覚的更新の確実化（新規追加）
-      console.log('🔧 Phase 2: 概要タブ選択時の視覚的更新を実行')
-      await ensureVisualUpdate()
+      // 4. 視覚的更新（syncReactiveUpdates内で実行済み - 重複削除）
+      console.log('🔧 Phase 2: 視覚的更新はsyncReactiveUpdates内で実行済み')
+      // await ensureVisualUpdate()
     }
     
   } catch (error) {
