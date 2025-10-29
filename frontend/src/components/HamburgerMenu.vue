@@ -216,8 +216,9 @@ const handleOverlayClick = (event) => {
         <!-- メニューヘッダー -->
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           <div class="flex items-center">
-            <h2 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-poppins">
-              🍓 InfluBerry
+            <img src="/favicon512.png" alt="InfluBerry" class="w-6 h-6 mr-2">
+            <h2 class="text-lg font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              InfluBerry
             </h2>
           </div>
           <button
@@ -336,13 +337,15 @@ const handleOverlayClick = (event) => {
 
 .menu-overlay {
   background: rgba(0, 0, 0, 0.5) !important;
-  background-color: rgba(0, 0, 0, 0.5) !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  z-index: 9998 !important;
+}
+
+/* メニューヘッダータイトル強制カラフル表示 */
+h2.text-lg.font-bold {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-weight: 700 !important;
 }
 
 /* スムーズなアニメーション */

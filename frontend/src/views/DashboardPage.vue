@@ -1,12 +1,11 @@
 <script setup>
-import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import { useProjectsStore } from '../stores/projects.js'
 import { useInvoicesStore } from '../stores/invoices.js'
 import { useTodosStore } from '../stores/todos.js'
 import { useUIStore } from '../stores/ui.js'
-import { useMonthlyRotationStore } from '../stores/monthlyRotation.js'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
 import BasicDataModal from '../components/BasicDataModal.vue'
 import UserSettings from '../components/UserSettings.vue'
@@ -15,8 +14,8 @@ import DashboardIcon from '../components/icons/DashboardIcon.vue'
 import InvoiceIcon from '../components/icons/InvoiceIcon.vue'
 import ChecklistIcon from '../components/icons/ChecklistIcon.vue'
 import BriefcaseIcon from '../components/icons/BriefcaseIcon.vue'
-import MonthlyTabs from '../components/MonthlyTabs.vue'
-import MonthlyStatsSection from '../components/MonthlyStatsSection.vue'
+
+import MonthlyDashboardV2 from '../components/MonthlyDashboardV2.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -24,339 +23,17 @@ const projectsStore = useProjectsStore()
 const invoicesStore = useInvoicesStore()
 const todosStore = useTodosStore()
 const uiStore = useUIStore()
-const rotationStore = useMonthlyRotationStore()
-
-// 月次管理タブ状態（初期化ロジック修正）
+// 月次管理タブ状態（シンプル化）
 const currentMonthTab = ref('overview')
 
-// Phase 3: 強制的な再レンダリングのためのカウンターとフラグ
-const forceRerenderCounter = ref(0)
-const forceRerenderFlag = ref(false)
-const visualUpdateCounter = ref(0)
 
-// 月次切り替え状態に基づく適切な初期値設定
-const initializeCurrentMonthTab = () => {
-  console.log('🔧 月次管理タブの初期化を実行')
-  
-  try {
-    // 1. 月次切り替え状態を確認
-    const rotationState = rotationStore.rotationState
-    const lastRotationCheck = rotationStore.lastRotationCheck
-    
-    console.log('🔧 初期化: 月次切り替え状態を確認', {
-      rotationState,
-      lastRotationCheck
-    })
-    
-    // 2. 月次切り替え完了時の適切な初期値設定
-    if (rotationState === 'completed' && lastRotationCheck) {
-      console.log('🎉 月次切り替え完了 - 新しい月のタブを初期値に設定')
-      
-      // 3. 新しい月のタブIDを計算
-      const baseDate = new Date(lastRotationCheck)
-      const currentYear = baseDate.getFullYear()
-      const currentMonth = baseDate.getMonth() + 1
-      const newMonthId = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
-      
-      console.log('🔧 初期化: 新しい月のタブIDを計算', {
-        baseDate,
-        currentYear,
-        currentMonth,
-        newMonthId
-      })
-      
-      // 4. 新しい月のタブを初期値に設定
-      currentMonthTab.value = newMonthId
-      
-      console.log('🎉 初期化完了:', {
-        initialTab: newMonthId,
-        currentMonthTab: currentMonthTab.value
-      })
-      
-    } else {
-      console.log('⏳ 月次切り替え未完了 - デフォルト値(overview)を維持')
-      // デフォルト値の'overview'を維持
-    }
-    
-  } catch (error) {
-    console.error('❌ 初期化エラー:', error)
-    // エラー時はデフォルト値の'overview'を維持
-  }
-}
 
-// タブ更新トリガー
-// 修正: データ同期の確実化とエラーハンドリングの強化
-const triggerTabUpdate = async () => {
-  console.log('🔧 タブ更新をトリガーします。')
-  
-  try {
-    // 1. 月次切り替え状態を確認
-    const rotationState = rotationStore.rotationState
-    const lastRotationCheck = rotationStore.lastRotationCheck
-    
-    console.log('🔧 タブ更新: 月次切り替え状態を確認', {
-      rotationState,
-      lastRotationCheck
-    })
-    
-    // 2. 月次切り替え完了時の処理
-    if (rotationState === 'completed' && lastRotationCheck) {
-      console.log('🎉 月次切り替え完了 - 新しい月のタブを自動選択')
-      
-      // 3. 新しい月のタブIDを計算
-      const baseDate = new Date(lastRotationCheck)
-      const currentYear = baseDate.getFullYear()
-      const currentMonth = baseDate.getMonth() + 1
-      const newMonthId = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
-      
-      console.log('🔧 タブ更新: 新しい月のタブIDを計算', {
-        baseDate,
-        currentYear,
-        currentMonth,
-        newMonthId
-      })
-      
-      // 4. 新しい月のタブに自動切り替え
-      currentMonthTab.value = newMonthId
-      
-      console.log('🎉 タブ更新完了:', {
-        previousTab: 'overview',
-        newTab: newMonthId,
-        currentMonthTab: currentMonthTab.value
-      })
-      
-      // 5. 修正: データ同期の確実化
-      await rotationStore.refreshFrontendData()
-      
-    } else {
-      console.log('⏳ 月次切り替え未完了 - タブ更新をスキップ')
-    }
-    
-  } catch (error) {
-    console.error('❌ タブ更新エラー:', error)
-  }
-}
 
-// Phase 2: リアクティブな更新の同期化機能を追加
-const syncReactiveUpdates = async (newTab, oldTab) => {
-  console.log('🔧 Phase 2: リアクティブな更新の同期化を実行', {
-    newTab,
-    oldTab,
-    timestamp: new Date().toISOString()
-  })
-  
-  try {
-    // 1. 複数回のnextTickを使用した確実な同期化
-    await nextTick()
-    console.log('🔧 Phase 2: 第1回nextTick完了')
-    
-    await nextTick()
-    console.log('🔧 Phase 2: 第2回nextTick完了')
-    
-    // 2. 改善案4: forceRerender削除（重複実行防止）
-    console.log('🔧 Phase 2: nextTickによる同期化完了（forceRerender削除）')
-    
-    // 3. 最終的なnextTickで確実に同期化
-    await nextTick()
-    console.log('🔧 Phase 2: 最終nextTick完了')
-    
-    // 5. 同期化後の状態確認
-    console.log('🔧 Phase 2: 同期化後の状態確認', {
-      currentMonthTab: currentMonthTab.value,
-      rotationState: rotationStore.rotationState,
-      lastRotationCheck: rotationStore.lastRotationCheck,
-      forceRerenderCounter: forceRerenderCounter.value
-    })
-    
-    console.log('🎉 Phase 2: リアクティブな更新の同期化完了')
-    
-  } catch (error) {
-    console.error('❌ Phase 2: リアクティブな更新の同期化エラー:', error)
-  }
-}
 
-// Phase 3: 強制的な再レンダリング機能を強化
-const forceRerender = async () => {
-  console.log('🔧 Phase 3: 強制的な再レンダリングを実行')
-  
-  try {
-    // 1. 再レンダリングフラグを設定
-    forceRerenderFlag.value = true
-    forceRerenderCounter.value++
-    visualUpdateCounter.value++
-    
-    console.log('🔧 Phase 3: 再レンダリングフラグを設定', {
-      forceRerenderFlag: forceRerenderFlag.value,
-      forceRerenderCounter: forceRerenderCounter.value,
-      visualUpdateCounter: visualUpdateCounter.value
-    })
-    
-    // 2. Phase 3: DOM操作による強制的な更新
-    await forceDOMUpdate()
-    
-    // 3. nextTickを使用してDOM更新を確実に実行
-    await nextTick()
-    console.log('🔧 Phase 3: DOM更新を確実に実行')
-    
-    // 4. 月次切り替え状態を再確認
-    const rotationState = rotationStore.rotationState
-    const lastRotationCheck = rotationStore.lastRotationCheck
-    
-    console.log('🔧 Phase 3: 再レンダリング後の状態確認', {
-      rotationState,
-      lastRotationCheck,
-      currentMonthTab: currentMonthTab.value,
-      forceRerenderCounter: forceRerenderCounter.value,
-      forceRerenderFlag: forceRerenderFlag.value,
-      visualUpdateCounter: visualUpdateCounter.value
-    })
-    
-    // 5. 改善案4: refreshFrontendData削除（重複実行防止）
-    console.log('🔧 Phase 3: データ同期は他の箇所で実行（重複削除）')
-    
-    // 6. Phase 3: 視覚的な更新の確実化
-    await ensureVisualUpdate()
-    
-    // 7. 再レンダリングフラグをリセット
-    forceRerenderFlag.value = false
-    
-    console.log('🎉 Phase 3: 強制的な再レンダリング完了')
-    
-  } catch (error) {
-    console.error('❌ Phase 3: 強制的な再レンダリングエラー:', error)
-    forceRerenderFlag.value = false
-  }
-}
 
-// Phase 3: DOM操作による強制的な更新を実装
-const forceDOMUpdate = async () => {
-  console.log('🔧 Phase 3: DOM操作による強制的な更新を実行')
-  
-  try {
-    // 1. MonthlyTabsコンポーネントのDOM要素を取得
-    const monthlyTabsElement = document.querySelector('.monthly-tabs')
-    if (monthlyTabsElement) {
-      console.log('🔧 Phase 3: MonthlyTabsコンポーネントのDOM要素を取得')
-      
-      // 2. 一時的にクラスを変更して強制的な再レンダリングをトリガー
-      monthlyTabsElement.classList.add('force-rerender')
-      console.log('🔧 Phase 3: 強制再レンダリングクラスを追加')
-      
-      // 3. nextTickを使用してDOM更新を確実に実行
-      await nextTick()
-      console.log('🔧 Phase 3: DOM更新を確実に実行')
-      
-      // 4. クラスを削除
-      monthlyTabsElement.classList.remove('force-rerender')
-      console.log('🔧 Phase 3: 強制再レンダリングクラスを削除')
-      
-      // 5. タブ要素の強制的な更新
-      const tabButtons = monthlyTabsElement.querySelectorAll('button')
-      tabButtons.forEach((button, index) => {
-        // 一時的にクラスを変更
-        button.classList.add('force-update')
-        console.log(`🔧 Phase 3: タブ要素 ${index + 1} に強制更新クラスを追加`)
-      })
-      
-      // 6. nextTickを使用してDOM更新を確実に実行
-      await nextTick()
-      console.log('🔧 Phase 3: タブ要素のDOM更新を確実に実行')
-      
-      // 7. クラスを削除
-      tabButtons.forEach((button, index) => {
-        button.classList.remove('force-update')
-        console.log(`🔧 Phase 3: タブ要素 ${index + 1} から強制更新クラスを削除`)
-      })
-      
-    } else {
-      console.log('⚠️ Phase 3: MonthlyTabsコンポーネントのDOM要素が見つかりません')
-    }
-    
-    console.log('🎉 Phase 3: DOM操作による強制的な更新完了')
-    
-  } catch (error) {
-    console.error('❌ Phase 3: DOM操作による強制的な更新エラー:', error)
-  }
-}
 
-// Phase 3: 視覚的な更新の確実化を実装
-const ensureVisualUpdate = async () => {
-  console.log('🔧 Phase 3: 視覚的な更新の確実化を実行')
-  
-  try {
-    // 1. 現在のタブ状態を確認
-    const currentTab = currentMonthTab.value
-    console.log('🔧 Phase 3: 現在のタブ状態を確認:', currentTab)
-    
-    // 2. タブ要素の視覚的な更新を強制実行
-    const tabButtons = document.querySelectorAll('.monthly-tabs button')
-    console.log('🔧 Phase 3: タブ要素数:', tabButtons.length)
-    
-    tabButtons.forEach((button, index) => {
-      const tabId = button.getAttribute('data-tab-id')
-      const isActive = tabId === currentTab
-      
-      console.log(`🔧 Phase 3: タブ ${index + 1} の状態確認:`, {
-        tabId,
-        currentTab,
-        isActive,
-        hasActiveClass: button.classList.contains('border-pink-500')
-      })
-      
-      // 3. アクティブなタブの視覚的更新
-      if (isActive) {
-        console.log(`🎉 Phase 3: アクティブなタブ ${index + 1} の視覚的更新を実行`)
-        
-        // 既存のアクティブクラスを削除
-        button.classList.remove('border-pink-500', 'text-pink-600', 'bg-pink-50')
-        
-        // 新しいアクティブクラスを追加
-        button.classList.add('border-pink-500', 'text-pink-600', 'bg-pink-50')
-        
-        // 強制的な再レンダリングをトリガー
-        button.style.transform = 'scale(1.01)'
-        setTimeout(async () => {
-          await nextTick()
-          button.style.transform = 'scale(1)'
-          console.log(`🔧 Phase 3: アクティブなタブ ${index + 1} の視覚的更新完了`)
-        }, 50)
-        
-      } else {
-        console.log(`🔧 Phase 3: 非アクティブなタブ ${index + 1} の視覚的更新を実行`)
-        
-        // 非アクティブなタブのクラスを設定
-        button.classList.remove('border-pink-500', 'text-pink-600', 'bg-pink-50')
-        button.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-50')
-        
-        // 非アクティブなタブの視覚的更新
-        button.classList.add('visual-update-inactive')
-        setTimeout(async () => {
-          await nextTick()
-          button.classList.remove('visual-update-inactive')
-          console.log(`🔧 Phase 3: 非アクティブなタブ ${index + 1} の視覚的更新完了`)
-        }, 30)
-      }
-    })
-    
-    // 4. 視覚的更新カウンターを増加
-    visualUpdateCounter.value++
-    console.log('🔧 Phase 3: 視覚的更新カウンターを増加:', visualUpdateCounter.value)
-    
-    console.log('🎉 Phase 3: 視覚的な更新の確実化完了')
-    
-  } catch (error) {
-    console.error('❌ Phase 3: 視覚的な更新の確実化エラー:', error)
-  }
-}
 
-// 月次切り替え状態の監視（新規追加）
-const handleRotationStateChange = (newState, oldState) => {
-  console.log('月次切り替え状態変更を検知:', { newState, oldState })
-  if (newState === 'completed' && oldState === 'running') {
-    console.log('月次切り替え完了を検知 - タブ更新をトリガー')
-    triggerTabUpdate()
-  }
-}
+
 
 // 設定モーダル表示状態（UIStoreに統合）
 // const showSettings = ref(false)
@@ -377,7 +54,7 @@ const stats = computed(() => {
   }
 })
 
-// アプリ初期化
+// アプリ初期化（シンプル化）
 onMounted(async () => {
   // 未認証の場合は認証ページへリダイレクト
   await authStore.checkAuthStatus()
@@ -386,106 +63,15 @@ onMounted(async () => {
     return
   }
   
-  // 月次切り替え監視を自動開始
-  try {
-    rotationStore.startRotationMonitoring()
-    console.log('月次切り替え監視を自動開始しました。')
-  } catch (error) {
-    console.error('月次切り替え監視の開始に失敗しました:', error)
-  }
-  
-  // 月次管理タブの初期化（新規追加）
-  initializeCurrentMonthTab()
-  
-  // Phase 2: 親子コンポーネント間の状態同期を確実化
-  console.log('🔧 Phase 2: 親子コンポーネント間の状態同期を確実化')
-  
   // データ取得
   await Promise.all([
     projectsStore.fetchProjects(),
     invoicesStore.fetchInvoices(),
     todosStore.fetchTodos()
   ])
-  
-  // Phase 2: nextTickを使用した非同期処理の最適化
-  await nextTick()
-  console.log('🔧 Phase 2: 初期化後の第1回nextTick完了')
-  
-  await nextTick()
-  console.log('🔧 Phase 2: 初期化後の第2回nextTick完了')
-  
-  // Phase 2: 初期化後の状態確認
-  console.log('🔧 Phase 2: 初期化後の状態確認', {
-    currentMonthTab: currentMonthTab.value,
-    rotationState: rotationStore.rotationState,
-    lastRotationCheck: rotationStore.lastRotationCheck,
-    forceRerenderCounter: forceRerenderCounter.value
-  })
-  
-  // Phase 3: 初期化後の強制的な同期化
-  await syncReactiveUpdates(currentMonthTab.value, 'overview')
-  console.log('🔧 Phase 3: 初期化後の同期化完了（改善案4: forceRerender削除）')
 })
 
-// 月次切り替え監視の強化（新規追加）
-watch(() => rotationStore.lastRotationCheck, (newValue, oldValue) => {
-  if (newValue !== oldValue) {
-    console.log('月次切り替えが検知されました。')
-    triggerTabUpdate()
-  }
-})
 
-// 月次切り替え状態の監視（新規追加）
-watch(() => rotationStore.rotationState, handleRotationStateChange)
-
-// Phase 2: currentMonthTabの変更を監視するwatchを強化
-watch(() => currentMonthTab.value, async (newTab, oldTab) => {
-  console.log('🔧 Phase 2: currentMonthTabの変更を検知', {
-    newTab,
-    oldTab,
-    timestamp: new Date().toISOString()
-  })
-  
-  try {
-    // 1. 月次切り替え状態を確認
-    const rotationState = rotationStore.rotationState
-    const lastRotationCheck = rotationStore.lastRotationCheck
-    
-    console.log('🔧 Phase 2: 月次切り替え状態を確認', {
-      rotationState,
-      lastRotationCheck,
-      newTab
-    })
-    
-    // 2. 新しい月のタブが選択された場合の処理
-    if (newTab && newTab !== 'overview' && newTab !== oldTab) {
-      console.log('🎉 Phase 2: 新しい月のタブが選択されました', {
-        selectedTab: newTab,
-        previousTab: oldTab
-      })
-      
-      // 3. Phase 2: リアクティブな更新の同期化を強化
-      await syncReactiveUpdates(newTab, oldTab)
-      
-      // 4. 視覚的更新（syncReactiveUpdates内で実行済み - 重複削除）
-      console.log('🔧 Phase 2: 視覚的更新はsyncReactiveUpdates内で実行済み')
-      // await ensureVisualUpdate()
-      
-    } else if (newTab === 'overview') {
-      console.log('📋 Phase 2: 概要タブが選択されました')
-      
-      // Phase 2: 概要タブ選択時の同期化
-      await syncReactiveUpdates(newTab, oldTab)
-      
-      // 4. 視覚的更新（syncReactiveUpdates内で実行済み - 重複削除）
-      console.log('🔧 Phase 2: 視覚的更新はsyncReactiveUpdates内で実行済み')
-      // await ensureVisualUpdate()
-    }
-    
-  } catch (error) {
-    console.error('❌ Phase 2: currentMonthTab変更時の処理エラー:', error)
-  }
-}, { deep: false })
 
 
 
@@ -508,370 +94,12 @@ const navigateToApp = (appName) => {
 //   showBasicData.value = !showBasicData.value
 // }
 
-// Phase 2: デバッグ用のグローバル関数を強化
-const debugParentChildCommunication = () => {
-  console.log('🔧 Phase 2: 親子コンポーネント間の通信状況を確認')
-  
-  console.log('🔧 親コンポーネント(DashboardPage)の状態:', {
-    currentMonthTab: currentMonthTab.value,
-    forceRerenderCounter: forceRerenderCounter.value,
-    rotationState: rotationStore.rotationState,
-    lastRotationCheck: rotationStore.lastRotationCheck
-  })
-  
-  // DOM要素の確認
-  const monthlyTabsElement = document.querySelector('.monthly-tabs')
-  if (monthlyTabsElement) {
-    console.log('🔧 MonthlyTabsコンポーネントのDOM要素を確認:', {
-      element: monthlyTabsElement,
-      classes: monthlyTabsElement.classList.toString(),
-      children: monthlyTabsElement.children.length
-    })
-  }
-  
-  // タブ要素の詳細確認
-  const tabButtons = document.querySelectorAll('.monthly-tabs button')
-  console.log('🔧 タブ要素の詳細:', Array.from(tabButtons).map((button, index) => ({
-    index,
-    text: button.textContent.trim(),
-    dataTabId: button.getAttribute('data-tab-id'),
-    isActive: button.classList.contains('border-pink-500'),
-    classes: Array.from(button.classList)
-  })))
-}
 
-// Phase 3: 詳細な状態確認機能を強化
-const debugDetailedState = async () => {
-  console.log('🔧 Phase 3: 詳細な状態確認を実行')
-  
-  try {
-    // 1. 現在の状態を詳細に確認
-    console.log('🔧 Phase 3: 現在の状態詳細:', {
-      currentMonthTab: currentMonthTab.value,
-      forceRerenderCounter: forceRerenderCounter.value,
-      forceRerenderFlag: forceRerenderFlag.value,
-      visualUpdateCounter: visualUpdateCounter.value,
-      rotationState: rotationStore.rotationState,
-      lastRotationCheck: rotationStore.lastRotationCheck,
-      timestamp: new Date().toISOString()
-    })
-    
-    // 2. nextTickを使用した状態確認
-    await nextTick()
-    console.log('🔧 Phase 3: nextTick後の状態確認')
-    
-    // 3. DOM要素の詳細確認
-    const monthlyTabsElement = document.querySelector('.monthly-tabs')
-    if (monthlyTabsElement) {
-      console.log('🔧 Phase 3: MonthlyTabsコンポーネントの詳細:', {
-        element: monthlyTabsElement,
-        classes: monthlyTabsElement.classList.toString(),
-        children: monthlyTabsElement.children.length,
-        innerHTML: monthlyTabsElement.innerHTML.substring(0, 200) + '...',
-        hasForceRerenderClass: monthlyTabsElement.classList.contains('force-rerender')
-      })
-    }
-    
-    // 4. タブ要素の詳細確認
-    const tabButtons = document.querySelectorAll('.monthly-tabs button')
-    console.log('🔧 Phase 3: タブ要素の詳細確認:', Array.from(tabButtons).map((button, index) => ({
-      index,
-      text: button.textContent.trim(),
-      dataTabId: button.getAttribute('data-tab-id'),
-      isActive: button.classList.contains('border-pink-500'),
-      classes: Array.from(button.classList),
-      dataset: button.dataset,
-      hasForceUpdateClass: button.classList.contains('force-update'),
-      hasVisualUpdateActiveClass: button.classList.contains('visual-update-active'),
-      hasVisualUpdateInactiveClass: button.classList.contains('visual-update-inactive'),
-      transform: button.style.transform
-    })))
-    
-    // 5. リアクティブな更新の状況確認
-    console.log('🔧 Phase 3: リアクティブな更新の状況確認:', {
-      currentMonthTabValue: currentMonthTab.value,
-      currentMonthTabType: typeof currentMonthTab.value,
-      forceRerenderCounterValue: forceRerenderCounter.value,
-      forceRerenderCounterType: typeof forceRerenderCounter.value,
-      forceRerenderFlagValue: forceRerenderFlag.value,
-      forceRerenderFlagType: typeof forceRerenderFlag.value,
-      visualUpdateCounterValue: visualUpdateCounter.value,
-      visualUpdateCounterType: typeof visualUpdateCounter.value
-    })
-    
-    console.log('🎉 Phase 3: 詳細な状態確認完了')
-    
-  } catch (error) {
-    console.error('❌ Phase 3: 詳細な状態確認エラー:', error)
-  }
-}
 
-// Phase 2: 強制的な状態同期機能を強化
-const forceParentChildSync = async () => {
-  console.log('🔧 Phase 2: 強制的な親子コンポーネント間の状態同期を実行')
-  
-  try {
-    // 1. 現在の状態を確認
-    console.log('🔧 同期前の状態:', {
-      currentMonthTab: currentMonthTab.value,
-      rotationState: rotationStore.rotationState,
-      lastRotationCheck: rotationStore.lastRotationCheck
-    })
-    
-    // 2. Phase 2: 複数回のnextTickを使用した確実な同期化
-    await nextTick()
-    console.log('🔧 Phase 2: 第1回nextTick完了')
-    
-    // 3. 強制的な再レンダリングを実行
-    await forceRerender()
-    
-    // 4. Phase 2: 追加のnextTickを使用してDOM更新を確実に実行
-    await nextTick()
-    console.log('🔧 Phase 2: 第2回nextTick完了')
-    
-    await nextTick()
-    console.log('🔧 Phase 2: 第3回nextTick完了')
-    
-    // 5. 同期後の状態を確認
-    console.log('🔧 同期後の状態:', {
-      currentMonthTab: currentMonthTab.value,
-      rotationState: rotationStore.rotationState,
-      lastRotationCheck: rotationStore.lastRotationCheck,
-      forceRerenderCounter: forceRerenderCounter.value
-    })
-    
-    console.log('🎉 Phase 2: 強制的な親子コンポーネント間の状態同期完了')
-    
-  } catch (error) {
-    console.error('❌ Phase 2: 強制的な親子コンポーネント間の状態同期エラー:', error)
-  }
-}
 
-// Phase 4: コンポーネント内の状態にアクセスできる関数の提供
-const getComponentState = () => {
-  console.log('🔧 Phase 4: コンポーネント内の状態を取得')
-  
-  return {
-    // 親コンポーネント(DashboardPage)の状態
-    parentComponent: {
-      currentMonthTab: currentMonthTab.value,
-      forceRerenderCounter: forceRerenderCounter.value,
-      forceRerenderFlag: forceRerenderFlag.value,
-      visualUpdateCounter: visualUpdateCounter.value,
-      rotationState: rotationStore.rotationState,
-      lastRotationCheck: rotationStore.lastRotationCheck
-    },
-    // 子コンポーネント(MonthlyTabs)の状態
-    childComponent: {
-      // DOM要素から子コンポーネントの状態を推測
-      monthlyTabsElement: document.querySelector('.monthly-tabs'),
-      tabButtons: document.querySelectorAll('.monthly-tabs button'),
-      activeTab: document.querySelector('.monthly-tabs button.border-pink-500')
-    },
-    // 親子コンポーネント間の通信状況
-    communication: {
-      vModelBinding: currentMonthTab.value,
-      emitEvents: 'update:modelValue',
-      watchTriggers: 'currentMonthTab.value changes'
-    }
-  }
-}
 
-// Phase 4: より詳細な状態確認機能を追加
-const debugEnhancedState = async () => {
-  console.log('🔧 Phase 4: 強化された状態確認を実行')
-  
-  try {
-    // 1. コンポーネント内の状態を取得
-    const componentState = getComponentState()
-    console.log('🔧 Phase 4: コンポーネント内の状態:', componentState)
-    
-    // 2. 親子コンポーネント間の状態同期を確認
-    const parentChildSync = await checkParentChildSync()
-    console.log('🔧 Phase 4: 親子コンポーネント間の状態同期:', parentChildSync)
-    
-    // 3. リアクティブな更新の状況を確認
-    const reactiveUpdateStatus = await checkReactiveUpdateStatus()
-    console.log('🔧 Phase 4: リアクティブな更新の状況:', reactiveUpdateStatus)
-    
-    // 4. 強制的な再レンダリングの状況を確認
-    const forceRerenderStatus = await checkForceRerenderStatus()
-    console.log('🔧 Phase 4: 強制的な再レンダリングの状況:', forceRerenderStatus)
-    
-    // 5. 総合的な状態レポートを生成
-    const comprehensiveReport = {
-      timestamp: new Date().toISOString(),
-      componentState,
-      parentChildSync,
-      reactiveUpdateStatus,
-      forceRerenderStatus,
-      summary: {
-        totalIssues: 0,
-        resolvedIssues: 0,
-        pendingIssues: 0
-      }
-    }
-    
-    console.log('🔧 Phase 4: 総合的な状態レポート:', comprehensiveReport)
-    console.log('🎉 Phase 4: 強化された状態確認完了')
-    
-    return comprehensiveReport
-    
-  } catch (error) {
-    console.error('❌ Phase 4: 強化された状態確認エラー:', error)
-    return null
-  }
-}
 
-// Phase 4: 親子コンポーネント間の状態同期を確認
-const checkParentChildSync = async () => {
-  console.log('🔧 Phase 4: 親子コンポーネント間の状態同期を確認')
-  
-  try {
-    // 1. 親コンポーネントの状態
-    const parentState = {
-      currentMonthTab: currentMonthTab.value,
-      forceRerenderCounter: forceRerenderCounter.value,
-      forceRerenderFlag: forceRerenderFlag.value,
-      visualUpdateCounter: visualUpdateCounter.value
-    }
-    
-    // 2. 子コンポーネントの状態（DOM要素から推測）
-    const childState = {
-      activeTab: document.querySelector('.monthly-tabs button.border-pink-500')?.getAttribute('data-tab-id'),
-      totalTabs: document.querySelectorAll('.monthly-tabs button').length,
-      monthlyTabsElement: document.querySelector('.monthly-tabs') !== null
-    }
-    
-    // 3. 状態同期の確認
-    const syncStatus = {
-      parentState,
-      childState,
-      isSynced: childState.activeTab === parentState.currentMonthTab,
-      lastSyncTime: new Date().toISOString()
-    }
-    
-    console.log('🔧 Phase 4: 親子コンポーネント間の状態同期確認完了:', syncStatus)
-    return syncStatus
-    
-  } catch (error) {
-    console.error('❌ Phase 4: 親子コンポーネント間の状態同期確認エラー:', error)
-    return null
-  }
-}
 
-// Phase 4: リアクティブな更新の状況を確認
-const checkReactiveUpdateStatus = async () => {
-  console.log('🔧 Phase 4: リアクティブな更新の状況を確認')
-  
-  try {
-    // 1. 現在の状態
-    const currentState = {
-      currentMonthTab: currentMonthTab.value,
-      rotationState: rotationStore.rotationState,
-      lastRotationCheck: rotationStore.lastRotationCheck,
-      forceRerenderCounter: forceRerenderCounter.value
-    }
-    
-    // 2. nextTickの利用可能性
-    const nextTickAvailable = typeof nextTick !== 'undefined'
-    
-    // 3. リアクティブな更新の状況
-    const reactiveStatus = {
-      currentState,
-      nextTickAvailable,
-      lastUpdateTime: new Date().toISOString(),
-      updateFrequency: forceRerenderCounter.value,
-      isReactive: currentMonthTab.value !== 'overview' || forceRerenderCounter.value > 0
-    }
-    
-    console.log('🔧 Phase 4: リアクティブな更新の状況確認完了:', reactiveStatus)
-    return reactiveStatus
-    
-  } catch (error) {
-    console.error('❌ Phase 4: リアクティブな更新の状況確認エラー:', error)
-    return null
-  }
-}
-
-// Phase 4: 強制的な再レンダリングの状況を確認
-const checkForceRerenderStatus = async () => {
-  console.log('🔧 Phase 4: 強制的な再レンダリングの状況を確認')
-  
-  try {
-    // 1. 再レンダリングの状況
-    const rerenderStatus = {
-      forceRerenderCounter: forceRerenderCounter.value,
-      forceRerenderFlag: forceRerenderFlag.value,
-      visualUpdateCounter: visualUpdateCounter.value,
-      lastRerenderTime: new Date().toISOString()
-    }
-    
-    // 2. DOM要素の状況
-    const domStatus = {
-      monthlyTabsElement: document.querySelector('.monthly-tabs') !== null,
-      tabButtons: document.querySelectorAll('.monthly-tabs button').length,
-      activeTab: document.querySelector('.monthly-tabs button.border-pink-500') !== null
-    }
-    
-    // 3. 強制的な再レンダリングの状況
-    const forceRerenderStatus = {
-      rerenderStatus,
-      domStatus,
-      isForceRerenderActive: forceRerenderFlag.value,
-      hasVisualUpdates: visualUpdateCounter.value > 0
-    }
-    
-    console.log('🔧 Phase 4: 強制的な再レンダリングの状況確認完了:', forceRerenderStatus)
-    return forceRerenderStatus
-    
-  } catch (error) {
-    console.error('❌ Phase 4: 強制的な再レンダリングの状況確認エラー:', error)
-    return null
-  }
-}
-
-// Phase 4: グローバルスコープでデバッグ関数を利用可能にする
-try {
-  window.debugParentChildCommunication = debugParentChildCommunication
-  window.debugDetailedState = debugDetailedState
-  window.debugEnhancedState = debugEnhancedState
-  window.getComponentState = getComponentState
-  window.checkParentChildSync = checkParentChildSync
-  window.checkReactiveUpdateStatus = checkReactiveUpdateStatus
-  window.checkForceRerenderStatus = checkForceRerenderStatus
-  window.forceParentChildSync = forceParentChildSync
-  window.forceRerender = forceRerender
-  window.forceDOMUpdate = forceDOMUpdate
-  window.ensureVisualUpdate = ensureVisualUpdate
-  window.syncReactiveUpdates = syncReactiveUpdates
-  window.currentMonthTab = currentMonthTab
-  window.forceRerenderCounter = forceRerenderCounter
-  window.forceRerenderFlag = forceRerenderFlag
-  window.visualUpdateCounter = visualUpdateCounter
-  console.log('🔧 Phase 4: グローバルデバッグ関数の登録が完了しました')
-} catch (error) {
-  console.error('❌ Phase 4: グローバルデバッグ関数の登録エラー:', error)
-}
-
-console.log('🔧 Phase 4: 利用可能なデバッグ関数:', [
-  'debugParentChildCommunication',
-  'debugDetailedState',
-  'debugEnhancedState',
-  'getComponentState',
-  'checkParentChildSync',
-  'checkReactiveUpdateStatus',
-  'checkForceRerenderStatus',
-  'forceParentChildSync',
-  'forceRerender',
-  'forceDOMUpdate',
-  'ensureVisualUpdate',
-  'syncReactiveUpdates',
-  'currentMonthTab',
-  'forceRerenderCounter',
-  'forceRerenderFlag',
-  'visualUpdateCounter'
-])
 
 </script>
 
@@ -883,8 +111,9 @@ console.log('🔧 Phase 4: 利用可能なデバッグ関数:', [
         <div class="flex justify-between items-center h-16">
           <!-- InfluBerry ロゴ -->
           <div class="flex items-center">
-            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-noto">
-              🍓 InfluBerry
+            <img src="/favicon512.png" alt="InfluBerry" class="w-8 h-8 mr-3">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              InfluBerry
             </h1>
           </div>
           
@@ -897,11 +126,10 @@ console.log('🔧 Phase 4: 利用可能なデバッグ関数:', [
     <main class="max-w-7xl mx-auto py-6">
       <div class="py-6">
         
-        <!-- 月次管理セクション（NEW） -->
+        <!-- 月次管理セクション（統合コンポーネント） -->
         <div class="monthly-management-section mb-12" style="margin-bottom: 3rem !important;">
-          <MonthlyTabs v-model="currentMonthTab" />
-          <MonthlyStatsSection :current-tab="currentMonthTab" />
-          
+          <!-- オンデマンド設計に完全移行（MonthlyDashboardV2のみ使用） -->
+          <MonthlyDashboardV2 v-model="currentMonthTab" />
         </div>
 
         <!-- 統計サマリー -->
@@ -1097,6 +325,15 @@ header {
 /* スムーズなトランジション */
 .transition-shadow {
   transition: box-shadow 0.3s ease;
+}
+
+/* ヘッダータイトル強制カラフル表示 */
+h1.text-2xl.font-bold {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-weight: 700 !important;
 }
 
 /* モバイルファースト最適化 */
