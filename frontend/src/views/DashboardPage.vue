@@ -15,7 +15,8 @@ import InvoiceIcon from '../components/icons/InvoiceIcon.vue'
 import ChecklistIcon from '../components/icons/ChecklistIcon.vue'
 import BriefcaseIcon from '../components/icons/BriefcaseIcon.vue'
 
-import MonthlyDashboardV2 from '../components/MonthlyDashboardV2.vue'
+import MonthlyTabs from '../components/MonthlyTabs.vue'
+import MonthlyStatsSection from '../components/MonthlyStatsSection.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -128,8 +129,9 @@ const navigateToApp = (appName) => {
         
         <!-- 月次管理セクション（統合コンポーネント） -->
         <div class="monthly-management-section mb-12" style="margin-bottom: 3rem !important;">
-          <!-- オンデマンド設計に完全移行（MonthlyDashboardV2のみ使用） -->
-          <MonthlyDashboardV2 v-model="currentMonthTab" />
+          <!-- 10月27日の状態：分割されたコンポーネントを使用 -->
+          <MonthlyTabs v-model="currentMonthTab" />
+          <MonthlyStatsSection />
         </div>
 
         <!-- 統計サマリー -->
