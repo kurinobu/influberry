@@ -343,7 +343,7 @@ watch(() => invoicesStore.invoices, () => {
             oldTargets
           })
 
-          // 🔧 修正: データ同期の確実化（完全強化版）
+          // 🔧 修正: データ同期の確実化（強化版）
           const [year, month] = props.currentTab.split('-')
           
           // 1. 統計データを強制的に再取得（forceRefresh=true）
@@ -356,11 +356,6 @@ watch(() => invoicesStore.invoices, () => {
           await nextTick()
           stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
           await nextTick()
-          await nextTick()
-          
-          // 3. 追加のデータ同期確認
-          await new Promise(resolve => setTimeout(resolve, 50))
-          stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
           await nextTick()
 
           console.log('統計データ更新完了 - データ同期確実化:', {

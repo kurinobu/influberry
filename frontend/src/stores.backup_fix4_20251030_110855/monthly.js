@@ -176,13 +176,6 @@ export const useMonthlyStore = defineStore('monthly', {
         this.fetchingStats = false
       }
       
-      // 🔧 修正: 強制再取得の場合はキャッシュを完全にクリア
-      if (forceRefresh) {
-        delete this.stats[monthKey]
-        this.lastFetchTime.stats = null
-        console.log('🔧 月次統計取得: 強制再取得のためキャッシュをクリア', { monthKey })
-      }
-      
       this.fetchingStats = true
       this.loading = true
       this.error = null
@@ -274,20 +267,12 @@ export const useMonthlyStore = defineStore('monthly', {
           const monthKey = `${year}-${month.toString().padStart(2, '0')}-01`
           this.clearMonthCache(parseInt(year), parseInt(month))
           
-          // 🔧 修正: 目標データと統計データを順次強制再取得（完全確実化）
+          // 🔧 修正: 目標データと統計データを順次強制再取得（確実化）
           console.log('🔧 目標保存後: データ再取得を開始')
-          
-          // 1. 目標データの強制再取得
           await this.fetchTargets(parseInt(year), [parseInt(month)])
           console.log('🔧 目標保存後: 目標データ再取得完了')
-          
-          // 2. 統計データの強制再取得（確実化）
           await this.fetchStats(parseInt(year), parseInt(month), true)
           console.log('🔧 目標保存後: 統計データ再取得完了')
-          
-          // 3. データ同期の確実化（追加確認）
-          await new Promise(resolve => setTimeout(resolve, 100))
-          console.log('🔧 目標保存後: データ同期確実化完了')
           
           console.log('🔧 月次目標保存完了:', {
             targetMonth,
@@ -364,25 +349,21 @@ export const useMonthlyStore = defineStore('monthly', {
     
     /**
      * 指定月のキャッシュクリア
-     * 🔧 修正: 特定月のキャッシュのみクリア（完全最適化）
+     * 🔧 修正: 特定月のキャッシュのみクリア（最適化）
      */
     clearMonthCache(year, month) {
       const monthKey = `${year}-${String(month).padStart(2, '0')}-01`
       delete this.stats[monthKey]
       delete this.targets[monthKey]
       this.forceRefresh = true
-      // 🔧 修正: キャッシュクリア後の状態を完全リセット
+      // 🔧 修正: キャッシュクリア後の状態をリセット
       this.fetchingStats = false
       this.fetchingTargets = false
-      this.lastFetchTime.stats = null
-      this.lastFetchTime.targets = null
       console.log('🔧 指定月のキャッシュをクリアしました:', { 
         monthKey, 
         statsCleared: !this.stats[monthKey],
         targetsCleared: !this.targets[monthKey],
-        forceRefresh: this.forceRefresh,
-        fetchingStats: this.fetchingStats,
-        fetchingTargets: this.fetchingTargets
+        forceRefresh: this.forceRefresh
       })
     },
     

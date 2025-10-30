@@ -1,0 +1,99 @@
+<template>
+  <div class="monthly-tabs bg-white rounded-t-lg shadow">
+    <div class="flex border-b border-gray-200 overflow-x-auto">
+      <button 
+        v-for="tab in tabs" 
+        :key="tab.id"
+        @click="selectTab(tab.id)"
+        :class="[
+          'px-6 py-3 font-medium transition-colors whitespace-nowrap',
+          currentTab === tab.id 
+            ? 'border-b-2 border-pink-500 text-pink-600 bg-pink-50' 
+            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+        ]"
+      >
+        <component :is="tab.icon" class="w-5 h-5 inline mr-2" />
+        {{ tab.label }}
+      </button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { ChartBarIcon, CalendarIcon } from '@heroicons/vue/24/outline'
+
+const props = defineProps({
+  modelValue: {
+    type: String,
+    default: 'overview'
+  }
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const currentTab = computed({
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value)
+})
+
+// 動的タブ生成ロジック
+const generateDynamicTabs = () => {
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1 // 0-basedなので+1
+  
+  const tabs = [
+    { id: 'overview', label: '概要', icon: ChartBarIcon }
+  ]
+  
+  // 過去3ヶ月を動的生成
+  for (let i = 2; i >= 0; i--) {
+    const targetDate = new Date(currentYear, currentMonth - 1 - i, 1)
+    const year = targetDate.getFullYear()
+    const month = targetDate.getMonth() + 1
+    
+    const monthId = `${year}-${month.toString().padStart(2, '0')}`
+    const monthLabel = `${month}月`
+    
+    tabs.push({
+      id: monthId,
+      label: monthLabel,
+      icon: CalendarIcon
+    })
+  }
+  
+  return tabs
+}
+
+const tabs = computed(() => generateDynamicTabs())
+
+const selectTab = (tabId) => {
+  currentTab.value = tabId
+}
+</script>
+
+<style scoped>
+.monthly-tabs {
+  /* 横スクロール対応 */
+  scrollbar-width: thin;
+  scrollbar-color: #f3f4f6 #ffffff;
+}
+
+.monthly-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.monthly-tabs::-webkit-scrollbar-track {
+  background: #ffffff;
+}
+
+.monthly-tabs::-webkit-scrollbar-thumb {
+  background: #f3f4f6;
+  border-radius: 2px;
+}
+
+.monthly-tabs::-webkit-scrollbar-thumb:hover {
+  background: #e5e7eb;
+}
+</style>
