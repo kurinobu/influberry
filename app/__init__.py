@@ -62,6 +62,7 @@ def create_app(config_name='development'):
     from app.blueprints.monthly_stats import monthly_stats_bp
     from app.blueprints.monthly import monthly_bp
     from app.blueprints.monthly_current import monthly_current_bp
+    from app.blueprints.monthly_summary_admin import monthly_summary_admin_bp
     from app.blueprints.monthly_snapshot import monthly_snapshot_bp
     from app.blueprints.scheduler import scheduler_bp
     from app.blueprints.domain_redirect import domain_redirect_bp
@@ -114,6 +115,7 @@ def create_app(config_name='development'):
     app.register_blueprint(monthly_stats_bp)
     app.register_blueprint(monthly_bp)
     app.register_blueprint(monthly_current_bp)
+    app.register_blueprint(monthly_summary_admin_bp)
     app.register_blueprint(monthly_snapshot_bp)
     app.register_blueprint(scheduler_bp)
     
@@ -123,6 +125,7 @@ def create_app(config_name='development'):
     csrf.exempt(todos_bp)
     csrf.exempt(monthly_bp)
     csrf.exempt(monthly_current_bp)
+    csrf.exempt(monthly_summary_admin_bp)
     csrf.exempt(monthly_snapshot_bp)
     csrf.exempt(scheduler_bp)
     csrf.exempt(auth_bp)    # Plugin System Integration

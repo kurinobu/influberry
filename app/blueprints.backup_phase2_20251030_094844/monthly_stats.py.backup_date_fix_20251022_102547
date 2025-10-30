@@ -1,0 +1,198 @@
+# app/blueprints/monthly_stats.py
+"""
+InfluBerry Monthly Statistics Blueprint
+月次統計API
+"""
+
+from flask import Blueprint, jsonify
+from flask_login import login_required, current_user
+from app import db
+from app.models import (
+    Project, Invoice, MonthlyTarget,
+    ProjectStatusHistory, InvoiceStatusHistory
+)
+from sqlalchemy import func, extract
+from datetime import datetime
+
+monthly_stats_bp = Blueprint('monthly_stats', __name__, url_prefix='/api/monthly-stats')
+
+@monthly_stats_bp.route('/<int:year>/<int:month>', methods=['GET'])
+@login_required
+def get_monthly_stats(year, month):
+    """指定月の実績集計"""
+    try:
+        user_id = current_user.id
+        target_date = datetime(year, month, 1)
+        
+        # 目標取得
+        target = MonthlyTarget.query.filter_by(
+            user_id=user_id,
+            target_month=target_date
+        ).first()
+        
+        target_data = {
+            'projects': target.target_projects if target else 0,
+            'income': target.target_income if target else 0
+        }
+        
+        # 獲得案件数（contracted になった件数）
+        acquired_projects = db.session.query(
+            func.count(func.distinct(ProjectStatusHistory.project_id))
+        ).join(Project).filter(
+            Project.user_id == user_id,
+            ProjectStatusHistory.new_status == 'contracted',
+            extract('year', ProjectStatusHistory.changed_at) == year,
+            extract('month', ProjectStatusHistory.changed_at) == month
+        ).scalar() or 0
+        
+        # 完了案件数（completed になった件数）
+        completed_projects = db.session.query(
+            func.count(func.distinct(ProjectStatusHistory.project_id))
+        ).join(Project).filter(
+            Project.user_id == user_id,
+            ProjectStatusHistory.new_status == 'completed',
+            extract('year', ProjectStatusHistory.changed_at) == year,
+            extract('month', ProjectStatusHistory.changed_at) == month
+        ).scalar() or 0
+        
+        # 今月発生売上（sent になった請求書）
+        sent_invoices = db.session.query(
+            func.count(func.distinct(InvoiceStatusHistory.invoice_id)),
+            func.sum(Invoice.total_amount)
+        ).join(Invoice).filter(
+            Invoice.user_id == user_id,
+            InvoiceStatusHistory.new_status == 'sent',
+            extract('year', InvoiceStatusHistory.changed_at) == year,
+            extract('month', InvoiceStatusHistory.changed_at) == month
+        ).first()
+        
+        sent_count = sent_invoices[0] or 0
+        sent_amount = float(sent_invoices[1] or 0)
+        
+        # 今月入金（paid で payment_date が当月）
+        paid_invoices = db.session.query(
+            func.count(Invoice.id),
+            func.sum(Invoice.total_amount)
+        ).filter(
+            Invoice.user_id == user_id,
+            Invoice.status == 'paid',
+            extract('year', Invoice.payment_date) == year,
+            extract('month', Invoice.payment_date) == month
+        ).first()
+        
+        paid_count = paid_invoices[0] or 0
+        paid_amount = float(paid_invoices[1] or 0)
+        
+        # 達成率計算
+        projects_rate = (acquired_projects / target_data['projects']) if target_data['projects'] > 0 else 0
+        income_rate = (paid_amount / target_data['income']) if target_data['income'] > 0 else 0
+        
+        # 過去データ注釈判定（2025年10月以前）
+        cutoff_date = datetime(2025, 10, 1)
+        show_note = target_date < cutoff_date
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'month': target_date.strftime('%Y-%m-%d'),
+                'target': target_data,
+                'actual': {
+                    'acquired_projects': acquired_projects,
+                    'completed_projects': completed_projects,
+                    'sent_invoices_count': sent_count,
+                    'sent_invoices_amount': sent_amount,
+                    'paid_invoices_count': paid_count,
+                    'paid_invoices_amount': paid_amount
+                },
+                'achievement': {
+                    'projects_rate': round(projects_rate, 2),
+                    'income_rate': round(income_rate, 2)
+                },
+                'note': '※2025年10月以前のデータは推定値です' if show_note else None
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'月次統計取得エラー: {str(e)}'
+        }), 500
+
+@monthly_stats_bp.route('/overview', methods=['GET'])
+@login_required
+def get_overview():
+    """全期間の総合統計"""
+    try:
+        user_id = current_user.id
+        
+        # 全期間の総合統計
+        total_projects = Project.query.filter_by(user_id=user_id).count()
+        
+        total_income = db.session.query(
+            func.sum(Invoice.total_amount)
+        ).filter(
+            Invoice.user_id == user_id,
+            Invoice.status == 'paid'
+        ).scalar() or 0
+        
+        # 直近3ヶ月の実績
+        from dateutil.relativedelta import relativedelta
+        today = datetime.now()
+        recent_months = []
+        
+        for i in range(3):
+            month_date = today - relativedelta(months=i)
+            year = month_date.year
+            month = month_date.month
+            
+            # 簡易集計（詳細はget_monthly_statsと同様）
+            acquired = db.session.query(
+                func.count(func.distinct(ProjectStatusHistory.project_id))
+            ).join(Project).filter(
+                Project.user_id == user_id,
+                ProjectStatusHistory.new_status == 'contracted',
+                extract('year', ProjectStatusHistory.changed_at) == year,
+                extract('month', ProjectStatusHistory.changed_at) == month
+            ).scalar() or 0
+            
+            # 完了案件数
+            completed = db.session.query(
+                func.count(func.distinct(ProjectStatusHistory.project_id))
+            ).join(Project).filter(
+                Project.user_id == user_id,
+                ProjectStatusHistory.new_status == 'completed',
+                extract('year', ProjectStatusHistory.changed_at) == year,
+                extract('month', ProjectStatusHistory.changed_at) == month
+            ).scalar() or 0
+            
+            # 入金額
+            income = db.session.query(
+                func.sum(Invoice.total_amount)
+            ).filter(
+                Invoice.user_id == user_id,
+                Invoice.status == 'paid',
+                extract('year', Invoice.payment_date) == year,
+                extract('month', Invoice.payment_date) == month
+            ).scalar() or 0
+            
+            recent_months.append({
+                'month': month_date.strftime('%Y-%m-%d'),
+                'acquired': acquired,
+                'completed': completed,
+                'income': float(income)
+            })
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'total_projects': total_projects,
+                'total_income': float(total_income),
+                'recent_months': recent_months
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'概要統計取得エラー: {str(e)}'
+        }), 500

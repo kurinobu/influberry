@@ -122,24 +122,12 @@ def update_project(project_id):
         if not project:
             return jsonify({'error': 'プロジェクトが見つかりません'}), 404
         
+        if not project.can_edit():
+            return jsonify({'error': '完了済みプロジェクトは編集できません'}), 403
+        
         data = request.get_json()
         if not data:
             return jsonify({'error': 'データが送信されていません'}), 400
-        
-        # 編集権限チェック（完了済みプロジェクトはステータス変更のみ許可）
-        if project.status == 'completed':
-            # 完了済みプロジェクトの場合、ステータス変更以外は制限
-            allowed_fields = ['status']
-            restricted_fields = [key for key in data.keys() if key not in allowed_fields]
-            if restricted_fields:
-                # ステータス変更のみの場合、他のフィールドを無視して処理を続行
-                if 'status' in data and len(data) == 1:
-                    # ステータスのみの変更は許可
-                    pass
-                else:
-                    return jsonify({
-                        'error': f'完了済みプロジェクトは以下のフィールドを編集できません: {", ".join(restricted_fields)}'
-                    }), 403
         
         # 更新可能フィールド
         if 'company_name' in data:
@@ -184,16 +172,6 @@ def update_project(project_id):
                         changed_by=current_user.id
                     )
                     db.session.add(history)
-                    
-                    # Phase 2: 事前集計テーブル更新
-                    try:
-                        from app.services.monthly_summary_updater import update_monthly_summary
-                        changed_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-                        update_monthly_summary(current_user.id, changed_month)
-                        print(f"✅ プロジェクトステータス変更: 事前集計テーブル更新完了")
-                    except Exception as e:
-                        print(f"⚠️ プロジェクトステータス変更: 事前集計テーブル更新エラー: {e}")
-                        # エラーでも処理は継続（既存機能を破壊しない）
                     
             except ValueError as e:
                 return jsonify({'error': str(e)}), 400

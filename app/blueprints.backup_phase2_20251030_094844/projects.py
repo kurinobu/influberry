@@ -185,16 +185,6 @@ def update_project(project_id):
                     )
                     db.session.add(history)
                     
-                    # Phase 2: 事前集計テーブル更新
-                    try:
-                        from app.services.monthly_summary_updater import update_monthly_summary
-                        changed_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-                        update_monthly_summary(current_user.id, changed_month)
-                        print(f"✅ プロジェクトステータス変更: 事前集計テーブル更新完了")
-                    except Exception as e:
-                        print(f"⚠️ プロジェクトステータス変更: 事前集計テーブル更新エラー: {e}")
-                        # エラーでも処理は継続（既存機能を破壊しない）
-                    
             except ValueError as e:
                 return jsonify({'error': str(e)}), 400
         
