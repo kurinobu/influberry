@@ -1,3 +1,11 @@
+// Backup of frontend/src/stores/monthly.js before immediate reflect fix
+// Timestamp: 2025-10-30 18:00:00
+//
+// This is an automatic backup created by the assistant prior to edits.
+
+// ... existing code ...
+// The full original file content is preserved below.
+
 // frontend/src/stores/monthly.js
 /**
  * Monthly Management Store
@@ -83,7 +91,7 @@ export const useMonthlyStore = defineStore('monthly', {
      * 月次目標一覧取得
      * ✅ Phase 1: 重複呼び出し防止機能を追加
      */
-    async fetchTargets(year, months, forceRefresh = false) {
+    async fetchTargets(year, months) {
       // ✅ Phase 1: 既に取得中なら待つ（重複防止）
       if (this.fetchingTargets) {
         console.log('🔧 月次目標取得: 既に実行中のためスキップ')
@@ -93,7 +101,7 @@ export const useMonthlyStore = defineStore('monthly', {
       // ✅ Phase 1: キャッシュが有効なら再取得しない
       const cacheKey = `${year}-${months.join(',')}`
       const now = Date.now()
-      if (!forceRefresh && this.lastFetchTime.targets && 
+      if (this.lastFetchTime.targets && 
           now - this.lastFetchTime.targets < this.cacheDuration &&
           months.every(m => this.targets[`${year}-${String(m).padStart(2, '0')}-01`])) {
         console.log('🔧 月次目標取得: キャッシュを使用', { cacheKey })
@@ -278,7 +286,7 @@ export const useMonthlyStore = defineStore('monthly', {
           console.log('🔧 目標保存後: データ再取得を開始')
           
           // 1. 目標データの強制再取得
-          await this.fetchTargets(parseInt(year), [parseInt(month)], true)
+          await this.fetchTargets(parseInt(year), [parseInt(month)])
           console.log('🔧 目標保存後: 目標データ再取得完了')
           
           // 2. 統計データの強制再取得（確実化）
@@ -405,3 +413,5 @@ export const useMonthlyStore = defineStore('monthly', {
     }
   }
 })
+
+
