@@ -15,6 +15,8 @@ axios.defaults.headers.common['Content-Type'] = 'application/json'
 
 export const useMonthlyStore = defineStore('monthly', {
   state: () => ({
+    // 段階的切替フラグ（stagingでON推奨）
+    USE_NEW_API: false,
     // 月次目標データ
     targets: {},           // { '2025-10-01': { projects: 5, income: 200000 } }
     
@@ -79,6 +81,76 @@ export const useMonthlyStore = defineStore('monthly', {
   },
   
   actions: {
+    /**
+     * フェーズ2: 統合APIで今月+先月+次月を1回取得
+     * 失敗時は旧APIにフォールバック
+     */
+    async fetchCurrentMonthlyData() {
+      if (this.USE_NEW_API) {
+        this.loading = true
+        this.error = null
+        try {
+          console.log('🔧 新API使用: GET /api/monthly/current')
+          const res = await axios.get('/api/monthly/current')
+          if (!res.data || res.data.success !== true) {
+            throw new Error(res.data?.error || '新APIの応答が不正です')
+          }
+          const data = res.data.data || {}
+          // 受領データを既存stateへ反映（targets, stats）
+          Object.entries(data).forEach(([monthKey, payload]) => {
+            const t = payload.target || {}
+            const s = payload.stats || {}
+            // 目標: 既存のフィールド名に合わせて保持
+            this.targets[monthKey] = {
+              target_month: monthKey,
+              target_projects: t.projects ?? null,
+              target_income: t.income ?? null
+            }
+            // 統計: そのまま保持（既存取得と併存可能）
+            this.stats[monthKey] = {
+              month: monthKey,
+              actual: {
+                acquired_projects: s.acquired_projects ?? 0,
+                completed_projects: s.completed_projects ?? 0,
+                sent_invoices_count: s.sent_invoices_count ?? 0,
+                sent_invoices_amount: s.sent_invoices_amount ?? 0,
+                paid_invoices_count: s.paid_invoices_count ?? 0,
+                paid_invoices_amount: s.paid_invoices_amount ?? 0
+              }
+            }
+          })
+          console.log('✅ 月次データ取得完了（新API）')
+        } catch (err) {
+          console.warn('⚠️ 新APIが失敗、旧APIにフォールバック')
+          this.error = err.response?.data?.error || err.message
+          await this._fetchCurrentMonthlyDataLegacy()
+        } finally {
+          this.loading = false
+        }
+      } else {
+        // 旧API（後方互換）
+        await this._fetchCurrentMonthlyDataLegacy()
+      }
+    },
+
+    // 旧API: 目標と各月統計を個別取得（フォールバック用）
+    async _fetchCurrentMonthlyDataLegacy() {
+      try {
+        const now = new Date()
+        const y = now.getFullYear()
+        const months = [now.getMonth(), now.getMonth() - 1, now.getMonth() + 1]
+        // 目標（まとめて）
+        await this.fetchTargets(y, months.map(m => m + 1))
+        // 統計（各月）
+        for (const m of months) {
+          await this.fetchStats(y, m + 1)
+        }
+        console.log('✅ 月次データ取得完了（旧API）')
+      } catch (e) {
+        console.error('❌ 旧API取得失敗:', e)
+        this.error = e.response?.data?.error || e.message
+      }
+    },
     /**
      * 月次目標一覧取得
      * ✅ Phase 1: 重複呼び出し防止機能を追加
