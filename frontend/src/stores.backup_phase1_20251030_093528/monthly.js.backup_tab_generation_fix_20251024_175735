@@ -1,0 +1,279 @@
+// frontend/src/stores/monthly.js
+/**
+ * Monthly Management Store
+ * 月次管理機能用 Pinia ストア
+ */
+
+import { defineStore } from 'pinia'
+import axios from 'axios'
+
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://influberry.jp'
+axios.defaults.withCredentials = true
+axios.defaults.headers.common['Content-Type'] = 'application/json'
+
+export const useMonthlyStore = defineStore('monthly', {
+  state: () => ({
+    // 月次目標データ
+    targets: {},           // { '2025-10-01': { projects: 5, income: 200000 } }
+    
+    // 月次統計データ
+    stats: {},             // { '2025-10-01': { acquired: 3, completed: 2 ... } }
+    
+    // 概要統計データ
+    overview: null,
+    
+    // 現在選択中の月
+    currentMonth: null,    // '2025-10-01'
+    
+    // ローディング状態
+    loading: false,
+    
+    // エラー状態
+    error: null
+  }),
+  
+  getters: {
+    /**
+     * 指定月の目標取得
+     */
+    getTargetByMonth: (state) => (month) => {
+      return state.targets[month] || null
+    },
+    
+    /**
+     * 指定月の統計取得
+     */
+    getStatsByMonth: (state) => (month) => {
+      return state.stats[month] || null
+    },
+    
+    /**
+     * 達成率計算
+     */
+    achievementRate: (state) => (month) => {
+      const target = state.targets[month]
+      const stat = state.stats[month]
+      if (!target || !stat) return null
+      
+      return {
+        projects: target.target_projects ? stat.actual.acquired_projects / target.target_projects : 0,
+        income: target.target_income ? stat.actual.paid_invoices_amount / target.target_income : 0
+      }
+    }
+  },
+  
+  actions: {
+    /**
+     * 月次目標一覧取得
+     * 修正: データ同期の確実化とエラーハンドリングの強化
+     */
+    async fetchTargets(year, months) {
+      this.loading = true
+      this.error = null
+      
+      try {
+        console.log('🔧 月次目標取得開始:', { year, months })
+        
+        const response = await axios.get('/api/monthly-targets/', {
+          params: { 
+            year, 
+            months: months.join(',') 
+          }
+        })
+        
+        if (response.data && response.data.success) {
+          // 修正: データ同期の確実化
+          response.data.data.forEach(target => {
+            this.targets[target.target_month] = { ...target }
+          })
+          
+          console.log('🔧 月次目標取得完了:', {
+            targets: this.targets
+          })
+        } else {
+          throw new Error(response.data?.error || '目標取得に失敗しました')
+        }
+      } catch (error) {
+        this.error = error.response?.data?.error || error.message
+        console.error('❌ 月次目標取得エラー:', error)
+        // 修正: エラーの詳細をログ出力
+        if (error.response) {
+          console.error('APIレスポンス:', error.response.data)
+          console.error('HTTPステータス:', error.response.status)
+        } else if (error.request) {
+          console.error('リクエストエラー:', error.request)
+        } else {
+          console.error('設定エラー:', error.message)
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    /**
+     * 月次統計取得
+     * 修正: データ同期の確実化とエラーハンドリングの強化
+     */
+    async fetchStats(year, month) {
+      this.loading = true
+      this.error = null
+      
+      try {
+        console.log('🔧 月次統計取得開始:', { year, month })
+        
+        const response = await axios.get(`/api/monthly-stats/${year}/${month}`)
+        
+        if (response.data && response.data.success) {
+          // 修正: データ同期の確実化
+          const monthKey = response.data.data.month
+          this.stats[monthKey] = { ...response.data.data }
+          
+          console.log('🔧 月次統計取得完了:', {
+            monthKey,
+            stats: this.stats[monthKey]
+          })
+        } else {
+          throw new Error(response.data?.error || '統計取得に失敗しました')
+        }
+      } catch (error) {
+        this.error = error.response?.data?.error || error.message
+        console.error('❌ 月次統計取得エラー:', error)
+        // 修正: エラーの詳細をログ出力
+        if (error.response) {
+          console.error('APIレスポンス:', error.response.data)
+          console.error('HTTPステータス:', error.response.status)
+        } else if (error.request) {
+          console.error('リクエストエラー:', error.request)
+        } else {
+          console.error('設定エラー:', error.message)
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    /**
+     * 概要統計取得
+     */
+    async fetchOverview() {
+      this.loading = true
+      this.error = null
+      
+      try {
+        const response = await axios.get('/api/monthly-stats/overview')
+        
+        if (response.data.success) {
+          this.overview = response.data.data
+          return response.data.data
+        } else {
+          throw new Error(response.data.error || '概要統計取得に失敗しました')
+        }
+      } catch (error) {
+        this.error = error.response?.data?.error || error.message
+        console.error('概要統計取得エラー:', error)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    /**
+     * 月次目標保存
+     * 修正: データ同期の確実化とエラーハンドリングの強化
+     */
+    async saveTarget(targetMonth, data) {
+      try {
+        console.log('🔧 月次目標保存開始:', { targetMonth, data })
+        
+        const response = await axios.post('/api/monthly-targets/', {
+          target_month: targetMonth,
+          target_projects: data.target_projects,
+          target_income: data.target_income
+        })
+        
+        if (response.data && response.data.success) {
+          // 修正: データ同期の確実化
+          this.targets[targetMonth] = { ...response.data.data }
+          
+          // 修正: キャッシュの明示的な無効化
+          const [year, month] = targetMonth.split('-')
+          const monthKey = `${year}-${month.toString().padStart(2, '0')}-01`
+          delete this.stats[monthKey]
+          
+          // 修正: 統計データを強制的に再取得
+          await this.fetchStats(parseInt(year), parseInt(month))
+          
+          console.log('🔧 月次目標保存完了:', {
+            targetMonth,
+            monthKey,
+            targets: this.targets,
+            stats: this.stats
+          })
+          
+          return { success: true }
+        } else {
+          throw new Error(response.data?.error || '目標保存に失敗しました')
+        }
+      } catch (error) {
+        const errorMessage = error.response?.data?.error || error.message
+        console.error('❌ 月次目標保存エラー:', error)
+        // 修正: エラーの詳細をログ出力
+        if (error.response) {
+          console.error('APIレスポンス:', error.response.data)
+          console.error('HTTPステータス:', error.response.status)
+        } else if (error.request) {
+          console.error('リクエストエラー:', error.request)
+        } else {
+          console.error('設定エラー:', error.message)
+        }
+        return { success: false, error: errorMessage }
+      }
+    },
+    
+    /**
+     * 月次目標削除
+     */
+    async deleteTarget(targetMonth) {
+      try {
+        const response = await axios.delete(`/api/monthly-targets/${targetMonth}/`)
+        
+        if (response.data.success) {
+          delete this.targets[targetMonth]
+          return { success: true }
+        } else {
+          throw new Error(response.data.error || '目標削除に失敗しました')
+        }
+      } catch (error) {
+        const errorMessage = error.response?.data?.error || error.message
+        console.error('目標削除エラー:', error)
+        return { success: false, error: errorMessage }
+      }
+    },
+    
+    /**
+     * 現在の月を設定
+     */
+    setCurrentMonth(month) {
+      this.currentMonth = month
+    },
+    
+    /**
+     * エラーをクリア
+     */
+    clearError() {
+      this.error = null
+    },
+    
+    /**
+     * ストアをリセット
+     */
+    reset() {
+      this.targets = {}
+      this.stats = {}
+      this.overview = null
+      this.currentMonth = null
+      this.loading = false
+      this.error = null
+    }
+  }
+})
