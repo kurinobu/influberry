@@ -333,43 +333,38 @@ watch(() => invoicesStore.invoices, () => {
   }
 }, { deep: true })
 
-      // 月次目標データの変更を監視して月次統計を自動更新
-      watch(() => monthlyStore.targets, async (newTargets, oldTargets) => {
-        // 実際にデータが変更された場合のみ実行（無限ループ防止）
-        if (props.currentTab !== 'overview' && newTargets !== oldTargets) {
-          console.log('目標データ変更検知 - データ同期確実化:', {
-            tab: props.currentTab,
-            newTargets,
-            oldTargets
-          })
-
-          // 🔧 修正: データ同期の確実化（強化版）
-          const [year, month] = props.currentTab.split('-')
-          
-          // 1. 統計データを強制的に再取得（forceRefresh=true）
-          console.log('🔧 目標変更検知: 統計データ強制再取得開始')
-          await monthlyStore.fetchStats(parseInt(year), parseInt(month), true)
-          console.log('🔧 目標変更検知: 統計データ強制再取得完了')
-
-          // 2. データ同期の確実化（複数回nextTickで確実化）
-          await nextTick()
-          await nextTick()
-          stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
-          await nextTick()
-          await nextTick()
-
-          console.log('統計データ更新完了 - データ同期確実化:', {
-            tab: props.currentTab,
-            stats: stats.value,
-            targets: monthlyStore.targets,
-            targetProjects: stats.value?.target?.projects,
-            targetIncome: stats.value?.target?.income,
-            statsKeys: Object.keys(monthlyStore.stats),
-            currentStats: monthlyStore.stats[props.currentTab + '-01'],
-            dataSyncStatus: 'ensured'
-          })
-        }
-      }, { deep: true })
+// 月次目標データの変更を監視して月次統計を自動更新
+watch(() => monthlyStore.targets, async (newTargets, oldTargets) => {
+  // 実際にデータが変更された場合のみ実行（無限ループ防止）
+  if (props.currentTab !== 'overview' && newTargets !== oldTargets) {
+    console.log('目標データ変更検知 - データ同期確実化:', {
+      tab: props.currentTab,
+      newTargets,
+      oldTargets
+    })
+    
+    // 🔧 修正: データ同期の確実化（シンプル化）
+    // 1. 統計データを強制的に再取得（forceRefresh=true）
+    const [year, month] = props.currentTab.split('-')
+    await monthlyStore.fetchStats(parseInt(year), parseInt(month), true)
+    
+    // 2. データ同期の確実化
+    await nextTick()
+    stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
+    await nextTick()
+    
+    console.log('統計データ更新完了 - データ同期確実化:', {
+      tab: props.currentTab,
+      stats: stats.value,
+      targets: monthlyStore.targets,
+      targetProjects: stats.value?.target?.projects,
+      targetIncome: stats.value?.target?.income,
+      statsKeys: Object.keys(monthlyStore.stats),
+      currentStats: monthlyStore.stats[props.currentTab + '-01'],
+      dataSyncStatus: 'ensured'
+    })
+  }
+}, { deep: true })
 
 // 月次切り替え状態の監視（新規追加）
 

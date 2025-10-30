@@ -155,25 +155,19 @@ export const useMonthlyStore = defineStore('monthly', {
     async fetchStats(year, month, forceRefresh = false) {
       const monthKey = `${year}-${String(month).padStart(2, '0')}-01`
       
-      // 🔧 修正: 強制再取得の場合は重複防止を完全にスキップ
+      // 🔧 修正: 強制再取得の場合は重複防止をスキップ
       if (this.fetchingStats && !forceRefresh) {
         console.log('🔧 月次統計取得: 既に実行中のためスキップ')
         return
       }
       
-      // 🔧 修正: 強制再取得の場合はキャッシュを完全に無視
+      // 🔧 修正: 強制再取得の場合はキャッシュを無視
       const now = Date.now()
       if (!forceRefresh && this.lastFetchTime.stats && 
           now - this.lastFetchTime.stats < this.cacheDuration &&
           this.stats[monthKey]) {
         console.log('🔧 月次統計取得: キャッシュを使用', { monthKey })
         return
-      }
-      
-      // 🔧 修正: 強制再取得の場合は既存の実行を強制終了
-      if (forceRefresh && this.fetchingStats) {
-        console.log('🔧 月次統計取得: 強制再取得のため既存実行を終了')
-        this.fetchingStats = false
       }
       
       this.fetchingStats = true
@@ -267,12 +261,9 @@ export const useMonthlyStore = defineStore('monthly', {
           const monthKey = `${year}-${month.toString().padStart(2, '0')}-01`
           this.clearMonthCache(parseInt(year), parseInt(month))
           
-          // 🔧 修正: 目標データと統計データを順次強制再取得（確実化）
-          console.log('🔧 目標保存後: データ再取得を開始')
+          // 🔧 修正: 目標データと統計データを順次強制再取得
           await this.fetchTargets(parseInt(year), [parseInt(month)])
-          console.log('🔧 目標保存後: 目標データ再取得完了')
           await this.fetchStats(parseInt(year), parseInt(month), true)
-          console.log('🔧 目標保存後: 統計データ再取得完了')
           
           console.log('🔧 月次目標保存完了:', {
             targetMonth,
@@ -349,22 +340,14 @@ export const useMonthlyStore = defineStore('monthly', {
     
     /**
      * 指定月のキャッシュクリア
-     * 🔧 修正: 特定月のキャッシュのみクリア（最適化）
+     * 🔧 修正: 特定月のキャッシュのみクリア
      */
     clearMonthCache(year, month) {
       const monthKey = `${year}-${String(month).padStart(2, '0')}-01`
       delete this.stats[monthKey]
       delete this.targets[monthKey]
       this.forceRefresh = true
-      // 🔧 修正: キャッシュクリア後の状態をリセット
-      this.fetchingStats = false
-      this.fetchingTargets = false
-      console.log('🔧 指定月のキャッシュをクリアしました:', { 
-        monthKey, 
-        statsCleared: !this.stats[monthKey],
-        targetsCleared: !this.targets[monthKey],
-        forceRefresh: this.forceRefresh
-      })
+      console.log('🔧 指定月のキャッシュをクリアしました:', { monthKey })
     },
     
     /**
