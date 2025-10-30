@@ -2,8 +2,6 @@
 /**
  * Monthly Management Store
  * 月次管理機能用 Pinia ストア
- * 
- * ✅ Phase 1: 重複呼び出し防止機能を実装
  */
 
 import { defineStore } from 'pinia'
@@ -31,21 +29,7 @@ export const useMonthlyStore = defineStore('monthly', {
     loading: false,
     
     // エラー状態
-    error: null,
-    
-    // ✅ Phase 1: 重複呼び出し防止用のフラグ
-    fetchingTargets: false,        // 目標取得中フラグ
-    fetchingStats: false,          // 統計取得中フラグ
-    
-    // 🔧 修正: 強制再取得フラグ
-    forceRefresh: false,           // 強制再取得フラグ
-    
-    // ✅ Phase 1: キャッシュ管理
-    lastFetchTime: {
-      targets: null,               // 最終取得時刻（目標）
-      stats: null                  // 最終取得時刻（統計）
-    },
-    cacheDuration: 5 * 60 * 1000   // キャッシュ有効期限: 5分
+    error: null
   }),
   
   getters: {
@@ -81,26 +65,9 @@ export const useMonthlyStore = defineStore('monthly', {
   actions: {
     /**
      * 月次目標一覧取得
-     * ✅ Phase 1: 重複呼び出し防止機能を追加
+     * 修正: データ同期の確実化とエラーハンドリングの強化
      */
     async fetchTargets(year, months) {
-      // ✅ Phase 1: 既に取得中なら待つ（重複防止）
-      if (this.fetchingTargets) {
-        console.log('🔧 月次目標取得: 既に実行中のためスキップ')
-        return
-      }
-      
-      // ✅ Phase 1: キャッシュが有効なら再取得しない
-      const cacheKey = `${year}-${months.join(',')}`
-      const now = Date.now()
-      if (this.lastFetchTime.targets && 
-          now - this.lastFetchTime.targets < this.cacheDuration &&
-          months.every(m => this.targets[`${year}-${String(m).padStart(2, '0')}-01`])) {
-        console.log('🔧 月次目標取得: キャッシュを使用', { cacheKey })
-        return
-      }
-      
-      this.fetchingTargets = true
       this.loading = true
       this.error = null
       
@@ -120,12 +87,8 @@ export const useMonthlyStore = defineStore('monthly', {
             this.targets[target.target_month] = { ...target }
           })
           
-          // ✅ Phase 1: 取得時刻を記録
-          this.lastFetchTime.targets = Date.now()
-          
           console.log('🔧 月次目標取得完了:', {
-            targets: this.targets,
-            cached: true
+            targets: this.targets
           })
         } else {
           throw new Error(response.data?.error || '目標取得に失敗しました')
@@ -144,32 +107,14 @@ export const useMonthlyStore = defineStore('monthly', {
         }
       } finally {
         this.loading = false
-        this.fetchingTargets = false
       }
     },
     
     /**
      * 月次統計取得
-     * ✅ Phase 1: 重複呼び出し防止機能を追加
+     * 修正: データ同期の確実化とエラーハンドリングの強化
      */
-    async fetchStats(year, month, forceRefresh = false) {
-      // 🔧 修正: 強制再取得の場合は重複防止をスキップ
-      if (this.fetchingStats && !forceRefresh) {
-        console.log('🔧 月次統計取得: 既に実行中のためスキップ')
-        return
-      }
-      
-      // 🔧 修正: 強制再取得の場合はキャッシュを無視
-      const monthKey = `${year}-${String(month).padStart(2, '0')}-01`
-      const now = Date.now()
-      if (!forceRefresh && this.lastFetchTime.stats && 
-          now - this.lastFetchTime.stats < this.cacheDuration &&
-          this.stats[monthKey]) {
-        console.log('🔧 月次統計取得: キャッシュを使用', { monthKey })
-        return
-      }
-      
-      this.fetchingStats = true
+    async fetchStats(year, month) {
       this.loading = true
       this.error = null
       
@@ -183,13 +128,9 @@ export const useMonthlyStore = defineStore('monthly', {
           const monthKey = response.data.data.month
           this.stats[monthKey] = { ...response.data.data }
           
-          // ✅ Phase 1: 取得時刻を記録
-          this.lastFetchTime.stats = Date.now()
-          
           console.log('🔧 月次統計取得完了:', {
             monthKey,
-            stats: this.stats[monthKey],
-            cached: true
+            stats: this.stats[monthKey]
           })
         } else {
           throw new Error(response.data?.error || '統計取得に失敗しました')
@@ -208,7 +149,6 @@ export const useMonthlyStore = defineStore('monthly', {
         }
       } finally {
         this.loading = false
-        this.fetchingStats = false
       }
     },
     
@@ -255,12 +195,13 @@ export const useMonthlyStore = defineStore('monthly', {
           // 修正: データ同期の確実化
           this.targets[targetMonth] = { ...response.data.data }
           
-          // 🔧 修正: 指定月のキャッシュのみクリア
+          // 修正: キャッシュの明示的な無効化
           const [year, month] = targetMonth.split('-')
-          this.clearMonthCache(parseInt(year), parseInt(month))
+          const monthKey = `${year}-${month.toString().padStart(2, '0')}-01`
+          delete this.stats[monthKey]
           
-          // 🔧 修正: 統計データを強制的に再取得（forceRefresh=true）
-          await this.fetchStats(parseInt(year), parseInt(month), true)
+          // 修正: 統計データを強制的に再取得
+          await this.fetchStats(parseInt(year), parseInt(month))
           
           console.log('🔧 月次目標保存完了:', {
             targetMonth,
@@ -324,30 +265,6 @@ export const useMonthlyStore = defineStore('monthly', {
     },
     
     /**
-     * ✅ Phase 1: キャッシュクリア
-     * ステータス変更時や目標保存時に呼び出す
-     * 🔧 修正: 強制再取得フラグもリセット
-     */
-    clearCache() {
-      this.lastFetchTime.targets = null
-      this.lastFetchTime.stats = null
-      this.forceRefresh = false
-      console.log('🔧 キャッシュをクリアしました')
-    },
-    
-    /**
-     * 指定月のキャッシュクリア
-     * 🔧 修正: 特定月のキャッシュのみクリア
-     */
-    clearMonthCache(year, month) {
-      const monthKey = `${year}-${String(month).padStart(2, '0')}-01`
-      delete this.stats[monthKey]
-      delete this.targets[monthKey]
-      this.forceRefresh = true
-      console.log('🔧 指定月のキャッシュをクリアしました:', { monthKey })
-    },
-    
-    /**
      * ストアをリセット
      */
     reset() {
@@ -357,12 +274,6 @@ export const useMonthlyStore = defineStore('monthly', {
       this.currentMonth = null
       this.loading = false
       this.error = null
-      
-      // ✅ Phase 1: キャッシュ管理もリセット
-      this.fetchingTargets = false
-      this.fetchingStats = false
-      this.lastFetchTime.targets = null
-      this.lastFetchTime.stats = null
     }
   }
 })

@@ -236,7 +236,15 @@ const loadStatsOnly = async () => {
     // 1. 統計データを強制的に再取得
     await monthlyStore.fetchStats(parseInt(year), parseInt(month))
     
-    // 🔧 修正: データ同期の確実化（シンプル化）
+    // 2. データ同期の確実化（複数のnextTickを使用）
+    await nextTick()
+    stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
+    await nextTick() // 追加のnextTick
+    
+    // 3. 強制的なUI更新
+    await nextTick()
+    
+    // 4. データ同期の最終確認
     await nextTick()
     stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
     await nextTick()
@@ -343,12 +351,20 @@ watch(() => monthlyStore.targets, async (newTargets, oldTargets) => {
       oldTargets
     })
     
-    // 🔧 修正: データ同期の確実化（シンプル化）
-    // 1. 統計データを強制的に再取得（forceRefresh=true）
-    const [year, month] = props.currentTab.split('-')
-    await monthlyStore.fetchStats(parseInt(year), parseInt(month), true)
+    // データ同期の確実化（ステータス変更履歴による複雑な集計処理対応）
+    // 1. 強制的なデータ同期（リアクティブ更新の強制）
+    stats.value = null
+    await nextTick()
     
-    // 2. データ同期の確実化
+    // 2. 統計データを強制的に再取得（target同期問題の解決）
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await loadStatsOnly()
+    
+    // 3. 強制的なUI更新（複数のnextTickを使用）
+    await nextTick()
+    await nextTick()
+    
+    // 4. データ同期の最終確認
     await nextTick()
     stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
     await nextTick()

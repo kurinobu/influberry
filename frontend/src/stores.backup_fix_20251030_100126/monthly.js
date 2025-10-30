@@ -37,9 +37,6 @@ export const useMonthlyStore = defineStore('monthly', {
     fetchingTargets: false,        // 目標取得中フラグ
     fetchingStats: false,          // 統計取得中フラグ
     
-    // 🔧 修正: 強制再取得フラグ
-    forceRefresh: false,           // 強制再取得フラグ
-    
     // ✅ Phase 1: キャッシュ管理
     lastFetchTime: {
       targets: null,               // 最終取得時刻（目標）
@@ -152,17 +149,17 @@ export const useMonthlyStore = defineStore('monthly', {
      * 月次統計取得
      * ✅ Phase 1: 重複呼び出し防止機能を追加
      */
-    async fetchStats(year, month, forceRefresh = false) {
-      // 🔧 修正: 強制再取得の場合は重複防止をスキップ
-      if (this.fetchingStats && !forceRefresh) {
+    async fetchStats(year, month) {
+      // ✅ Phase 1: 既に取得中なら待つ（重複防止）
+      if (this.fetchingStats) {
         console.log('🔧 月次統計取得: 既に実行中のためスキップ')
         return
       }
       
-      // 🔧 修正: 強制再取得の場合はキャッシュを無視
+      // ✅ Phase 1: キャッシュが有効なら再取得しない
       const monthKey = `${year}-${String(month).padStart(2, '0')}-01`
       const now = Date.now()
-      if (!forceRefresh && this.lastFetchTime.stats && 
+      if (this.lastFetchTime.stats && 
           now - this.lastFetchTime.stats < this.cacheDuration &&
           this.stats[monthKey]) {
         console.log('🔧 月次統計取得: キャッシュを使用', { monthKey })
@@ -255,12 +252,16 @@ export const useMonthlyStore = defineStore('monthly', {
           // 修正: データ同期の確実化
           this.targets[targetMonth] = { ...response.data.data }
           
-          // 🔧 修正: 指定月のキャッシュのみクリア
+          // 修正: キャッシュの明示的な無効化
           const [year, month] = targetMonth.split('-')
-          this.clearMonthCache(parseInt(year), parseInt(month))
+          const monthKey = `${year}-${month.toString().padStart(2, '0')}-01`
+          delete this.stats[monthKey]
           
-          // 🔧 修正: 統計データを強制的に再取得（forceRefresh=true）
-          await this.fetchStats(parseInt(year), parseInt(month), true)
+          // ✅ Phase 1: キャッシュをクリアして再取得を促す
+          this.clearCache()
+          
+          // 修正: 統計データを強制的に再取得
+          await this.fetchStats(parseInt(year), parseInt(month))
           
           console.log('🔧 月次目標保存完了:', {
             targetMonth,
@@ -326,25 +327,11 @@ export const useMonthlyStore = defineStore('monthly', {
     /**
      * ✅ Phase 1: キャッシュクリア
      * ステータス変更時や目標保存時に呼び出す
-     * 🔧 修正: 強制再取得フラグもリセット
      */
     clearCache() {
       this.lastFetchTime.targets = null
       this.lastFetchTime.stats = null
-      this.forceRefresh = false
       console.log('🔧 キャッシュをクリアしました')
-    },
-    
-    /**
-     * 指定月のキャッシュクリア
-     * 🔧 修正: 特定月のキャッシュのみクリア
-     */
-    clearMonthCache(year, month) {
-      const monthKey = `${year}-${String(month).padStart(2, '0')}-01`
-      delete this.stats[monthKey]
-      delete this.targets[monthKey]
-      this.forceRefresh = true
-      console.log('🔧 指定月のキャッシュをクリアしました:', { monthKey })
     },
     
     /**
