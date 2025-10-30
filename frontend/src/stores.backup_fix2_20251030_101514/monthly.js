@@ -153,8 +153,6 @@ export const useMonthlyStore = defineStore('monthly', {
      * ✅ Phase 1: 重複呼び出し防止機能を追加
      */
     async fetchStats(year, month, forceRefresh = false) {
-      const monthKey = `${year}-${String(month).padStart(2, '0')}-01`
-      
       // 🔧 修正: 強制再取得の場合は重複防止をスキップ
       if (this.fetchingStats && !forceRefresh) {
         console.log('🔧 月次統計取得: 既に実行中のためスキップ')
@@ -162,6 +160,7 @@ export const useMonthlyStore = defineStore('monthly', {
       }
       
       // 🔧 修正: 強制再取得の場合はキャッシュを無視
+      const monthKey = `${year}-${String(month).padStart(2, '0')}-01`
       const now = Date.now()
       if (!forceRefresh && this.lastFetchTime.stats && 
           now - this.lastFetchTime.stats < this.cacheDuration &&
@@ -258,11 +257,9 @@ export const useMonthlyStore = defineStore('monthly', {
           
           // 🔧 修正: 指定月のキャッシュのみクリア
           const [year, month] = targetMonth.split('-')
-          const monthKey = `${year}-${month.toString().padStart(2, '0')}-01`
           this.clearMonthCache(parseInt(year), parseInt(month))
           
-          // 🔧 修正: 目標データと統計データを順次強制再取得
-          await this.fetchTargets(parseInt(year), [parseInt(month)])
+          // 🔧 修正: 統計データを強制的に再取得（forceRefresh=true）
           await this.fetchStats(parseInt(year), parseInt(month), true)
           
           console.log('🔧 月次目標保存完了:', {
