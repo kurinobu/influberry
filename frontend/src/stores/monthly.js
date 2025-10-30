@@ -368,18 +368,18 @@ export const useMonthlyStore = defineStore('monthly', {
      */
     clearMonthCache(year, month) {
       const monthKey = `${year}-${String(month).padStart(2, '0')}-01`
+      // 統計のみクリア（目標は即時反映のトリガー源として残す）
       delete this.stats[monthKey]
-      delete this.targets[monthKey]
       this.forceRefresh = true
       // 🔧 修正: キャッシュクリア後の状態を完全リセット
       this.fetchingStats = false
       this.fetchingTargets = false
       this.lastFetchTime.stats = null
-      this.lastFetchTime.targets = null
+      // 目標は保持するため targets 側のタイムスタンプは必要に応じて維持
       console.log('🔧 指定月のキャッシュをクリアしました:', { 
         monthKey, 
         statsCleared: !this.stats[monthKey],
-        targetsCleared: !this.targets[monthKey],
+        targetsCleared: false,
         forceRefresh: this.forceRefresh,
         fetchingStats: this.fetchingStats,
         fetchingTargets: this.fetchingTargets

@@ -333,48 +333,34 @@ watch(() => invoicesStore.invoices, () => {
   }
 }, { deep: true })
 
-      // 月次目標データの変更を監視して月次統計を自動更新
-      watch(() => monthlyStore.targets, async (newTargets, oldTargets) => {
-        // 実際にデータが変更された場合のみ実行（無限ループ防止）
-        if (props.currentTab !== 'overview' && newTargets !== oldTargets) {
-          console.log('目標データ変更検知 - データ同期確実化:', {
-            tab: props.currentTab,
-            newTargets,
-            oldTargets
-          })
-
-          // 🔧 修正: データ同期の確実化（完全強化版）
-          const [year, month] = props.currentTab.split('-')
-          
-          // 1. 統計データを強制的に再取得（forceRefresh=true）
-          console.log('🔧 目標変更検知: 統計データ強制再取得開始')
-          await monthlyStore.fetchStats(parseInt(year), parseInt(month), true)
-          console.log('🔧 目標変更検知: 統計データ強制再取得完了')
-
-          // 2. データ同期の確実化（複数回nextTickで確実化）
-          await nextTick()
-          await nextTick()
-          stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
-          await nextTick()
-          await nextTick()
-          
-          // 3. 追加のデータ同期確認
-          await new Promise(resolve => setTimeout(resolve, 50))
-          stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
-          await nextTick()
-
-          console.log('統計データ更新完了 - データ同期確実化:', {
-            tab: props.currentTab,
-            stats: stats.value,
-            targets: monthlyStore.targets,
-            targetProjects: stats.value?.target?.projects,
-            targetIncome: stats.value?.target?.income,
-            statsKeys: Object.keys(monthlyStore.stats),
-            currentStats: monthlyStore.stats[props.currentTab + '-01'],
-            dataSyncStatus: 'ensured'
-          })
-        }
-      }, { deep: true })
+// 月次目標データ（当該月キー）の変更を監視し、統計を強制再取得
+watch(
+  () => {
+    if (props.currentTab === 'overview') return null
+    const monthKey = props.currentTab + '-01'
+    return monthlyStore.targets[monthKey] || null
+  },
+  async (newVal, oldVal) => {
+    if (props.currentTab === 'overview') return
+    // 値の変化（作成・更新）時のみ再取得
+    if (newVal) {
+      console.log('目標データ（当該月）変更検知 - 統計を強制再取得:', {
+        tab: props.currentTab,
+        monthKey: props.currentTab + '-01',
+        newTarget: newVal
+      })
+      const [year, month] = props.currentTab.split('-')
+      await monthlyStore.fetchStats(parseInt(year), parseInt(month), true)
+      await nextTick()
+      stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
+      console.log('統計データ更新完了（目標即時反映）:', {
+        targetProjects: stats.value?.target?.projects,
+        targetIncome: stats.value?.target?.income
+      })
+    }
+  },
+  { deep: false }
+)
 
 // 月次切り替え状態の監視（新規追加）
 
