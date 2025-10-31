@@ -167,6 +167,21 @@ import { useUIStore } from '@/stores/ui'
 import { useProjectsStore } from '@/stores/projects'
 import { useInvoicesStore } from '@/stores/invoices'
 import { useMonthlyRotationStore } from '@/stores/monthlyRotation'
+
+// Step 2 Phase 1: 環境変数による条件付きログ出力
+const isDevelopment = import.meta.env.DEV
+
+// デバッグログ関数（開発環境でのみ出力）
+const debugLog = (...args) => {
+  if (isDevelopment) {
+    console.log(...args)
+  }
+}
+
+// エラーログ関数（常に出力）
+const errorLog = (...args) => {
+  console.error(...args)
+}
 import { useAuthStore } from '@/stores/auth'
 import ProgressBar from './ProgressBar.vue'
 import { ChartBarIcon, CalendarIcon, FlagIcon } from '@heroicons/vue/24/outline'
@@ -242,7 +257,7 @@ const loadStatsOnly = async () => {
     await nextTick()
     
     // デバッグログ追加
-    console.log('統計データ更新完了 - データ同期確実化:', {
+    debugLog('統計データ更新完了 - データ同期確実化:', {
       tab: props.currentTab,
       stats: stats.value,
       targets: monthlyStore.targets,
@@ -253,7 +268,7 @@ const loadStatsOnly = async () => {
       dataSyncStatus: 'ensured'
     })
   } catch (error) {
-    console.error('統計データ読み込みエラー:', error)
+    errorLog('統計データ読み込みエラー:', error)
   } finally {
     isLoadingStats.value = false
   }
@@ -280,13 +295,13 @@ const loadData = async () => {
       
       // データがない場合のみAPI呼び出し（フォールバック）
       if (!stats.value) {
-        console.log('🔧 データ未取得のため、fetchCurrentMonthlyData()を呼び出し')
+        debugLog('🔧 データ未取得のため、fetchCurrentMonthlyData()を呼び出し')
         await monthlyStore.fetchCurrentMonthlyData()
         stats.value = monthlyStore.getStatsByMonth(monthKey)
       }
       
       // デバッグログ追加
-      console.log('月次統計データ（新API）:', {
+      debugLog('月次統計データ（新API）:', {
         tab: props.currentTab,
         monthKey,
         stats: stats.value,
@@ -309,7 +324,7 @@ const loadData = async () => {
       stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
       
       // デバッグログ追加
-      console.log('月次統計データ（旧API）:', {
+      debugLog('月次統計データ（旧API）:', {
         tab: props.currentTab,
         year: parseInt(year),
         month: parseInt(month),
@@ -318,7 +333,7 @@ const loadData = async () => {
       })
     }
   } catch (error) {
-    console.error('データ読み込みエラー:', error)
+    errorLog('データ読み込みエラー:', error)
   } finally {
     // Phase 3: ローディング状態管理を統一（ストアloadingのみ使用）
     isLoadingTargets.value = false
@@ -357,7 +372,7 @@ watch(
     if (props.currentTab === 'overview') return
     // 値の変化（作成・更新）時のみ再取得
     if (newVal) {
-      console.log('目標データ（当該月）変更検知 - 統計を強制再取得:', {
+      debugLog('目標データ（当該月）変更検知 - 統計を強制再取得:', {
         tab: props.currentTab,
         monthKey: props.currentTab + '-01',
         newTarget: newVal
@@ -366,7 +381,7 @@ watch(
       await monthlyStore.fetchStats(parseInt(year), parseInt(month), true)
       await nextTick()
       stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
-      console.log('統計データ更新完了（目標即時反映）:', {
+      debugLog('統計データ更新完了（目標即時反映）:', {
         targetProjects: stats.value?.target?.projects,
         targetIncome: stats.value?.target?.income
       })

@@ -2,6 +2,7 @@
 /**
  * Monthly Rotation Store
  * 月次自動切り替え管理用 Pinia ストア
+ * Step 2 Phase 1: 環境変数による条件付きログ出力
  */
 
 import { defineStore } from 'pinia'
@@ -9,6 +10,21 @@ import axios from 'axios'
 
 axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://influberry.jp'
 axios.defaults.withCredentials = true
+
+// Step 2 Phase 1: 環境変数による条件付きログ出力
+const isDevelopment = import.meta.env.DEV
+
+// デバッグログ関数（開発環境でのみ出力）
+const debugLog = (...args) => {
+  if (isDevelopment) {
+    debugLog(...args)
+  }
+}
+
+// エラーログ関数（常に出力）
+const errorLog = (...args) => {
+  errorLog(...args)
+}
 
 export const useMonthlyRotationStore = defineStore('monthlyRotation', {
   state: () => ({
@@ -76,7 +92,7 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
         }
       } catch (error) {
         this.error = error.response?.data?.error || error.message
-        console.error('スケジューラー状態取得エラー:', error)
+        errorLog('スケジューラー状態取得エラー:', error)
       } finally {
         this.loading = false
       }
@@ -112,7 +128,7 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
         }
       } catch (error) {
         this.error = error.response?.data?.error || error.message
-        console.error('手動月次切り替えエラー:', error)
+        errorLog('手動月次切り替えエラー:', error)
         
         // エラー時は状態を 'idle' に戻す
         this.setRotationState('idle')
@@ -143,7 +159,7 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
         }
       } catch (error) {
         this.error = error.response?.data?.error || error.message
-        console.error('テストスナップショット作成エラー:', error)
+        errorLog('テストスナップショット作成エラー:', error)
         return null
       } finally {
         this.loading = false
@@ -177,22 +193,22 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
         return false
       }
       
-      console.log('月次切り替えが必要です。自動実行を開始します。')
+      debugLog('月次切り替えが必要です。自動実行を開始します。')
       
       try {
         const success = await this.triggerManualRotation()
         
         if (success) {
-          console.log('月次切り替えが完了しました。')
+          debugLog('月次切り替えが完了しました。')
           // フロントエンドのデータを更新
           await this.refreshFrontendData()
           return true
         } else {
-          console.error('月次切り替えの実行に失敗しました。')
+          errorLog('月次切り替えの実行に失敗しました。')
           return false
         }
       } catch (error) {
-        console.error('自動月次切り替えエラー:', error)
+        errorLog('自動月次切り替えエラー:', error)
         return false
       }
     },
@@ -203,11 +219,11 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
      */
     async refreshFrontendData() {
       try {
-        console.log('🔧 フロントエンドデータの更新を開始')
+        debugLog('🔧 フロントエンドデータの更新を開始')
         
         // 修正: 重複実行防止のためのフラグ
         if (this.refreshing) {
-          console.log('⚠️ 既にデータ更新中です - 重複実行を防止')
+          debugLog('⚠️ 既にデータ更新中です - 重複実行を防止')
           return
         }
         
@@ -221,11 +237,11 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
         let baseDate
         if (this.lastRotationCheck) {
           baseDate = new Date(this.lastRotationCheck)
-          console.log('🔧 月次切り替え日時を基準にデータ取得:', baseDate)
+          debugLog('🔧 月次切り替え日時を基準にデータ取得:', baseDate)
         } else {
           // 修正: フォールバック時も月次切り替え状態を考慮
           baseDate = new Date()
-          console.log('⚠️ 月次切り替え日時が不明 - 現在の日時を使用:', baseDate)
+          debugLog('⚠️ 月次切り替え日時が不明 - 現在の日時を使用:', baseDate)
         }
         
         const currentYear = baseDate.getFullYear()
@@ -238,17 +254,17 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
         // タブ再生成はcheckRotationStatusで実行済み（重複削除）
         // await this.triggerTabRegeneration()
         
-        console.log('🔧 フロントエンドデータの更新完了')
+        debugLog('🔧 フロントエンドデータの更新完了')
       } catch (error) {
-        console.error('❌ フロントエンドデータ更新エラー:', error)
+        errorLog('❌ フロントエンドデータ更新エラー:', error)
         // 修正: エラーの詳細をログ出力
         if (error.response) {
-          console.error('APIレスポンス:', error.response.data)
-          console.error('HTTPステータス:', error.response.status)
+          errorLog('APIレスポンス:', error.response.data)
+          errorLog('HTTPステータス:', error.response.status)
         } else if (error.request) {
-          console.error('リクエストエラー:', error.request)
+          errorLog('リクエストエラー:', error.request)
         } else {
-          console.error('設定エラー:', error.message)
+          errorLog('設定エラー:', error.message)
         }
       } finally {
         this.refreshing = false
@@ -272,7 +288,7 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
       this.currentMonth = baseDate.getMonth() + 1
       this.previousMonth = this.currentMonth - 1
       
-      console.log('月次切り替え状態を設定:', {
+      debugLog('月次切り替え状態を設定:', {
         state,
         currentMonth: this.currentMonth,
         previousMonth: this.previousMonth
@@ -293,9 +309,9 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
         })
         window.dispatchEvent(event)
         
-        console.log('タブ再生成をトリガーしました。')
+        debugLog('タブ再生成をトリガーしました。')
       } catch (error) {
-        console.error('タブ再生成トリガーエラー:', error)
+        errorLog('タブ再生成トリガーエラー:', error)
       }
     },
     
@@ -305,18 +321,18 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
      */
     async checkRotationStatus() {
       try {
-        console.log('🔍 バックエンドの月次切り替え状態をチェック中...')
+        debugLog('🔍 バックエンドの月次切り替え状態をチェック中...')
         
         const response = await axios.get('/api/scheduler/rotation-status')
         
         // 修正: レスポンス形式の確認を強化
         if (response.data && response.data.success) {
           const data = response.data.data
-          console.log('📊 月次切り替え状態:', data)
+          debugLog('📊 月次切り替え状態:', data)
           
           // 修正: データの存在確認を強化
           if (data.rotation_completed && data.snapshot_exists && data.last_rotation_date) {
-            console.log('🎉 月次切り替え完了を検知 - タブ更新をトリガー')
+            debugLog('🎉 月次切り替え完了を検知 - タブ更新をトリガー')
             
             // 月次切り替え状態を更新
             this.setRotationState('completed')
@@ -330,7 +346,7 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
             
             return true
           } else {
-            console.log('⏳ 月次切り替え未完了 - 継続監視', {
+            debugLog('⏳ 月次切り替え未完了 - 継続監視', {
               rotation_completed: data.rotation_completed,
               snapshot_exists: data.snapshot_exists,
               last_rotation_date: data.last_rotation_date
@@ -338,20 +354,20 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
             return false
           }
         } else {
-          console.error('❌ 月次切り替え状態取得失敗:', response.data?.error || 'Unknown error')
+          errorLog('❌ 月次切り替え状態取得失敗:', response.data?.error || 'Unknown error')
           return false
         }
       } catch (error) {
-        console.error('❌ 月次切り替え状態チェックエラー:', error)
+        errorLog('❌ 月次切り替え状態チェックエラー:', error)
         // 修正: エラーの詳細をログ出力
         if (error.response) {
-          console.error('APIレスポンス:', error.response.data)
-          console.error('HTTPステータス:', error.response.status)
-          console.error('レスポンスヘッダー:', error.response.headers)
+          errorLog('APIレスポンス:', error.response.data)
+          errorLog('HTTPステータス:', error.response.status)
+          errorLog('レスポンスヘッダー:', error.response.headers)
         } else if (error.request) {
-          console.error('リクエストエラー:', error.request)
+          errorLog('リクエストエラー:', error.request)
         } else {
-          console.error('設定エラー:', error.message)
+          errorLog('設定エラー:', error.message)
         }
         return false
       }
@@ -362,27 +378,27 @@ export const useMonthlyRotationStore = defineStore('monthlyRotation', {
      * 根本原因修正: 重複実行防止とシンプル化
      */
     startRotationMonitoring() {
-      console.log('🔄 月次切り替え監視を開始（ポーリング機能付き）')
+      debugLog('🔄 月次切り替え監視を開始（ポーリング機能付き）')
       
       // 根本原因修正: 重複実行防止のためのフラグ
       if (this.monitoringInterval) {
-        console.log('⚠️ 既に監視中です - 重複実行を防止')
+        debugLog('⚠️ 既に監視中です - 重複実行を防止')
         return
       }
       
       // 5分ごとにバックエンドの状態をチェック
       this.monitoringInterval = setInterval(async () => {
-        console.log('⏰ 定期チェック: バックエンドの月次切り替え状態を確認')
+        debugLog('⏰ 定期チェック: バックエンドの月次切り替え状態を確認')
         await this.checkRotationStatus()
       }, 5 * 60 * 1000) // 5分 = 5 * 60 * 1000ms
       
       // 初回チェックを即座に実行（1秒待機を削除）
       Promise.resolve().then(async () => {
-        console.log('🚀 初回チェック: バックエンドの月次切り替え状態を確認')
+        debugLog('🚀 初回チェック: バックエンドの月次切り替え状態を確認')
         await this.checkRotationStatus()
       })
       
-      console.log('✅ 月次切り替え監視を開始しました（ポーリング機能付き）')
+      debugLog('✅ 月次切り替え監視を開始しました（ポーリング機能付き）')
     },
     
     /**

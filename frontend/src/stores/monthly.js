@@ -4,6 +4,7 @@
  * 月次管理機能用 Pinia ストア
  * 
  * ✅ Phase 1: 重複呼び出し防止機能を実装
+ * Step 2 Phase 1: 環境変数による条件付きログ出力
  */
 
 import { defineStore } from 'pinia'
@@ -12,6 +13,21 @@ import axios from 'axios'
 axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://influberry.jp'
 axios.defaults.withCredentials = true
 axios.defaults.headers.common['Content-Type'] = 'application/json'
+
+// Step 2 Phase 1: 環境変数による条件付きログ出力
+const isDevelopment = import.meta.env.DEV
+
+// デバッグログ関数（開発環境でのみ出力）
+const debugLog = (...args) => {
+  if (isDevelopment) {
+    debugLog(...args)
+  }
+}
+
+// エラーログ関数（常に出力）
+const errorLog = (...args) => {
+  errorLog(...args)
+}
 
 export const useMonthlyStore = defineStore('monthly', {
   state: () => ({
@@ -91,7 +107,7 @@ export const useMonthlyStore = defineStore('monthly', {
         this.loading = true
         this.error = null
         try {
-          console.log('🔧 新API使用: GET /api/monthly/current')
+          debugLog('🔧 新API使用: GET /api/monthly/current')
           const res = await axios.get('/api/monthly/current')
           if (!res.data || res.data.success !== true) {
             throw new Error(res.data?.error || '新APIの応答が不正です')
@@ -125,9 +141,9 @@ export const useMonthlyStore = defineStore('monthly', {
               }
             }
           })
-          console.log('✅ 月次データ取得完了（新API）')
+          debugLog('✅ 月次データ取得完了（新API）')
         } catch (err) {
-          console.warn('⚠️ 新APIが失敗、旧APIにフォールバック')
+          debugLog('⚠️ 新APIが失敗、旧APIにフォールバック')
           this.error = err.response?.data?.error || err.message
           await this._fetchCurrentMonthlyDataLegacy()
         } finally {
@@ -151,9 +167,9 @@ export const useMonthlyStore = defineStore('monthly', {
         for (const m of months) {
           await this.fetchStats(y, m + 1)
         }
-        console.log('✅ 月次データ取得完了（旧API）')
+        debugLog('✅ 月次データ取得完了（旧API）')
       } catch (e) {
-        console.error('❌ 旧API取得失敗:', e)
+        errorLog('❌ 旧API取得失敗:', e)
         this.error = e.response?.data?.error || e.message
       }
     },
@@ -164,7 +180,7 @@ export const useMonthlyStore = defineStore('monthly', {
     async fetchTargets(year, months, forceRefresh = false) {
       // ✅ Phase 1: 既に取得中なら待つ（重複防止）
       if (this.fetchingTargets) {
-        console.log('🔧 月次目標取得: 既に実行中のためスキップ')
+        debugLog('🔧 月次目標取得: 既に実行中のためスキップ')
         return
       }
       
@@ -174,7 +190,7 @@ export const useMonthlyStore = defineStore('monthly', {
       if (!forceRefresh && this.lastFetchTime.targets && 
           now - this.lastFetchTime.targets < this.cacheDuration &&
           months.every(m => this.targets[`${year}-${String(m).padStart(2, '0')}-01`])) {
-        console.log('🔧 月次目標取得: キャッシュを使用', { cacheKey })
+        debugLog('🔧 月次目標取得: キャッシュを使用', { cacheKey })
         return
       }
       
@@ -183,7 +199,7 @@ export const useMonthlyStore = defineStore('monthly', {
       this.error = null
       
       try {
-        console.log('🔧 月次目標取得開始:', { year, months })
+        debugLog('🔧 月次目標取得開始:', { year, months })
         
         const response = await axios.get('/api/monthly-targets/', {
           params: { 
@@ -201,7 +217,7 @@ export const useMonthlyStore = defineStore('monthly', {
           // ✅ Phase 1: 取得時刻を記録
           this.lastFetchTime.targets = Date.now()
           
-          console.log('🔧 月次目標取得完了:', {
+          debugLog('🔧 月次目標取得完了:', {
             targets: this.targets,
             cached: true
           })
@@ -210,15 +226,15 @@ export const useMonthlyStore = defineStore('monthly', {
         }
       } catch (error) {
         this.error = error.response?.data?.error || error.message
-        console.error('❌ 月次目標取得エラー:', error)
+        errorLog('❌ 月次目標取得エラー:', error)
         // 修正: エラーの詳細をログ出力
         if (error.response) {
-          console.error('APIレスポンス:', error.response.data)
-          console.error('HTTPステータス:', error.response.status)
+          errorLog('APIレスポンス:', error.response.data)
+          errorLog('HTTPステータス:', error.response.status)
         } else if (error.request) {
-          console.error('リクエストエラー:', error.request)
+          errorLog('リクエストエラー:', error.request)
         } else {
-          console.error('設定エラー:', error.message)
+          errorLog('設定エラー:', error.message)
         }
       } finally {
         this.loading = false
@@ -235,7 +251,7 @@ export const useMonthlyStore = defineStore('monthly', {
       
       // 🔧 修正: 強制再取得の場合は重複防止を完全にスキップ
       if (this.fetchingStats && !forceRefresh) {
-        console.log('🔧 月次統計取得: 既に実行中のためスキップ')
+        debugLog('🔧 月次統計取得: 既に実行中のためスキップ')
         return
       }
       
@@ -244,13 +260,13 @@ export const useMonthlyStore = defineStore('monthly', {
       if (!forceRefresh && this.lastFetchTime.stats && 
           now - this.lastFetchTime.stats < this.cacheDuration &&
           this.stats[monthKey]) {
-        console.log('🔧 月次統計取得: キャッシュを使用', { monthKey })
+        debugLog('🔧 月次統計取得: キャッシュを使用', { monthKey })
         return
       }
       
       // 🔧 修正: 強制再取得の場合は既存の実行を強制終了
       if (forceRefresh && this.fetchingStats) {
-        console.log('🔧 月次統計取得: 強制再取得のため既存実行を終了')
+        debugLog('🔧 月次統計取得: 強制再取得のため既存実行を終了')
         this.fetchingStats = false
       }
       
@@ -258,7 +274,7 @@ export const useMonthlyStore = defineStore('monthly', {
       if (forceRefresh) {
         delete this.stats[monthKey]
         this.lastFetchTime.stats = null
-        console.log('🔧 月次統計取得: 強制再取得のためキャッシュをクリア', { monthKey })
+        debugLog('🔧 月次統計取得: 強制再取得のためキャッシュをクリア', { monthKey })
       }
       
       this.fetchingStats = true
@@ -266,7 +282,7 @@ export const useMonthlyStore = defineStore('monthly', {
       this.error = null
       
       try {
-        console.log('🔧 月次統計取得開始:', { year, month })
+        debugLog('🔧 月次統計取得開始:', { year, month })
         
         const response = await axios.get(`/api/monthly-stats/${year}/${month}`)
         
@@ -278,7 +294,7 @@ export const useMonthlyStore = defineStore('monthly', {
           // ✅ Phase 1: 取得時刻を記録
           this.lastFetchTime.stats = Date.now()
           
-          console.log('🔧 月次統計取得完了:', {
+          debugLog('🔧 月次統計取得完了:', {
             monthKey,
             stats: this.stats[monthKey],
             cached: true
@@ -288,15 +304,15 @@ export const useMonthlyStore = defineStore('monthly', {
         }
       } catch (error) {
         this.error = error.response?.data?.error || error.message
-        console.error('❌ 月次統計取得エラー:', error)
+        errorLog('❌ 月次統計取得エラー:', error)
         // 修正: エラーの詳細をログ出力
         if (error.response) {
-          console.error('APIレスポンス:', error.response.data)
-          console.error('HTTPステータス:', error.response.status)
+          errorLog('APIレスポンス:', error.response.data)
+          errorLog('HTTPステータス:', error.response.status)
         } else if (error.request) {
-          console.error('リクエストエラー:', error.request)
+          errorLog('リクエストエラー:', error.request)
         } else {
-          console.error('設定エラー:', error.message)
+          errorLog('設定エラー:', error.message)
         }
       } finally {
         this.loading = false
@@ -323,7 +339,7 @@ export const useMonthlyStore = defineStore('monthly', {
             total_income: data.total_income ?? 0,
             recent_months: data.recent_months ?? []
           }
-          console.log('✅ 概要統計取得完了:', {
+          debugLog('✅ 概要統計取得完了:', {
             overview: this.overview,
             hasTotalProjects: 'total_projects' in this.overview,
             hasTotalIncome: 'total_income' in this.overview
@@ -336,15 +352,15 @@ export const useMonthlyStore = defineStore('monthly', {
         // Phase 3修正: エラー時もoverviewをnullに設定して、undefinedを防ぐ
         this.overview = null
         this.error = error.response?.data?.error || error.message
-        console.error('❌ 概要統計取得エラー:', error)
+        errorLog('❌ 概要統計取得エラー:', error)
         // 修正: エラーの詳細をログ出力
         if (error.response) {
-          console.error('APIレスポンス:', error.response.data)
-          console.error('HTTPステータス:', error.response.status)
+          errorLog('APIレスポンス:', error.response.data)
+          errorLog('HTTPステータス:', error.response.status)
         } else if (error.request) {
-          console.error('リクエストエラー:', error.request)
+          errorLog('リクエストエラー:', error.request)
         } else {
-          console.error('設定エラー:', error.message)
+          errorLog('設定エラー:', error.message)
         }
         // Phase 3修正: エラー時はデフォルト値を返す（Null安全性確保）
         return {
@@ -363,7 +379,7 @@ export const useMonthlyStore = defineStore('monthly', {
      */
     async saveTarget(targetMonth, data) {
       try {
-        console.log('🔧 月次目標保存開始:', { targetMonth, data })
+        debugLog('🔧 月次目標保存開始:', { targetMonth, data })
         
         const response = await axios.post('/api/monthly-targets/', {
           target_month: targetMonth,
@@ -381,21 +397,21 @@ export const useMonthlyStore = defineStore('monthly', {
           this.clearMonthCache(parseInt(year), parseInt(month))
           
           // 🔧 修正: 目標データと統計データを順次強制再取得（完全確実化）
-          console.log('🔧 目標保存後: データ再取得を開始')
+          debugLog('🔧 目標保存後: データ再取得を開始')
           
           // 1. 目標データの強制再取得
           await this.fetchTargets(parseInt(year), [parseInt(month)], true)
-          console.log('🔧 目標保存後: 目標データ再取得完了')
+          debugLog('🔧 目標保存後: 目標データ再取得完了')
           
           // 2. 統計データの強制再取得（確実化）
           await this.fetchStats(parseInt(year), parseInt(month), true)
-          console.log('🔧 目標保存後: 統計データ再取得完了')
+          debugLog('🔧 目標保存後: 統計データ再取得完了')
           
           // 3. データ同期の確実化（追加確認）
           await new Promise(resolve => setTimeout(resolve, 100))
-          console.log('🔧 目標保存後: データ同期確実化完了')
+          debugLog('🔧 目標保存後: データ同期確実化完了')
           
-          console.log('🔧 月次目標保存完了:', {
+          debugLog('🔧 月次目標保存完了:', {
             targetMonth,
             monthKey,
             targets: this.targets,
@@ -408,15 +424,15 @@ export const useMonthlyStore = defineStore('monthly', {
         }
       } catch (error) {
         const errorMessage = error.response?.data?.error || error.message
-        console.error('❌ 月次目標保存エラー:', error)
+        errorLog('❌ 月次目標保存エラー:', error)
         // 修正: エラーの詳細をログ出力
         if (error.response) {
-          console.error('APIレスポンス:', error.response.data)
-          console.error('HTTPステータス:', error.response.status)
+          errorLog('APIレスポンス:', error.response.data)
+          errorLog('HTTPステータス:', error.response.status)
         } else if (error.request) {
-          console.error('リクエストエラー:', error.request)
+          errorLog('リクエストエラー:', error.request)
         } else {
-          console.error('設定エラー:', error.message)
+          errorLog('設定エラー:', error.message)
         }
         return { success: false, error: errorMessage }
       }
@@ -437,7 +453,7 @@ export const useMonthlyStore = defineStore('monthly', {
         }
       } catch (error) {
         const errorMessage = error.response?.data?.error || error.message
-        console.error('目標削除エラー:', error)
+        errorLog('目標削除エラー:', error)
         return { success: false, error: errorMessage }
       }
     },
@@ -465,7 +481,7 @@ export const useMonthlyStore = defineStore('monthly', {
       this.lastFetchTime.targets = null
       this.lastFetchTime.stats = null
       this.forceRefresh = false
-      console.log('🔧 キャッシュをクリアしました')
+      debugLog('🔧 キャッシュをクリアしました')
     },
     
     /**
@@ -482,7 +498,7 @@ export const useMonthlyStore = defineStore('monthly', {
       this.fetchingTargets = false
       this.lastFetchTime.stats = null
       // 目標は保持するため targets 側のタイムスタンプは必要に応じて維持
-      console.log('🔧 指定月のキャッシュをクリアしました:', { 
+      debugLog('🔧 指定月のキャッシュをクリアしました:', { 
         monthKey, 
         statsCleared: !this.stats[monthKey],
         targetsCleared: false,
