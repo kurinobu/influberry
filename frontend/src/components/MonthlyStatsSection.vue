@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!monthlyStore.loading" class="monthly-stats-section berry-card rounded-b-lg p-6">
+  <!-- Step 2 Phase 3修正: データが存在する場合は、loadingがtrueでも表示 -->
+  <div v-if="stats || overviewData" class="monthly-stats-section berry-card rounded-b-lg p-6">
     <!-- 概要タブ -->
     <div v-if="currentTab === 'overview'" class="overview-section">
       <div class="flex items-center mb-6">
@@ -273,15 +274,17 @@ const loadStatsOnly = async () => {
 }
 
 // Phase 2: データ取得ロジック最適化（リスク対策: キャッシュの有効性チェック）
+// Step 2 Phase 3修正: キャッシュがある場合はloadingをtrueにしない
 const loadData = async () => {
   if (isLoadingTargets.value || isLoadingStats.value) return
   
   try {
     if (props.currentTab === 'overview') {
-      // Phase 2: キャッシュを確認
+      // Step 2 Phase 3修正: キャッシュがある場合は、loadingをtrueにしない
       if (monthlyStore.overview) {
         overviewData.value = monthlyStore.overview
-        return
+        debugLog('🔧 キャッシュから概要データを取得 - loadingをtrueにしない')
+        return // loadingをtrueにしない
       }
       // overviewタブ: 既存の方法を維持
       const response = await monthlyStore.fetchOverview()
@@ -292,12 +295,13 @@ const loadData = async () => {
         recent_months: []
       }
     } else if (monthlyStore.USE_NEW_API) {
-      // Phase 2: 新API使用時 - キャッシュを確認
+      // Step 2 Phase 3修正: 新API使用時 - キャッシュがある場合は、loadingをtrueにしない
       const monthKey = props.currentTab + '-01'
       const cachedStats = monthlyStore.getStatsByMonth(monthKey)
       if (cachedStats) {
         stats.value = cachedStats
-        return
+        debugLog('🔧 キャッシュから統計データを取得 - loadingをtrueにしない:', { monthKey })
+        return // loadingをtrueにしない
       }
       
       // データがない場合のみAPI呼び出し（フォールバック）
@@ -369,12 +373,22 @@ const debounce = (fn, delay) => {
   }
 }
 
-// Phase 2: watchの最適化とdebounce実装（リスク対策: キャッシュがある場合は即座に表示）
+// Step 2 Phase 3修正: watchの最適化とdebounce実装（リスク対策: lastProcessedTabで重複処理防止）
+let lastProcessedTab = null // 最後に処理したタブを記録
+
 watch(() => props.currentTab, (newTab) => {
-  // リスク対策: データが既に取得済みの場合、即座にキャッシュを使用（debounceをバイパス）
+  // Step 2 Phase 3修正: 同じタブが既に処理済みの場合はスキップ
+  if (lastProcessedTab === newTab) {
+    debugLog('🔧 同じタブが既に処理済みのためスキップ:', newTab)
+    return
+  }
+  
+  // リスク対策: キャッシュがある場合は即座に表示（debounceをバイパス）
   if (newTab === 'overview') {
     if (monthlyStore.overview) {
       overviewData.value = monthlyStore.overview
+      lastProcessedTab = newTab
+      debugLog('🔧 キャッシュから概要データを即座に表示:', newTab)
       return // debounceをバイパスして即座に表示
     }
   } else {
@@ -382,16 +396,24 @@ watch(() => props.currentTab, (newTab) => {
     const cachedStats = monthlyStore.getStatsByMonth(monthKey)
     if (cachedStats) {
       stats.value = cachedStats
+      lastProcessedTab = newTab
+      debugLog('🔧 キャッシュから統計データを即座に表示:', { newTab, monthKey })
       return // debounceをバイパスして即座に表示
     }
   }
   
   // データが存在しない場合のみdebounce後にAPI呼び出し
-  const debouncedLoadData = debounce(async () => {
-    await loadData()
-  }, 50)
+  // 既存のタイマーをクリア
+  if (debounceTimer) {
+    clearTimeout(debounceTimer)
+  }
   
-  debouncedLoadData()
+  lastProcessedTab = newTab
+  debugLog('🔧 データ未取得のため、debounce後にAPI呼び出し:', newTab)
+  debounceTimer = setTimeout(async () => {
+    await loadData()
+    debounceTimer = null
+  }, 50)
 })
 
 // Phase 3: 不要なwatchを削除（根本解決）
@@ -470,7 +492,11 @@ watch(
 
 // Phase 3: 初期化時のデータ取得を最適化（統一・同一化 > 特殊独自）
 // 新API (`/api/monthly/current`) の使用を徹底し、初期化時の重複呼び出しを削減
+// Step 2 Phase 3修正: lastProcessedTabをリセットして初期化時の重複処理を防止
 onMounted(async () => {
+  // Step 2 Phase 3修正: lastProcessedTabをリセット
+  lastProcessedTab = null
+  
   // Phase 3: 新API使用時は初期化時に1回のみ取得（重複呼び出しを削減）
   if (monthlyStore.USE_NEW_API) {
     // fetchCurrentMonthlyData()は既にストアのloadingを管理

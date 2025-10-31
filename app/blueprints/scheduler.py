@@ -107,7 +107,16 @@ def get_rotation_status():
         
         # 月次切り替え状態の判定
         rotation_completed = snapshot is not None
-        last_rotation_date = snapshot.created_at if snapshot else None
+        
+        # Step 2 Phase 4修正: 実際の月次切り替え日時を計算
+        # スナップショットが存在する場合は、そのスナップショットの月の月初日（実際の月次切り替え日時）を使用
+        if snapshot:
+            # スナップショットの月の月初日（実際の月次切り替え日時）を使用
+            snapshot_date = snapshot.snapshot_month  # date型（年-月-1）
+            last_rotation_date = datetime.combine(snapshot_date, datetime.min.time())
+        else:
+            # スナップショットが存在しない場合は、現在月の月初日を計算
+            last_rotation_date = datetime(current_year, current_month, 1)
         
         # 修正: フロントエンドが期待する形式に合わせる
         return jsonify({

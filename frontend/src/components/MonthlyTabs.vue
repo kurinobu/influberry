@@ -36,16 +36,17 @@ import { useMonthlyRotationStore } from '../stores/monthlyRotation.js'
 // Step 2 Phase 1: 環境変数による条件付きログ出力
 const isDevelopment = import.meta.env.DEV
 
+// Step 2 Phase 4-2修正: 無限再帰エラーの根本解決
 // デバッグログ関数（開発環境でのみ出力）
 const debugLog = (...args) => {
   if (isDevelopment) {
-    debugLog(...args)
+    console.log(...args)
   }
 }
 
 // エラーログ関数（常に出力）
 const errorLog = (...args) => {
-  errorLog(...args)
+  console.error(...args)
 }
 
 const props = defineProps({
@@ -68,34 +69,51 @@ const rotationStore = useMonthlyRotationStore()
 // 強制的なタブ再生成のためのカウンター
 const forceRegeneration = ref(0)
 
-// 動的タブ生成ロジック
+// Step 2 Phase 4修正: 動的タブ生成ロジック（現在日時チェック追加）
 // 修正: 月次切り替え状態に基づく適切なタブ生成
 const generateDynamicTabs = () => {
   // 修正: 月次切り替え状態に基づく適切な日時計算
   const rotationState = rotationStore.rotationState
   const lastRotationCheck = rotationStore.lastRotationCheck
   
+  // Step 2 Phase 4修正: 現在日時を取得
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1
+  
   debugLog('🔧 月次切り替え状態に基づくタブ生成', {
     rotationState,
     lastRotationCheck,
+    currentYear,
+    currentMonth,
     forceRegeneration: forceRegeneration.value
   })
   
-  // 修正: 月次切り替え状態に基づく適切なタブ生成
+  // Step 2 Phase 4修正: 月次切り替え状態に基づく適切なタブ生成
   if (rotationState === 'completed' && lastRotationCheck) {
-    debugLog('🎉 月次切り替え完了 - 新しい月のタブを生成')
-    
-    // 修正: 月次切り替え日時を基準にタブ生成
     const baseDate = new Date(lastRotationCheck)
-    const currentYear = baseDate.getFullYear()
-    const currentMonth = baseDate.getMonth() + 1
+    const lastYear = baseDate.getFullYear()
+    const lastMonth = baseDate.getMonth() + 1
     
-    debugLog('🔧 月次切り替え日時を基準にタブ生成:', {
+    // Step 2 Phase 4修正: 現在日時とlastRotationCheckの不一致をチェック
+    // 現在月とlastRotationCheckの月が異なる場合、現在月を優先
+    if (currentYear !== lastYear || currentMonth !== lastMonth) {
+      debugLog('⚠️ 現在日時とlastRotationCheckが不一致 - 現在月を優先してタブ生成', {
+        currentYear,
+        currentMonth,
+        lastYear,
+        lastMonth,
+        lastRotationCheck
+      })
+      return generateNormalTabs(currentYear, currentMonth)
+    }
+    
+    // 一致する場合はlastRotationCheckを基準にタブ生成
+    debugLog('🎉 月次切り替え完了 - lastRotationCheckを基準にタブ生成', {
       baseDate,
-      currentYear,
-      currentMonth
+      lastYear,
+      lastMonth
     })
-    
     return generateTabsForNewMonth(baseDate, rotationState, lastRotationCheck)
   }
   
@@ -104,9 +122,9 @@ const generateDynamicTabs = () => {
     return generateTabsForRunningRotation()
   }
   
-  // フォールバック: 現在の日時を使用
+  // Step 2 Phase 4修正: フォールバック - 現在の日時を使用
   debugLog('📅 通常のタブ生成（フォールバック）')
-  return generateNormalTabs(new Date().getFullYear(), new Date().getMonth() + 1)
+  return generateNormalTabs(currentYear, currentMonth)
 }
 
 // 新しい月のタブ生成（月次切り替え完了時）

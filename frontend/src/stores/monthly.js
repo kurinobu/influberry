@@ -17,16 +17,17 @@ axios.defaults.headers.common['Content-Type'] = 'application/json'
 // Step 2 Phase 1: 環境変数による条件付きログ出力
 const isDevelopment = import.meta.env.DEV
 
+// Step 2 Phase 4-2修正: 無限再帰エラーの根本解決
 // デバッグログ関数（開発環境でのみ出力）
 const debugLog = (...args) => {
   if (isDevelopment) {
-    debugLog(...args)
+    console.log(...args)
   }
 }
 
 // エラーログ関数（常に出力）
 const errorLog = (...args) => {
-  errorLog(...args)
+  console.error(...args)
 }
 
 export const useMonthlyStore = defineStore('monthly', {
