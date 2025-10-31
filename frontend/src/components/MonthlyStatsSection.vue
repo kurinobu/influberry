@@ -275,8 +275,12 @@ const loadStatsOnly = async () => {
 
 // Phase 2: データ取得ロジック最適化（リスク対策: キャッシュの有効性チェック）
 // Step 2 Phase 3修正: キャッシュがある場合はloadingをtrueにしない
+// Step 2 Phase 4-3修正: fetchingCurrentMonthlyDataフラグもチェック
 const loadData = async () => {
-  if (isLoadingTargets.value || isLoadingStats.value) return
+  if (isLoadingTargets.value || isLoadingStats.value || monthlyStore.fetchingCurrentMonthlyData) {
+    debugLog('🔧 データ取得中または既に実行中のためスキップ')
+    return
+  }
   
   try {
     if (props.currentTab === 'overview') {
@@ -493,20 +497,14 @@ watch(
 // Phase 3: 初期化時のデータ取得を最適化（統一・同一化 > 特殊独自）
 // 新API (`/api/monthly/current`) の使用を徹底し、初期化時の重複呼び出しを削減
 // Step 2 Phase 3修正: lastProcessedTabをリセットして初期化時の重複処理を防止
+// Step 2 Phase 4-3修正: 初期化時はloadData()のみを呼び出し、fetchCurrentMonthlyData()の重複呼び出しを防止
 onMounted(async () => {
   // Step 2 Phase 3修正: lastProcessedTabをリセット
   lastProcessedTab = null
   
-  // Phase 3: 新API使用時は初期化時に1回のみ取得（重複呼び出しを削減）
-  if (monthlyStore.USE_NEW_API) {
-    // fetchCurrentMonthlyData()は既にストアのloadingを管理
-    // loadData()でデータが取得済みか確認し、必要時のみAPI呼び出し
-    if (!monthlyStore.stats || Object.keys(monthlyStore.stats).length === 0) {
-      await monthlyStore.fetchCurrentMonthlyData()
-    }
-  }
-  // loadData()は既存データから取得を試み、データがない場合のみAPI呼び出し（フォールバック）
-  loadData()
+  // Step 2 Phase 4-3修正: 初期化時はloadData()のみを呼び出し、fetchCurrentMonthlyData()の重複呼び出しを防止
+  // loadData()内でキャッシュチェックとfetchCurrentMonthlyData()の呼び出しが統合管理される
+  await loadData()
 })
 </script>
 

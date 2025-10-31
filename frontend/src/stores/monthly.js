@@ -56,6 +56,7 @@ export const useMonthlyStore = defineStore('monthly', {
     // ✅ Phase 1: 重複呼び出し防止用のフラグ
     fetchingTargets: false,        // 目標取得中フラグ
     fetchingStats: false,          // 統計取得中フラグ
+    fetchingCurrentMonthlyData: false,  // Step 2 Phase 4-3修正: 月次データ取得中フラグ（重複呼び出し防止）
     
     // 🔧 修正: 強制再取得フラグ
     forceRefresh: false,           // 強制再取得フラグ
@@ -104,7 +105,14 @@ export const useMonthlyStore = defineStore('monthly', {
      * 失敗時は旧APIにフォールバック
      */
     async fetchCurrentMonthlyData() {
+      // Step 2 Phase 4-3修正: 既に取得中なら待つ（重複防止）
+      if (this.fetchingCurrentMonthlyData) {
+        debugLog('🔧 月次データ取得: 既に実行中のためスキップ')
+        return
+      }
+      
       if (this.USE_NEW_API) {
+        this.fetchingCurrentMonthlyData = true  // Step 2 Phase 4-3修正: フラグを設定
         this.loading = true
         this.error = null
         try {
@@ -149,6 +157,7 @@ export const useMonthlyStore = defineStore('monthly', {
           await this._fetchCurrentMonthlyDataLegacy()
         } finally {
           this.loading = false
+          this.fetchingCurrentMonthlyData = false  // Step 2 Phase 4-3修正: フラグを解除
         }
       } else {
         // 旧API（後方互換）
