@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!loading" class="monthly-stats-section berry-card rounded-b-lg p-6">
+  <div v-if="!monthlyStore.loading" class="monthly-stats-section berry-card rounded-b-lg p-6">
     <!-- 概要タブ -->
     <div v-if="currentTab === 'overview'" class="overview-section">
       <div class="flex items-center mb-6">
@@ -85,7 +85,7 @@
   </div>
   
   <!-- スケルトンローディング -->
-  <div v-else class="monthly-stats-section berry-card rounded-b-lg p-6">
+  <div v-else-if="monthlyStore.loading" class="monthly-stats-section berry-card rounded-b-lg p-6">
     <!-- 概要タブのスケルトン -->
     <div v-if="currentTab === 'overview'" class="overview-section">
       <div class="flex items-center mb-6">
@@ -185,7 +185,8 @@ const invoicesStore = useInvoicesStore()
 const rotationStore = useMonthlyRotationStore()
 const authStore = useAuthStore()
 
-const loading = ref(false)
+// Phase 3: ローディング状態管理の統一（シンプル構造 > 複雑構造）
+// ローカルloadingを削除し、ストアloadingのみを使用
 const stats = ref(null)
 const overviewData = ref(null)
 
@@ -222,12 +223,11 @@ const isCurrentMonth = computed(() => {
   return parseInt(year) === currentYear && parseInt(month) === currentMonth
 })
 
-// 統計データのみ取得（無限ループ防止用）
+// Phase 3: 統計データのみ取得（無限ループ防止用）- ローディング状態管理を統一
 const loadStatsOnly = async () => {
   if (props.currentTab === 'overview' || isLoadingStats.value) return
   
   isLoadingStats.value = true
-  loading.value = true
   
   try {
     const [year, month] = props.currentTab.split('-')
@@ -255,15 +255,13 @@ const loadStatsOnly = async () => {
   } catch (error) {
     console.error('統計データ読み込みエラー:', error)
   } finally {
-    loading.value = false
     isLoadingStats.value = false
   }
 }
 
+// Phase 3: データ取得ロジック - ローディング状態管理を統一（ストアloadingのみ使用）
 const loadData = async () => {
   if (isLoadingTargets.value || isLoadingStats.value) return
-  
-  loading.value = true
   
   try {
     if (props.currentTab === 'overview') {
@@ -317,7 +315,7 @@ const loadData = async () => {
   } catch (error) {
     console.error('データ読み込みエラー:', error)
   } finally {
-    loading.value = false
+    // Phase 3: ローディング状態管理を統一（ストアloadingのみ使用）
     isLoadingTargets.value = false
     isLoadingStats.value = false
   }
@@ -337,21 +335,11 @@ watch(() => props.currentTab, () => {
   loadData()
 })
 
-// プロジェクトデータの変更を監視して月次統計を自動更新
-watch(() => projectsStore.projects, () => {
-  // プロジェクトデータが更新されたら月次統計も再取得
-  if (props.currentTab !== 'overview') {
-    loadData()
-  }
-}, { deep: true })
-
-// 請求書データの変更を監視して月次統計を自動更新
-watch(() => invoicesStore.invoices, () => {
-  // 請求書データが更新されたら月次統計も再取得
-  if (props.currentTab !== 'overview') {
-    loadData()
-  }
-}, { deep: true })
+// Phase 3: 不要なwatchを削除（根本解決）
+// 月次統計は履歴ベースで計算されるため、プロジェクト・請求書の変更時に再取得する必要はない
+// ステータス変更時にバックエンドで自動更新される（monthly_summary_updater.py）
+// 削除: watch(() => projectsStore.projects) - 不要な再取得を防止
+// 削除: watch(() => invoicesStore.invoices) - 不要な再取得を防止
 
 // 月次目標データ（当該月キー）の変更を監視し、統計を強制再取得
 watch(
@@ -384,12 +372,18 @@ watch(
 
 // 月次切り替え状態の監視（新規追加）
 
-// Phase 2: 初期化時に3ヶ月分を一括取得（新API使用時）
+// Phase 3: 初期化時のデータ取得を最適化（統一・同一化 > 特殊独自）
+// 新API (`/api/monthly/current`) の使用を徹底し、初期化時の重複呼び出しを削減
 onMounted(async () => {
-  // 新API使用時: 初期化時に3ヶ月分を一括取得
+  // Phase 3: 新API使用時は初期化時に1回のみ取得（重複呼び出しを削減）
   if (monthlyStore.USE_NEW_API) {
-    await monthlyStore.fetchCurrentMonthlyData()
+    // fetchCurrentMonthlyData()は既にストアのloadingを管理
+    // loadData()でデータが取得済みか確認し、必要時のみAPI呼び出し
+    if (!monthlyStore.stats || Object.keys(monthlyStore.stats).length === 0) {
+      await monthlyStore.fetchCurrentMonthlyData()
+    }
   }
+  // loadData()は既存データから取得を試み、データがない場合のみAPI呼び出し（フォールバック）
   loadData()
 })
 </script>
