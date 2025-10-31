@@ -60,7 +60,7 @@
         <ProgressBar 
           label="獲得案件"
           :current="stats?.actual.acquired_projects || 0"
-          :target="stats?.target.projects || 0"
+          :target="stats?.target?.projects || 0"
           unit="件"
           icon="box"
         />
@@ -68,7 +68,7 @@
         <ProgressBar 
           label="完了案件"
           :current="stats?.actual.completed_projects || 0"
-          :target="stats?.target.projects || 0"
+          :target="stats?.target?.projects || 0"
           unit="件"
           icon="check"
         />
@@ -76,7 +76,7 @@
         <ProgressBar 
           label="請求額"
           :current="stats?.actual.sent_invoices_amount || 0"
-          :target="stats?.target.income || 0"
+          :target="stats?.target?.income || 0"
           unit="円"
           icon="currency"
         />
@@ -267,7 +267,12 @@ const loadData = async () => {
     if (props.currentTab === 'overview') {
       // overviewタブ: 既存の方法を維持
       const response = await monthlyStore.fetchOverview()
-      overviewData.value = response
+      // Step 1-3修正: undefinedの場合のデフォルト値設定
+      overviewData.value = response || {
+        total_projects: 0,
+        total_income: 0,
+        recent_months: []
+      }
     } else if (monthlyStore.USE_NEW_API) {
       // Phase 2: 新API使用時 - 既存データから取得（3ヶ月分は初期化時に取得済み）
       const monthKey = props.currentTab + '-01'

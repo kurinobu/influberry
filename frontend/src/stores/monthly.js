@@ -108,8 +108,13 @@ export const useMonthlyStore = defineStore('monthly', {
               target_income: t.income ?? null
             }
             // 統計: そのまま保持（既存取得と併存可能）
+            // Step 1-2修正: targetプロパティを追加してデータ構造を統一
             this.stats[monthKey] = {
               month: monthKey,
+              target: {
+                projects: t.projects ?? null,
+                income: t.income ?? null
+              },
               actual: {
                 acquired_projects: s.acquired_projects ?? 0,
                 completed_projects: s.completed_projects ?? 0,
