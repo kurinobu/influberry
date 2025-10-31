@@ -301,6 +301,7 @@ export const useMonthlyStore = defineStore('monthly', {
     
     /**
      * 概要統計取得
+     * Phase 3修正: エラーハンドリング強化とNull安全性確保
      */
     async fetchOverview() {
       this.loading = true
@@ -309,16 +310,43 @@ export const useMonthlyStore = defineStore('monthly', {
       try {
         const response = await axios.get('/api/monthly-stats/overview')
         
-        if (response.data.success) {
-          this.overview = response.data.data
-          return response.data.data
+        if (response.data && response.data.success) {
+          // Phase 3修正: データ構造の確認とデフォルト値の設定
+          const data = response.data.data || {}
+          this.overview = {
+            total_projects: data.total_projects ?? 0,
+            total_income: data.total_income ?? 0,
+            recent_months: data.recent_months ?? []
+          }
+          console.log('✅ 概要統計取得完了:', {
+            overview: this.overview,
+            hasTotalProjects: 'total_projects' in this.overview,
+            hasTotalIncome: 'total_income' in this.overview
+          })
+          return this.overview
         } else {
-          throw new Error(response.data.error || '概要統計取得に失敗しました')
+          throw new Error(response.data?.error || '概要統計取得に失敗しました')
         }
       } catch (error) {
+        // Phase 3修正: エラー時もoverviewをnullに設定して、undefinedを防ぐ
+        this.overview = null
         this.error = error.response?.data?.error || error.message
-        console.error('概要統計取得エラー:', error)
-        throw error
+        console.error('❌ 概要統計取得エラー:', error)
+        // 修正: エラーの詳細をログ出力
+        if (error.response) {
+          console.error('APIレスポンス:', error.response.data)
+          console.error('HTTPステータス:', error.response.status)
+        } else if (error.request) {
+          console.error('リクエストエラー:', error.request)
+        } else {
+          console.error('設定エラー:', error.message)
+        }
+        // Phase 3修正: エラー時はデフォルト値を返す（Null安全性確保）
+        return {
+          total_projects: 0,
+          total_income: 0,
+          recent_months: []
+        }
       } finally {
         this.loading = false
       }

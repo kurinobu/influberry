@@ -1073,7 +1073,21 @@ h1.text-2xl.font-bold {
 }
 
 <style scoped>
-/* === Phase 4 Z世代向けカードベースUI === */
+/* === Phase 4 berry化CSS - リーガルページ成功パターン移植 === */
+.berry-header {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-bottom: 2px solid #f9a8d4;
+  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
+}
+
+/* ヘッダータイトル強制カラフル表示 */
+h1.text-2xl.font-bold {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-weight: 700 !important;
+}
 .berry-card {
   background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
   border-radius: 1rem;
