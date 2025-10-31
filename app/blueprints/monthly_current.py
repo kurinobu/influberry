@@ -10,7 +10,7 @@ Phase 1: 正式版として登録
 """
 
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 from sqlalchemy import extract, func
 from app import db
@@ -148,10 +148,11 @@ def calculate_monthly_stats(user_id, year, month):
 
 
 @monthly_current_bp.route('/api/monthly/current', methods=['GET'])
-@jwt_required()
+@login_required
 def get_current_monthly_data():
     """
     現在の月次データ取得（今月+先月+次月）
+    計画書v2.0準拠: 認証方式を既存APIと統一（Flask-Login使用）
     
     レスポンス形式:
     {
@@ -168,7 +169,7 @@ def get_current_monthly_data():
     }
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = current_user.id
         months = get_three_months()
         
         result = {

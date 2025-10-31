@@ -267,12 +267,32 @@ const loadData = async () => {
   
   try {
     if (props.currentTab === 'overview') {
+      // overviewタブ: 既存の方法を維持
       const response = await monthlyStore.fetchOverview()
       overviewData.value = response
+    } else if (monthlyStore.USE_NEW_API) {
+      // Phase 2: 新API使用時 - 既存データから取得（3ヶ月分は初期化時に取得済み）
+      const monthKey = props.currentTab + '-01'
+      stats.value = monthlyStore.getStatsByMonth(monthKey)
+      
+      // データがない場合のみAPI呼び出し（フォールバック）
+      if (!stats.value) {
+        console.log('🔧 データ未取得のため、fetchCurrentMonthlyData()を呼び出し')
+        await monthlyStore.fetchCurrentMonthlyData()
+        stats.value = monthlyStore.getStatsByMonth(monthKey)
+      }
+      
+      // デバッグログ追加
+      console.log('月次統計データ（新API）:', {
+        tab: props.currentTab,
+        monthKey,
+        stats: stats.value,
+        targets: monthlyStore.targets
+      })
     } else {
+      // 旧API使用時: 既存の方法を維持（後方互換性）
       const [year, month] = props.currentTab.split('-')
       
-      // 目標データと統計データを同時に取得
       isLoadingTargets.value = true
       await monthlyStore.fetchTargets(parseInt(year), [parseInt(month)])
       isLoadingTargets.value = false
@@ -286,7 +306,7 @@ const loadData = async () => {
       stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
       
       // デバッグログ追加
-      console.log('月次統計データ:', {
+      console.log('月次統計データ（旧API）:', {
         tab: props.currentTab,
         year: parseInt(year),
         month: parseInt(month),
@@ -364,7 +384,12 @@ watch(
 
 // 月次切り替え状態の監視（新規追加）
 
-onMounted(() => {
+// Phase 2: 初期化時に3ヶ月分を一括取得（新API使用時）
+onMounted(async () => {
+  // 新API使用時: 初期化時に3ヶ月分を一括取得
+  if (monthlyStore.USE_NEW_API) {
+    await monthlyStore.fetchCurrentMonthlyData()
+  }
   loadData()
 })
 </script>

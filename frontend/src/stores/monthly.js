@@ -16,7 +16,8 @@ axios.defaults.headers.common['Content-Type'] = 'application/json'
 export const useMonthlyStore = defineStore('monthly', {
   state: () => ({
     // 段階的切替フラグ（stagingでON推奨）
-    USE_NEW_API: false,
+    // Phase 2: 新APIを有効化（計画書v2.0準拠）
+    USE_NEW_API: true,
     // 月次目標データ
     targets: {},           // { '2025-10-01': { projects: 5, income: 200000 } }
     
