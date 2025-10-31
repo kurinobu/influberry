@@ -1,0 +1,105 @@
+"""Add monthly_summary table for pre-aggregation
+
+Revision ID: 251031101032
+Revises: 264c518cdcf3
+Create Date: 2025-10-31 10:10:32.000000
+
+"""
+from alembic import op
+import sqlalchemy as sa
+
+# revision identifiers, used by Alembic.
+revision = '251031101032'
+down_revision = '264c518cdcf3'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    """
+    monthly_summaryテーブルを作成（計画書v2.0準拠）
+    月次統計の事前集計用テーブル
+    """
+    # PostgreSQLとSQLiteの両方に対応
+    from sqlalchemy import inspect
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    is_postgresql = bind.dialect.name == 'postgresql'
+    
+    # 既にテーブルが存在する場合はスキップ
+    if 'monthly_summary' in inspector.get_table_names():
+        print("⚠️  monthly_summary table already exists, skipping creation")
+        return
+    
+    if is_postgresql:
+        # PostgreSQL用のテーブル作成
+        op.create_table('monthly_summary',
+            sa.Column('id', sa.Integer(), nullable=False),
+            sa.Column('user_id', sa.Integer(), nullable=False),
+            sa.Column('summary_month', sa.Date(), nullable=False),
+            
+            # 案件関連（正負集計済み）
+            sa.Column('acquired_projects', sa.Integer(), server_default='0', nullable=True),
+            sa.Column('completed_projects', sa.Integer(), server_default='0', nullable=True),
+            
+            # 請求書関連（会計ロジック準拠）
+            sa.Column('sent_invoices_count', sa.Integer(), server_default='0', nullable=True),
+            sa.Column('sent_invoices_amount', sa.Numeric(12, 2), server_default='0', nullable=True),
+            sa.Column('paid_invoices_count', sa.Integer(), server_default='0', nullable=True),
+            sa.Column('paid_invoices_amount', sa.Numeric(12, 2), server_default='0', nullable=True),
+            sa.Column('overdue_invoices_count', sa.Integer(), server_default='0', nullable=True),
+            sa.Column('overdue_invoices_amount', sa.Numeric(12, 2), server_default='0', nullable=True),
+            
+            # メタ情報
+            sa.Column('last_updated_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
+            
+            sa.PrimaryKeyConstraint('id'),
+            sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
+            sa.UniqueConstraint('user_id', 'summary_month', name='uq_user_summary_month')
+        )
+        
+        # インデックスの作成
+        op.create_index('ix_monthly_summary_user_month', 'monthly_summary', ['user_id', 'summary_month'], unique=False)
+        op.create_index('ix_monthly_summary_user_id', 'monthly_summary', ['user_id'], unique=False)
+        op.create_index('ix_monthly_summary_summary_month', 'monthly_summary', ['summary_month'], unique=False)
+    else:
+        # SQLite用のテーブル作成
+        op.create_table('monthly_summary',
+            sa.Column('id', sa.Integer(), nullable=False),
+            sa.Column('user_id', sa.Integer(), nullable=False),
+            sa.Column('summary_month', sa.Date(), nullable=False),
+            
+            # 案件関連（正負集計済み）
+            sa.Column('acquired_projects', sa.Integer(), server_default='0', nullable=True),
+            sa.Column('completed_projects', sa.Integer(), server_default='0', nullable=True),
+            
+            # 請求書関連（会計ロジック準拠）
+            sa.Column('sent_invoices_count', sa.Integer(), server_default='0', nullable=True),
+            sa.Column('sent_invoices_amount', sa.REAL(), server_default='0', nullable=True),
+            sa.Column('paid_invoices_count', sa.Integer(), server_default='0', nullable=True),
+            sa.Column('paid_invoices_amount', sa.REAL(), server_default='0', nullable=True),
+            sa.Column('overdue_invoices_count', sa.Integer(), server_default='0', nullable=True),
+            sa.Column('overdue_invoices_amount', sa.REAL(), server_default='0', nullable=True),
+            
+            # メタ情報
+            sa.Column('last_updated_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
+            
+            sa.PrimaryKeyConstraint('id'),
+            sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
+            sa.UniqueConstraint('user_id', 'summary_month', name='uq_user_summary_month')
+        )
+        
+        # インデックスの作成
+        op.create_index('ix_monthly_summary_user_month', 'monthly_summary', ['user_id', 'summary_month'], unique=False)
+        op.create_index('ix_monthly_summary_user_id', 'monthly_summary', ['user_id'], unique=False)
+        op.create_index('ix_monthly_summary_summary_month', 'monthly_summary', ['summary_month'], unique=False)
+
+
+def downgrade():
+    """monthly_summaryテーブルを削除"""
+    with op.batch_alter_table('monthly_summary', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_monthly_summary_summary_month'))
+        batch_op.drop_index(batch_op.f('ix_monthly_summary_user_id'))
+        batch_op.drop_index(batch_op.f('ix_monthly_summary_user_month'))
+    op.drop_table('monthly_summary')
+
