@@ -238,7 +238,7 @@ const isCurrentMonth = computed(() => {
   return parseInt(year) === currentYear && parseInt(month) === currentMonth
 })
 
-// Phase 3: 統計データのみ取得（無限ループ防止用）- ローディング状態管理を統一
+// Phase 2: 統計データのみ取得（無限ループ防止用）- nextTick削減
 const loadStatsOnly = async () => {
   if (props.currentTab === 'overview' || isLoadingStats.value) return
   
@@ -251,10 +251,8 @@ const loadStatsOnly = async () => {
     // 1. 統計データを強制的に再取得
     await monthlyStore.fetchStats(parseInt(year), parseInt(month))
     
-    // 🔧 修正: データ同期の確実化（シンプル化）
-    await nextTick()
+    // Phase 2: 不要なnextTickを削除（Vueのリアクティブシステムで自動的に更新される）
     stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
-    await nextTick()
     
     // デバッグログ追加
     debugLog('統計データ更新完了 - データ同期確実化:', {
@@ -274,12 +272,17 @@ const loadStatsOnly = async () => {
   }
 }
 
-// Phase 3: データ取得ロジック - ローディング状態管理を統一（ストアloadingのみ使用）
+// Phase 2: データ取得ロジック最適化（リスク対策: キャッシュの有効性チェック）
 const loadData = async () => {
   if (isLoadingTargets.value || isLoadingStats.value) return
   
   try {
     if (props.currentTab === 'overview') {
+      // Phase 2: キャッシュを確認
+      if (monthlyStore.overview) {
+        overviewData.value = monthlyStore.overview
+        return
+      }
       // overviewタブ: 既存の方法を維持
       const response = await monthlyStore.fetchOverview()
       // Step 1-3修正: undefinedの場合のデフォルト値設定
@@ -289,16 +292,18 @@ const loadData = async () => {
         recent_months: []
       }
     } else if (monthlyStore.USE_NEW_API) {
-      // Phase 2: 新API使用時 - 既存データから取得（3ヶ月分は初期化時に取得済み）
+      // Phase 2: 新API使用時 - キャッシュを確認
       const monthKey = props.currentTab + '-01'
-      stats.value = monthlyStore.getStatsByMonth(monthKey)
+      const cachedStats = monthlyStore.getStatsByMonth(monthKey)
+      if (cachedStats) {
+        stats.value = cachedStats
+        return
+      }
       
       // データがない場合のみAPI呼び出し（フォールバック）
-      if (!stats.value) {
-        debugLog('🔧 データ未取得のため、fetchCurrentMonthlyData()を呼び出し')
-        await monthlyStore.fetchCurrentMonthlyData()
-        stats.value = monthlyStore.getStatsByMonth(monthKey)
-      }
+      debugLog('🔧 データ未取得のため、fetchCurrentMonthlyData()を呼び出し')
+      await monthlyStore.fetchCurrentMonthlyData()
+      stats.value = monthlyStore.getStatsByMonth(monthKey)
       
       // デバッグログ追加
       debugLog('月次統計データ（新API）:', {
@@ -319,7 +324,7 @@ const loadData = async () => {
       await monthlyStore.fetchStats(parseInt(year), parseInt(month))
       isLoadingStats.value = false
       
-      // nextTickを使用してリアクティブ更新を確実にする
+      // Phase 2: 必要な箇所のみnextTick()を維持
       await nextTick()
       stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
       
@@ -351,8 +356,42 @@ const formatCurrency = (amount) => {
   return new Intl.NumberFormat('ja-JP').format(amount)
 }
 
-watch(() => props.currentTab, () => {
-  loadData()
+// Phase 2: 簡易debounce関数の実装（lodash-es不要）
+let debounceTimer = null
+const debounce = (fn, delay) => {
+  return (...args) => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer)
+    }
+    debounceTimer = setTimeout(() => {
+      fn(...args)
+    }, delay)
+  }
+}
+
+// Phase 2: watchの最適化とdebounce実装（リスク対策: キャッシュがある場合は即座に表示）
+watch(() => props.currentTab, (newTab) => {
+  // リスク対策: データが既に取得済みの場合、即座にキャッシュを使用（debounceをバイパス）
+  if (newTab === 'overview') {
+    if (monthlyStore.overview) {
+      overviewData.value = monthlyStore.overview
+      return // debounceをバイパスして即座に表示
+    }
+  } else {
+    const monthKey = newTab + '-01'
+    const cachedStats = monthlyStore.getStatsByMonth(monthKey)
+    if (cachedStats) {
+      stats.value = cachedStats
+      return // debounceをバイパスして即座に表示
+    }
+  }
+  
+  // データが存在しない場合のみdebounce後にAPI呼び出し
+  const debouncedLoadData = debounce(async () => {
+    await loadData()
+  }, 50)
+  
+  debouncedLoadData()
 })
 
 // Phase 3: 不要なwatchを削除（根本解決）
@@ -361,23 +400,60 @@ watch(() => props.currentTab, () => {
 // 削除: watch(() => projectsStore.projects) - 不要な再取得を防止
 // 削除: watch(() => invoicesStore.invoices) - 不要な再取得を防止
 
-// 月次目標データ（当該月キー）の変更を監視し、統計を強制再取得
+// Phase 2: 月次目標データ（当該月キー）の変更を監視し、統計を強制再取得（リスク対策強化版）
 watch(
   () => {
     if (props.currentTab === 'overview') return null
     const monthKey = props.currentTab + '-01'
-    return monthlyStore.targets[monthKey] || null
+    const target = monthlyStore.targets[monthKey]
+    // 値が存在し、かつ実際に変更された場合のみ再取得
+    return target ? JSON.stringify(target) : null
   },
   async (newVal, oldVal) => {
     if (props.currentTab === 'overview') return
-    // 値の変化（作成・更新）時のみ再取得
-    if (newVal) {
+    
+    // リスク対策1: 初期化時（oldVal === undefined）は実行しない
+    if (!oldVal && newVal) {
+      // 初期化時の処理は不要（データは既に取得済み）
+      return
+    }
+    
+    // リスク対策2: 値が変更された場合のみ実行
+    if (newVal && oldVal && newVal !== oldVal) {
+      const [year, month] = props.currentTab.split('-')
+      const monthKey = props.currentTab + '-01'
+      
+      // リスク対策3: saveTarget()直後の更新は検知しない
+      // saveTarget()でfetchStats(forceRefresh=true)が実行される
+      // lastFetchTime.statsを確認し、1秒以内の更新はスキップ
+      if (monthlyStore.lastFetchTime.stats) {
+        const timeSinceLastFetch = Date.now() - monthlyStore.lastFetchTime.stats
+        if (timeSinceLastFetch < 1000) {
+          debugLog('目標設定直後の更新を検知 - saveTarget()で既に更新済みのためスキップ')
+          // データは既に更新されているので、表示を更新
+          stats.value = monthlyStore.getStatsByMonth(monthKey)
+          return
+        }
+      }
+      
+      // リスク対策4: キャッシュの有効性を厳密にチェック
+      const cachedStats = monthlyStore.stats[monthKey]
+      if (cachedStats && monthlyStore.lastFetchTime.stats) {
+        const cacheAge = Date.now() - monthlyStore.lastFetchTime.stats
+        // キャッシュが5分以内であれば使用
+        if (cacheAge < monthlyStore.cacheDuration) {
+          debugLog('キャッシュを使用（目標変更時の統計更新）')
+          stats.value = monthlyStore.getStatsByMonth(monthKey)
+          return
+        }
+      }
+      
+      // キャッシュが無効な場合のみ再取得
       debugLog('目標データ（当該月）変更検知 - 統計を強制再取得:', {
         tab: props.currentTab,
         monthKey: props.currentTab + '-01',
         newTarget: newVal
       })
-      const [year, month] = props.currentTab.split('-')
       await monthlyStore.fetchStats(parseInt(year), parseInt(month), true)
       await nextTick()
       stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
