@@ -123,15 +123,23 @@ class MonthlyRotationScheduler:
                 from app.models import Project, Invoice, ProjectStatusHistory, InvoiceStatusHistory
                 from sqlalchemy import func, extract
                 
+                # 日付範囲を計算（インデックスを有効活用するため）
+                month_start = datetime(year, month, 1)
+                if month == 12:
+                    month_end = datetime(year + 1, 1, 1)
+                else:
+                    month_end = datetime(year, month + 1, 1)
+                
                 # 獲得案件数の集計
+                # 最適化: extract()関数を使わず、日付範囲でのフィルタリングによりインデックスを有効活用
                 acquired_projects = db.session.query(
                     func.count(func.distinct(ProjectStatusHistory.project_id))
                 ).join(Project).filter(
                     Project.user_id == user_id,
                     ProjectStatusHistory.old_status == 'proposed',
                     ProjectStatusHistory.new_status == 'contracted',
-                    extract('year', ProjectStatusHistory.changed_at) == year,
-                    extract('month', ProjectStatusHistory.changed_at) == month
+                    ProjectStatusHistory.changed_at >= month_start,
+                    ProjectStatusHistory.changed_at < month_end
                 ).scalar() or 0
                 
                 # 完了案件数の集計
@@ -141,8 +149,8 @@ class MonthlyRotationScheduler:
                     Project.user_id == user_id,
                     ProjectStatusHistory.old_status == 'contracted',
                     ProjectStatusHistory.new_status == 'completed',
-                    extract('year', ProjectStatusHistory.changed_at) == year,
-                    extract('month', ProjectStatusHistory.changed_at) == month
+                    ProjectStatusHistory.changed_at >= month_start,
+                    ProjectStatusHistory.changed_at < month_end
                 ).scalar() or 0
                 
                 # 送信済み請求書の集計
@@ -152,8 +160,8 @@ class MonthlyRotationScheduler:
                     Invoice.user_id == user_id,
                     InvoiceStatusHistory.old_status == 'draft',
                     InvoiceStatusHistory.new_status == 'sent',
-                    extract('year', InvoiceStatusHistory.changed_at) == year,
-                    extract('month', InvoiceStatusHistory.changed_at) == month
+                    InvoiceStatusHistory.changed_at >= month_start,
+                    InvoiceStatusHistory.changed_at < month_end
                 ).scalar() or 0
                 
                 stats_data = {

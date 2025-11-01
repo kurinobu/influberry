@@ -34,20 +34,21 @@ const forceRerenderCounter = ref(0)
 const forceRerenderFlag = ref(false)
 const visualUpdateCounter = ref(0)
 
-// Step 2 Phase 4修正: 月次切り替え状態に基づく適切な初期値設定（現在日時チェック追加）
+// タブ切り替え問題修正: 初期化時の優先順位の明確化
+// 修正: 初期化時は常に現在月を優先し、lastRotationCheckが古い場合は現在月を選択
 const initializeCurrentMonthTab = () => {
   console.log('🔧 月次管理タブの初期化を実行')
   
   try {
-    // 1. 月次切り替え状態を確認
-    const rotationState = rotationStore.rotationState
-    const lastRotationCheck = rotationStore.lastRotationCheck
-    
-    // Step 2 Phase 4修正: 現在日時を取得
+    // 1. 現在日時を取得（最優先）
     const now = new Date()
     const currentYear = now.getFullYear()
     const currentMonth = now.getMonth() + 1
     const currentMonthId = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
+    
+    // 2. 月次切り替え状態を確認
+    const rotationState = rotationStore.rotationState
+    const lastRotationCheck = rotationStore.lastRotationCheck
     
     console.log('🔧 初期化: 月次切り替え状態を確認', {
       rotationState,
@@ -57,41 +58,47 @@ const initializeCurrentMonthTab = () => {
       currentMonthId
     })
     
-    // 2. Step 2 Phase 4修正: 月次切り替え完了時かつlastRotationCheckが存在する場合
+    // 3. 修正: 初期化時は常に現在月を優先するロジックを強化
+    // lastRotationCheckが存在し、かつ現在月より新しいまたは同じ場合のみ、lastRotationCheckを基準にする
     if (rotationState === 'completed' && lastRotationCheck) {
       const baseDate = new Date(lastRotationCheck)
       const lastYear = baseDate.getFullYear()
       const lastMonth = baseDate.getMonth() + 1
       const lastMonthId = `${lastYear}-${lastMonth.toString().padStart(2, '0')}`
       
-      // Step 2 Phase 4修正: 現在日時とlastRotationCheckの不一致をチェック
-      // 現在月とlastRotationCheckの月が異なる場合、現在月を優先
-      if (currentYear !== lastYear || currentMonth !== lastMonth) {
-        console.log('⚠️ 現在日時とlastRotationCheckが不一致 - 現在月を優先', {
+      // 修正: 現在日時とlastRotationCheckの比較を厳密化
+      // lastRotationCheckが現在月より古い場合（不一致）、現在月を優先
+      const isLastRotationOlder = (lastYear < currentYear) || 
+                                  (lastYear === currentYear && lastMonth < currentMonth)
+      
+      if (isLastRotationOlder) {
+        console.log('⚠️ lastRotationCheckが現在月より古い - 現在月を優先（初期化時の優先順位明確化）', {
           currentMonthId,
           lastMonthId,
-          lastRotationCheck
+          lastRotationCheck,
+          reason: 'lastRotationCheckが現在月より古いため、現在月を優先'
         })
         currentMonthTab.value = currentMonthId
         return
       }
       
-      // 一致する場合はlastRotationCheckを基準にタブ選択
+      // lastRotationCheckが現在月と同じか新しい場合のみ、lastRotationCheckを基準にタブ選択
       console.log('🎉 月次切り替え完了 - lastRotationCheckを基準にタブ選択', {
         lastMonthId,
-        currentMonthTab: currentMonthTab.value
+        currentMonthTab: currentMonthTab.value,
+        reason: 'lastRotationCheckが現在月と同じか新しいため、lastRotationCheckを基準に選択'
       })
       currentMonthTab.value = lastMonthId
       return
     }
     
-    // Step 2 Phase 4修正: フォールバック - 現在月を初期値に設定
-    console.log('📅 現在月を初期値に設定:', currentMonthId)
+    // 4. フォールバック - 初期化時は常に現在月を初期値に設定
+    console.log('📅 現在月を初期値に設定（初期化時の優先順位明確化）:', currentMonthId)
     currentMonthTab.value = currentMonthId
     
   } catch (error) {
     console.error('❌ 初期化エラー:', error)
-    // Step 2 Phase 4修正: エラー時も現在月を初期値に設定
+    // エラー時も現在月を初期値に設定
     const now = new Date()
     const currentYear = now.getFullYear()
     const currentMonth = now.getMonth() + 1
@@ -100,21 +107,21 @@ const initializeCurrentMonthTab = () => {
   }
 }
 
-// Step 2 Phase 4修正: タブ更新トリガー（現在日時チェック追加）
-// 修正: データ同期の確実化とエラーハンドリングの強化
+// タブ切り替え問題修正: タブ更新トリガー（不一致チェックの厳密化）
+// 修正: 現在日時とlastRotationCheckの不一致を厳密にチェックし、現在月より古い場合は現在月を優先
 const triggerTabUpdate = async () => {
   console.log('🔧 タブ更新をトリガーします。')
   
   try {
-    // 1. 月次切り替え状態を確認
-    const rotationState = rotationStore.rotationState
-    const lastRotationCheck = rotationStore.lastRotationCheck
-    
-    // Step 2 Phase 4修正: 現在日時を取得
+    // 1. 現在日時を取得（最優先）
     const now = new Date()
     const currentYear = now.getFullYear()
     const currentMonth = now.getMonth() + 1
     const currentMonthId = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
+    
+    // 2. 月次切り替え状態を確認
+    const rotationState = rotationStore.rotationState
+    const lastRotationCheck = rotationStore.lastRotationCheck
     
     console.log('🔧 タブ更新: 月次切り替え状態を確認', {
       rotationState,
@@ -124,36 +131,43 @@ const triggerTabUpdate = async () => {
       currentMonthId
     })
     
-    // 2. Step 2 Phase 4修正: 月次切り替え完了時の処理
+    // 3. 修正: 月次切り替え完了時の処理（不一致チェックの厳密化）
     if (rotationState === 'completed' && lastRotationCheck) {
       const baseDate = new Date(lastRotationCheck)
       const lastYear = baseDate.getFullYear()
       const lastMonth = baseDate.getMonth() + 1
       const lastMonthId = `${lastYear}-${lastMonth.toString().padStart(2, '0')}`
       
-      // Step 2 Phase 4修正: 現在日時とlastRotationCheckの不一致をチェック
-      if (currentYear !== lastYear || currentMonth !== lastMonth) {
-        console.log('⚠️ 現在日時とlastRotationCheckが不一致 - 現在月を優先', {
+      // 修正: 現在日時とlastRotationCheckの不一致を厳密にチェック
+      // lastRotationCheckが現在月より古い場合のみ不一致と判断し、現在月を優先
+      const isLastRotationOlder = (lastYear < currentYear) || 
+                                  (lastYear === currentYear && lastMonth < currentMonth)
+      
+      if (isLastRotationOlder) {
+        console.log('⚠️ lastRotationCheckが現在月より古い - 現在月を優先（不一致チェックの厳密化）', {
           currentMonthId,
-          lastMonthId
+          lastMonthId,
+          lastRotationCheck,
+          reason: 'lastRotationCheckが現在月より古いため、現在月を優先'
         })
         currentMonthTab.value = currentMonthId
         await rotationStore.refreshFrontendData()
         return
       }
       
-      // 一致する場合はlastRotationCheckを基準にタブ切り替え
+      // lastRotationCheckが現在月と同じか新しい場合のみ、lastRotationCheckを基準にタブ切り替え
       console.log('🎉 月次切り替え完了 - lastRotationCheckを基準にタブ切り替え', {
         previousTab: currentMonthTab.value,
         newTab: lastMonthId,
-        currentMonthTab: currentMonthTab.value
+        currentMonthTab: currentMonthTab.value,
+        reason: 'lastRotationCheckが現在月と同じか新しいため、lastRotationCheckを基準に選択'
       })
       currentMonthTab.value = lastMonthId
       await rotationStore.refreshFrontendData()
       return
     }
     
-    // Step 2 Phase 4修正: フォールバック - 現在月を設定
+    // 4. フォールバック - 現在月を設定
     console.log('📅 現在月を設定:', currentMonthId)
     currentMonthTab.value = currentMonthId
     

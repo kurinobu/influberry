@@ -12,7 +12,7 @@ from app.models import (
     ProjectStatusHistory, InvoiceStatusHistory
 )
 from sqlalchemy import func, extract
-from datetime import datetime
+from datetime import datetime, date
 
 monthly_stats_bp = Blueprint('monthly_stats', __name__, url_prefix='/api/monthly-stats')
 
@@ -39,9 +39,17 @@ def get_monthly_stats(year, month):
             'income': target.target_income if target else 0
         }
         
+        # 日付範囲を計算（インデックスを有効活用するため）
+        month_start = datetime(year, month, 1)
+        if month == 12:
+            month_end = datetime(year + 1, 1, 1)
+        else:
+            month_end = datetime(year, month + 1, 1)
+        
         # 獲得案件数（SQLite対応の正負集計ロジック）
         # proposed → contracted: +1
         # contracted → proposed: -1
+        # 最適化: extract()関数を使わず、日付範囲でのフィルタリングによりインデックスを有効活用
         
         # 正の変化（proposed → contracted）
         positive_changes = db.session.query(
@@ -50,8 +58,8 @@ def get_monthly_stats(year, month):
             Project.user_id == user_id,
             ProjectStatusHistory.old_status == 'proposed',
             ProjectStatusHistory.new_status == 'contracted',
-            extract('year', ProjectStatusHistory.changed_at) == year,
-            extract('month', ProjectStatusHistory.changed_at) == month
+            ProjectStatusHistory.changed_at >= month_start,
+            ProjectStatusHistory.changed_at < month_end
         ).scalar() or 0
         
         # 負の変化（contracted → proposed）
@@ -61,8 +69,8 @@ def get_monthly_stats(year, month):
             Project.user_id == user_id,
             ProjectStatusHistory.old_status == 'contracted',
             ProjectStatusHistory.new_status == 'proposed',
-            extract('year', ProjectStatusHistory.changed_at) == year,
-            extract('month', ProjectStatusHistory.changed_at) == month
+            ProjectStatusHistory.changed_at >= month_start,
+            ProjectStatusHistory.changed_at < month_end
         ).scalar() or 0
         
         # 正負集計
@@ -77,8 +85,8 @@ def get_monthly_stats(year, month):
             Project.user_id == user_id,
             ProjectStatusHistory.old_status == 'contracted',
             ProjectStatusHistory.new_status == 'completed',
-            extract('year', ProjectStatusHistory.changed_at) == year,
-            extract('month', ProjectStatusHistory.changed_at) == month
+            ProjectStatusHistory.changed_at >= month_start,
+            ProjectStatusHistory.changed_at < month_end
         ).scalar() or 0
         
         # 負の変化（completed → contracted）
@@ -88,8 +96,8 @@ def get_monthly_stats(year, month):
             Project.user_id == user_id,
             ProjectStatusHistory.old_status == 'completed',
             ProjectStatusHistory.new_status == 'contracted',
-            extract('year', ProjectStatusHistory.changed_at) == year,
-            extract('month', ProjectStatusHistory.changed_at) == month
+            ProjectStatusHistory.changed_at >= month_start,
+            ProjectStatusHistory.changed_at < month_end
         ).scalar() or 0
         
         # 正負集計
@@ -107,8 +115,8 @@ def get_monthly_stats(year, month):
             Invoice.user_id == user_id,
             InvoiceStatusHistory.old_status == 'draft',
             InvoiceStatusHistory.new_status == 'sent',
-            extract('year', InvoiceStatusHistory.changed_at) == year,
-            extract('month', InvoiceStatusHistory.changed_at) == month
+            InvoiceStatusHistory.changed_at >= month_start,
+            InvoiceStatusHistory.changed_at < month_end
         ).first()
         
         # 負の変化（sent → draft）
@@ -119,8 +127,8 @@ def get_monthly_stats(year, month):
             Invoice.user_id == user_id,
             InvoiceStatusHistory.old_status == 'sent',
             InvoiceStatusHistory.new_status == 'draft',
-            extract('year', InvoiceStatusHistory.changed_at) == year,
-            extract('month', InvoiceStatusHistory.changed_at) == month
+            InvoiceStatusHistory.changed_at >= month_start,
+            InvoiceStatusHistory.changed_at < month_end
         ).first()
         
         # 正負集計
@@ -194,14 +202,29 @@ def get_overview():
             year = month_date.year
             month = month_date.month
             
+            # 日付範囲を計算（インデックスを有効活用するため）
+            month_start = datetime(year, month, 1)
+            if month == 12:
+                month_end = datetime(year + 1, 1, 1)
+            else:
+                month_end = datetime(year, month + 1, 1)
+            
+            # payment_date用の日付範囲
+            payment_month_start = date(year, month, 1)
+            if month == 12:
+                payment_month_end = date(year + 1, 1, 1)
+            else:
+                payment_month_end = date(year, month + 1, 1)
+            
             # 簡易集計（詳細はget_monthly_statsと同様）
+            # 最適化: extract()関数を使わず、日付範囲でのフィルタリングによりインデックスを有効活用
             acquired = db.session.query(
                 func.count(func.distinct(ProjectStatusHistory.project_id))
             ).join(Project).filter(
                 Project.user_id == user_id,
                 ProjectStatusHistory.new_status == 'contracted',
-                extract('year', ProjectStatusHistory.changed_at) == year,
-                extract('month', ProjectStatusHistory.changed_at) == month
+                ProjectStatusHistory.changed_at >= month_start,
+                ProjectStatusHistory.changed_at < month_end
             ).scalar() or 0
             
             # 完了案件数
@@ -210,8 +233,8 @@ def get_overview():
             ).join(Project).filter(
                 Project.user_id == user_id,
                 ProjectStatusHistory.new_status == 'completed',
-                extract('year', ProjectStatusHistory.changed_at) == year,
-                extract('month', ProjectStatusHistory.changed_at) == month
+                ProjectStatusHistory.changed_at >= month_start,
+                ProjectStatusHistory.changed_at < month_end
             ).scalar() or 0
             
             # 入金額
@@ -220,8 +243,9 @@ def get_overview():
             ).filter(
                 Invoice.user_id == user_id,
                 Invoice.status == 'paid',
-                extract('year', Invoice.payment_date) == year,
-                extract('month', Invoice.payment_date) == month
+                Invoice.payment_date.isnot(None),
+                Invoice.payment_date >= payment_month_start,
+                Invoice.payment_date < payment_month_end
             ).scalar() or 0
             
             recent_months.append({

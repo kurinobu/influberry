@@ -11,7 +11,7 @@ Phase 1: 正式版として登録
 
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from sqlalchemy import extract, func
 from app import db
 from app.models.monthly_target import MonthlyTarget
@@ -46,7 +46,15 @@ def get_three_months():
 def calculate_monthly_stats(user_id, year, month):
     """
     月次統計を計算（正負集計ロジック対応）
+    最適化: extract()関数を使わず、日付範囲でのフィルタリングによりインデックスを有効活用
     """
+    # 日付範囲を計算（インデックスを有効活用するため）
+    month_start = datetime(year, month, 1)
+    if month == 12:
+        month_end = datetime(year + 1, 1, 1)
+    else:
+        month_end = datetime(year, month + 1, 1)
+    
     # 獲得案件数（proposed → contracted）
     acquired_positive = db.session.query(
         func.count(func.distinct(ProjectStatusHistory.project_id))
@@ -54,8 +62,8 @@ def calculate_monthly_stats(user_id, year, month):
         Project.user_id == user_id,
         ProjectStatusHistory.old_status == 'proposed',
         ProjectStatusHistory.new_status == 'contracted',
-        extract('year', ProjectStatusHistory.changed_at) == year,
-        extract('month', ProjectStatusHistory.changed_at) == month
+        ProjectStatusHistory.changed_at >= month_start,
+        ProjectStatusHistory.changed_at < month_end
     ).scalar() or 0
     
     # 獲得案件数の負（contracted → proposed）
@@ -65,8 +73,8 @@ def calculate_monthly_stats(user_id, year, month):
         Project.user_id == user_id,
         ProjectStatusHistory.old_status == 'contracted',
         ProjectStatusHistory.new_status == 'proposed',
-        extract('year', ProjectStatusHistory.changed_at) == year,
-        extract('month', ProjectStatusHistory.changed_at) == month
+        ProjectStatusHistory.changed_at >= month_start,
+        ProjectStatusHistory.changed_at < month_end
     ).scalar() or 0
     
     acquired_projects = acquired_positive - acquired_negative
@@ -78,8 +86,8 @@ def calculate_monthly_stats(user_id, year, month):
         Project.user_id == user_id,
         ProjectStatusHistory.old_status == 'contracted',
         ProjectStatusHistory.new_status == 'completed',
-        extract('year', ProjectStatusHistory.changed_at) == year,
-        extract('month', ProjectStatusHistory.changed_at) == month
+        ProjectStatusHistory.changed_at >= month_start,
+        ProjectStatusHistory.changed_at < month_end
     ).scalar() or 0
     
     # 完了案件数の負（completed → contracted）
@@ -89,8 +97,8 @@ def calculate_monthly_stats(user_id, year, month):
         Project.user_id == user_id,
         ProjectStatusHistory.old_status == 'completed',
         ProjectStatusHistory.new_status == 'contracted',
-        extract('year', ProjectStatusHistory.changed_at) == year,
-        extract('month', ProjectStatusHistory.changed_at) == month
+        ProjectStatusHistory.changed_at >= month_start,
+        ProjectStatusHistory.changed_at < month_end
     ).scalar() or 0
     
     completed_projects = completed_positive - completed_negative
@@ -103,8 +111,8 @@ def calculate_monthly_stats(user_id, year, month):
         Invoice.user_id == user_id,
         InvoiceStatusHistory.old_status == 'draft',
         InvoiceStatusHistory.new_status == 'sent',
-        extract('year', InvoiceStatusHistory.changed_at) == year,
-        extract('month', InvoiceStatusHistory.changed_at) == month
+        InvoiceStatusHistory.changed_at >= month_start,
+        InvoiceStatusHistory.changed_at < month_end
     ).first()
     
     # 送信済み請求書の負（sent → draft/canceled）
@@ -115,14 +123,21 @@ def calculate_monthly_stats(user_id, year, month):
         Invoice.user_id == user_id,
         InvoiceStatusHistory.old_status == 'sent',
         InvoiceStatusHistory.new_status.in_(['draft', 'canceled']),
-        extract('year', InvoiceStatusHistory.changed_at) == year,
-        extract('month', InvoiceStatusHistory.changed_at) == month
+        InvoiceStatusHistory.changed_at >= month_start,
+        InvoiceStatusHistory.changed_at < month_end
     ).first()
     
     sent_count = (sent_positive[0] or 0) - (sent_negative[0] or 0)
     sent_amount = float(sent_positive[1] or 0) - float(sent_negative[1] or 0)
     
     # 支払済み請求書（payment_date基準）
+    # payment_dateはDATE型のため、datetime型に変換して比較
+    payment_month_start = date(year, month, 1)
+    if month == 12:
+        payment_month_end = date(year + 1, 1, 1)
+    else:
+        payment_month_end = date(year, month + 1, 1)
+    
     paid_result = db.session.query(
         func.count(Invoice.id),
         func.sum(Invoice.total_amount)
@@ -130,8 +145,8 @@ def calculate_monthly_stats(user_id, year, month):
         Invoice.user_id == user_id,
         Invoice.status == 'paid',
         Invoice.payment_date.isnot(None),
-        extract('year', Invoice.payment_date) == year,
-        extract('month', Invoice.payment_date) == month
+        Invoice.payment_date >= payment_month_start,
+        Invoice.payment_date < payment_month_end
     ).first()
     
     paid_count = paid_result[0] or 0

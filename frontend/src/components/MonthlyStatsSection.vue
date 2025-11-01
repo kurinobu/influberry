@@ -203,7 +203,12 @@ const authStore = useAuthStore()
 
 // Phase 3: ローディング状態管理の統一（シンプル構造 > 複雑構造）
 // ローカルloadingを削除し、ストアloadingのみを使用
-const stats = ref(null)
+// 修正案7: statsをcomputedプロパティに変更してリアクティビティを確保
+const stats = computed(() => {
+  if (props.currentTab === 'overview') return null
+  const monthKey = props.currentTab + '-01'
+  return monthlyStore.getStatsByMonth(monthKey)
+})
 const overviewData = ref(null)
 
 // 重複実行防止フラグ
@@ -252,8 +257,8 @@ const loadStatsOnly = async () => {
     // 1. 統計データを強制的に再取得
     await monthlyStore.fetchStats(parseInt(year), parseInt(month))
     
-    // Phase 2: 不要なnextTickを削除（Vueのリアクティブシステムで自動的に更新される）
-    stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
+    // 修正案7: statsはcomputedプロパティのため、自動的に更新される
+    // stats.value = ...の形式は不要
     
     // デバッグログ追加
     debugLog('統計データ更新完了 - データ同期確実化:', {
@@ -299,19 +304,24 @@ const loadData = async () => {
         recent_months: []
       }
     } else if (monthlyStore.USE_NEW_API) {
-      // Step 2 Phase 3修正: 新API使用時 - キャッシュがある場合は、loadingをtrueにしない
+      // 修正案3: 新API使用時 - キャッシュチェックを最適化（目標値も含めてチェック）
       const monthKey = props.currentTab + '-01'
       const cachedStats = monthlyStore.getStatsByMonth(monthKey)
+      
+      // 修正案7: キャッシュがある場合は即座に表示（statsはcomputedプロパティのため、自動的に更新される）
       if (cachedStats) {
-        stats.value = cachedStats
-        debugLog('🔧 キャッシュから統計データを取得 - loadingをtrueにしない:', { monthKey })
-        return // loadingをtrueにしない
+        debugLog('🔧 キャッシュから統計データを取得 - loadingをtrueにしない:', { 
+          monthKey, 
+          targetProjects: cachedStats.target?.projects,
+          targetIncome: cachedStats.target?.income
+        })
+        return // loadingをtrueにしない（statsはcomputedプロパティのため、自動的に更新される）
       }
       
       // データがない場合のみAPI呼び出し（フォールバック）
       debugLog('🔧 データ未取得のため、fetchCurrentMonthlyData()を呼び出し')
       await monthlyStore.fetchCurrentMonthlyData()
-      stats.value = monthlyStore.getStatsByMonth(monthKey)
+      // 修正案7: statsはcomputedプロパティのため、自動的に更新される（stats.value = ...は不要）
       
       // デバッグログ追加
       debugLog('月次統計データ（新API）:', {
@@ -334,7 +344,7 @@ const loadData = async () => {
       
       // Phase 2: 必要な箇所のみnextTick()を維持
       await nextTick()
-      stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
+      // 修正案7: statsはcomputedプロパティのため、自動的に更新される（stats.value = ...は不要）
       
       // デバッグログ追加
       debugLog('月次統計データ（旧API）:', {
@@ -399,7 +409,7 @@ watch(() => props.currentTab, (newTab) => {
     const monthKey = newTab + '-01'
     const cachedStats = monthlyStore.getStatsByMonth(monthKey)
     if (cachedStats) {
-      stats.value = cachedStats
+      // 修正案7: statsはcomputedプロパティのため、自動的に更新される（stats.value = ...は不要）
       lastProcessedTab = newTab
       debugLog('🔧 キャッシュから統計データを即座に表示:', { newTab, monthKey })
       return // debounceをバイパスして即座に表示
@@ -456,8 +466,7 @@ watch(
         const timeSinceLastFetch = Date.now() - monthlyStore.lastFetchTime.stats
         if (timeSinceLastFetch < 1000) {
           debugLog('目標設定直後の更新を検知 - saveTarget()で既に更新済みのためスキップ')
-          // データは既に更新されているので、表示を更新
-          stats.value = monthlyStore.getStatsByMonth(monthKey)
+          // 修正案7: statsはcomputedプロパティのため、自動的に更新される（stats.value = ...は不要）
           return
         }
       }
@@ -469,7 +478,7 @@ watch(
         // キャッシュが5分以内であれば使用
         if (cacheAge < monthlyStore.cacheDuration) {
           debugLog('キャッシュを使用（目標変更時の統計更新）')
-          stats.value = monthlyStore.getStatsByMonth(monthKey)
+          // 修正案7: statsはcomputedプロパティのため、自動的に更新される（stats.value = ...は不要）
           return
         }
       }
@@ -482,7 +491,7 @@ watch(
       })
       await monthlyStore.fetchStats(parseInt(year), parseInt(month), true)
       await nextTick()
-      stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
+      // 修正案7: statsはcomputedプロパティのため、自動的に更新される（stats.value = ...は不要）
       debugLog('統計データ更新完了（目標即時反映）:', {
         targetProjects: stats.value?.target?.projects,
         targetIncome: stats.value?.target?.income

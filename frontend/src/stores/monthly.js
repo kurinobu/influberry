@@ -79,9 +79,41 @@ export const useMonthlyStore = defineStore('monthly', {
     
     /**
      * 指定月の統計取得
+     * 修正案3: 目標値がnullの場合、targetsストアから取得して補完
      */
     getStatsByMonth: (state) => (month) => {
-      return state.stats[month] || null
+      const stats = state.stats[month] || null
+      if (!stats) return null
+      
+      // 修正案3: targetがnullまたはundefinedの場合、targetsストアから取得して補完
+      if (!stats.target || 
+          (stats.target.projects === null || stats.target.projects === undefined) ||
+          (stats.target.income === null || stats.target.income === undefined)) {
+        const target = state.targets[month]
+        if (target) {
+          // targetsストアから目標を取得して補完
+          stats.target = {
+            projects: target.target_projects ?? 0,
+            income: target.target_income ?? 0
+          }
+        } else if (!stats.target) {
+          // 目標が存在しない場合も、0を設定して表示できるようにする
+          stats.target = {
+            projects: 0,
+            income: 0
+          }
+        } else {
+          // stats.targetが存在するが、nullのプロパティがある場合は補完
+          if (stats.target.projects === null || stats.target.projects === undefined) {
+            stats.target.projects = 0
+          }
+          if (stats.target.income === null || stats.target.income === undefined) {
+            stats.target.income = 0
+          }
+        }
+      }
+      
+      return stats
     },
     
     /**
@@ -123,22 +155,54 @@ export const useMonthlyStore = defineStore('monthly', {
           }
           const data = res.data.data || {}
           // 受領データを既存stateへ反映（targets, stats）
-          Object.entries(data).forEach(([monthKey, payload]) => {
+          // 修正案7: forEachではawaitが正しく待機しないため、for...ofループに変更
+          for (const [monthKey, payload] of Object.entries(data)) {
             const t = payload.target || {}
             const s = payload.stats || {}
+            
+            // 修正案3: 目標がnullの場合、targetsストアから取得を試みる
+            let targetProjects = t.projects ?? null
+            let targetIncome = t.income ?? null
+            
+            // targetsストアから取得を試みる
+            if ((targetProjects === null || targetProjects === undefined) && this.targets[monthKey]) {
+              targetProjects = this.targets[monthKey].target_projects
+            }
+            if ((targetIncome === null || targetIncome === undefined) && this.targets[monthKey]) {
+              targetIncome = this.targets[monthKey].target_income
+            }
+            
+            // 修正案7: それでもnullの場合は、同期的に/api/monthly-targets/から取得
+            if ((targetProjects === null || targetProjects === undefined) || (targetIncome === null || targetIncome === undefined)) {
+              const [year, month] = monthKey.split('-')
+              // 同期的に目標を取得（表示をブロックするが、5ms程度で完了するため影響は小さい）
+              await this.fetchTargets(parseInt(year), [parseInt(month.replace('-01', ''))])
+              
+              // 目標取得後に、targetsストアから取得
+              const target = this.targets[monthKey]
+              if (target) {
+                targetProjects = target.target_projects ?? 0
+                targetIncome = target.target_income ?? 0
+              } else {
+                // 目標が存在しない場合は0を設定
+                targetProjects = 0
+                targetIncome = 0
+              }
+            }
+            
             // 目標: 既存のフィールド名に合わせて保持
             this.targets[monthKey] = {
               target_month: monthKey,
-              target_projects: t.projects ?? null,
-              target_income: t.income ?? null
+              target_projects: targetProjects,
+              target_income: targetIncome
             }
             // 統計: そのまま保持（既存取得と併存可能）
             // Step 1-2修正: targetプロパティを追加してデータ構造を統一
             this.stats[monthKey] = {
               month: monthKey,
               target: {
-                projects: t.projects ?? null,
-                income: t.income ?? null
+                projects: targetProjects,
+                income: targetIncome
               },
               actual: {
                 acquired_projects: s.acquired_projects ?? 0,
@@ -149,7 +213,7 @@ export const useMonthlyStore = defineStore('monthly', {
                 paid_invoices_amount: s.paid_invoices_amount ?? 0
               }
             }
-          })
+          }
           debugLog('✅ 月次データ取得完了（新API）')
         } catch (err) {
           debugLog('⚠️ 新APIが失敗、旧APIにフォールバック')
