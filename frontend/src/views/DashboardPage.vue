@@ -389,9 +389,12 @@ const ensureVisualUpdate = async () => {
 }
 
 // 月次切り替え状態の監視（新規追加）
+// 修正案2: 条件を緩和し、completed状態の変更をすべて検知
 const handleRotationStateChange = (newState, oldState) => {
   console.log('月次切り替え状態変更を検知:', { newState, oldState })
-  if (newState === 'completed' && oldState === 'running') {
+  
+  // 修正: newState === 'completed'の場合、すべてtriggerTabUpdate()を呼び出す
+  if (newState === 'completed') {
     console.log('月次切り替え完了を検知 - タブ更新をトリガー')
     triggerTabUpdate()
   }
@@ -466,12 +469,40 @@ onMounted(async () => {
   console.log('🔧 Phase 3: 初期化後の同期化完了（改善案4: forceRerender削除）')
 })
 
-// 月次切り替え監視の強化（新規追加）
+// 修正案1: 初期化時の実行を防止し、現在月優先ロジックを強化
 watch(() => rotationStore.lastRotationCheck, (newValue, oldValue) => {
-  if (newValue !== oldValue) {
-    console.log('月次切り替えが検知されました。')
-    triggerTabUpdate()
+  // 初期化時や値が変わらない場合は実行しない
+  if (!oldValue || !newValue || newValue === oldValue) {
+    return
   }
+  
+  console.log('月次切り替えが検知されました。')
+  
+  // 現在月を優先するため、triggerTabUpdate()を呼び出す前に現在日時を確認
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1
+  const currentMonthId = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
+  
+  const lastDate = new Date(newValue)
+  const lastYear = lastDate.getFullYear()
+  const lastMonth = lastDate.getMonth() + 1
+  const lastMonthId = `${lastYear}-${lastMonth.toString().padStart(2, '0')}`
+  
+  // lastRotationCheckが現在月より古い場合は、triggerTabUpdate()を呼び出さない
+  const isLastRotationOlder = (lastYear < currentYear) || 
+                              (lastYear === currentYear && lastMonth < currentMonth)
+  
+  if (isLastRotationOlder) {
+    console.log('⚠️ lastRotationCheckが現在月より古いため、triggerTabUpdate()をスキップ', {
+      currentMonthId,
+      lastMonthId,
+      lastRotationCheck: newValue
+    })
+    return
+  }
+  
+  triggerTabUpdate()
 })
 
 // 月次切り替え状態の監視（新規追加）
