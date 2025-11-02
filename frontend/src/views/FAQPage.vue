@@ -1,5 +1,10 @@
 <script setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import SettingsIcon from '../components/icons/SettingsIcon.vue'
+import MoneyIcon from '../components/icons/MoneyIcon.vue'
+import LockIcon from '../components/icons/LockIcon.vue'
+import LightningIcon from '../components/icons/LightningIcon.vue'
 
 const router = useRouter()
 
@@ -12,7 +17,7 @@ const goHome = () => {
 const faqCategories = [
   {
     name: '基本機能について',
-    icon: '🔧',
+    iconComponent: SettingsIcon,
     faqs: [
       {
         question: 'InfluBerryでできることは何ですか？',
@@ -30,7 +35,7 @@ const faqCategories = [
   },
   {
     name: '料金・プランについて',
-    icon: '💰',
+    iconComponent: MoneyIcon,
     faqs: [
       {
         question: '料金プランはどのようになっていますか？',
@@ -44,7 +49,7 @@ const faqCategories = [
   },
   {
     name: '技術・セキュリティについて',
-    icon: '🔒',
+    iconComponent: LockIcon,
     faqs: [
       {
         question: 'データのセキュリティは大丈夫ですか？',
@@ -58,7 +63,7 @@ const faqCategories = [
   },
   {
     name: '効率化・省力化について',
-    icon: '⚡',
+    iconComponent: LightningIcon,
     faqs: [
       {
         question: 'どの程度の効率化・省力化が期待できますか？',
@@ -89,24 +94,26 @@ const toggleItem = (categoryIndex, faqIndex) => {
   <div class="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
     <!-- ヘッダー -->
     <header class="berry-header">
-      <div class="max-w-6xl mx-auto px-4 py-6">
+      <div class="max-w-4xl mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
-          <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-noto">
-            🍓 InfluBerry FAQ
-          </h1>
-          <button
+          <div class="flex items-center">
+            <img src="/favicon512.png" alt="InfluBerry" class="w-8 h-8 mr-3">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              InfluBerry FAQ
+            </h1>
+          </div>
+          <button 
             @click="goHome"
-            class="text-gray-600 hover:text-pink-500 transition-colors"
-            aria-label="InfluBerryメインページに戻る"
+            class="px-4 py-2 bg-pink-500 text-white rounded-full hover:bg-pink-600 transition-colors text-sm font-medium"
           >
-            ← メインに戻る
+            ログインに戻る
           </button>
         </div>
       </div>
     </header>
 
     <!-- メインコンテンツ -->
-    <main class="max-w-6xl mx-auto px-4 py-8">
+    <main class="max-w-4xl mx-auto px-4 py-8">
       <!-- ヒーローセクション -->
       <section class="text-center mb-16">
         <h1 class="text-4xl font-bold text-gray-900 mb-4">
@@ -130,7 +137,7 @@ const toggleItem = (categoryIndex, faqIndex) => {
           class="bg-white rounded-lg shadow-md p-8"
         >
           <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-            <span class="text-3xl mr-3">{{ category.icon }}</span>
+            <component :is="category.iconComponent" :size="32" color="#ec4899" class="mr-3" />
             {{ category.name }}
           </h2>
           
@@ -196,11 +203,15 @@ const toggleItem = (categoryIndex, faqIndex) => {
     </main>
 
     <!-- フッター -->
-    <footer class="berry-footer">
-      <div class="berry-footer-inner">
-        <p class="text-gray-400">© 2025 InfluBerry FAQ - Air Edison. All rights reserved.</p>
-      </div>
-    </footer>
+    <div class="text-center mt-12 py-8">
+      <button 
+        @click="goHome"
+        class="px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full hover:from-pink-600 hover:to-purple-700 transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl"
+      >
+        今すぐInfluBerryを始める
+      </button>
+      <p class="text-gray-500 text-sm mt-4">© 2025 InfluBerry - Air Edison. All rights reserved.</p>
+    </div>
   </div>
 </template>
 
@@ -212,23 +223,12 @@ const toggleItem = (categoryIndex, faqIndex) => {
   box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
 }
 
-.berry-footer {
-  background: linear-gradient(135deg, #1f2937 0%, #374151 100%) !important;
-  border-top: 2px solid #f9a8d4 !important;
-  color: #ffffff !important;
-  padding: 2rem 0 !important;
-  box-shadow: 0 -4px 12px rgba(244, 114, 182, 0.15) !important;
-  min-height: 120px !important;
-}
-
-.berry-footer-inner {
-  max-width: 64rem;
-  margin: 0 auto;
-  padding: 0 1rem;
-  text-align: center;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ヘッダータイトル強制カラフル表示 */
+h1.text-2xl.font-bold {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-weight: 700 !important;
 }
 </style>
