@@ -175,6 +175,42 @@ def get_monthly_stats(year, month):
             'error': f'月次統計取得エラー: {str(e)}'
         }), 500
 
+@monthly_stats_bp.route('/overview-minimal', methods=['GET'])
+@login_required
+def get_overview_minimal():
+    """軽量概要API - total_projects と total_income のみ返却
+    
+    劇速初期表示の実装計画に基づき、最軽量の概要データのみを返却するエンドポイント。
+    recent_monthsの計算を除外することで、レスポンスタイムを大幅に短縮。
+    期待効果: 4.05秒 → 100-300ms（約93-97%改善）
+    """
+    try:
+        user_id = current_user.id
+        
+        # 全期間の総合統計のみ（重い処理を除外）
+        total_projects = Project.query.filter_by(user_id=user_id).count()
+        
+        total_income = db.session.query(
+            func.sum(Invoice.total_amount)
+        ).filter(
+            Invoice.user_id == user_id,
+            Invoice.status == 'paid'
+        ).scalar() or 0
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'total_projects': total_projects,
+                'total_income': float(total_income)
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'軽量概要統計取得エラー: {str(e)}'
+        }), 500
+
 @monthly_stats_bp.route('/overview', methods=['GET'])
 @login_required
 def get_overview():

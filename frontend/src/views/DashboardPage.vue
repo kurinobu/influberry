@@ -7,6 +7,7 @@ import { useInvoicesStore } from '../stores/invoices.js'
 import { useTodosStore } from '../stores/todos.js'
 import { useUIStore } from '../stores/ui.js'
 import { useMonthlyRotationStore } from '../stores/monthlyRotation.js'
+import { useMonthlyStore } from '../stores/monthly.js'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
 import BasicDataModal from '../components/BasicDataModal.vue'
 import UserSettings from '../components/UserSettings.vue'
@@ -25,6 +26,7 @@ const invoicesStore = useInvoicesStore()
 const todosStore = useTodosStore()
 const uiStore = useUIStore()
 const rotationStore = useMonthlyRotationStore()
+const monthlyStore = useMonthlyStore()
 
 // 月次管理タブ状態（初期化ロジック修正）
 const currentMonthTab = ref('overview')
@@ -436,8 +438,14 @@ onMounted(async () => {
     console.error('月次切り替え監視の開始に失敗しました:', error)
   }
   
-  // 月次管理タブの初期化（新規追加）
-  initializeCurrentMonthTab()
+  // ステップ3: 初期表示ロジックの修正 - 概要タブを固定（最速表示）
+  currentMonthTab.value = 'overview'
+  
+  // 軽量概要APIを並行実行
+  await monthlyStore.fetchOverviewMinimal()
+  
+  // 月次データをバックグラウンドで非同期実行（awaitしない）
+  monthlyStore.fetchCurrentMonthlyData()
   
   // Phase 2: 親子コンポーネント間の状態同期を確実化
   console.log('🔧 Phase 2: 親子コンポーネント間の状態同期を確実化')

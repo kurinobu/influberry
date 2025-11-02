@@ -448,6 +448,50 @@ export const useMonthlyStore = defineStore('monthly', {
     },
     
     /**
+     * 軽量概要統計取得
+     * 劇速初期表示の実装計画に基づき、最軽量の概要データのみを返却
+     * recent_monthsの計算を除外することで、レスポンスタイムを大幅に短縮
+     * 期待効果: 4.05秒 → 100-300ms（約93-97%改善）
+     */
+    async fetchOverviewMinimal() {
+      this.loading = true
+      this.error = null
+      
+      try {
+        const response = await axios.get('/api/monthly-stats/overview-minimal')
+        
+        if (response.data && response.data.success) {
+          const data = response.data.data || {}
+          this.overview = {
+            total_projects: data.total_projects ?? 0,
+            total_income: data.total_income ?? 0,
+            recent_months: []  // 軽量APIではrecent_monthsは返却されないため空配列
+          }
+          debugLog('✅ 軽量概要統計取得完了:', {
+            overview: this.overview,
+            hasTotalProjects: 'total_projects' in this.overview,
+            hasTotalIncome: 'total_income' in this.overview
+          })
+          return this.overview
+        } else {
+          throw new Error(response.data?.error || '軽量概要統計取得に失敗しました')
+        }
+      } catch (error) {
+        this.overview = null
+        this.error = error.response?.data?.error || error.message
+        errorLog('❌ 軽量概要統計取得エラー:', error)
+        // エラー時はデフォルト値を返す
+        return {
+          total_projects: 0,
+          total_income: 0,
+          recent_months: []
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    /**
      * 月次目標保存
      * 修正: データ同期の確実化とエラーハンドリングの強化
      */

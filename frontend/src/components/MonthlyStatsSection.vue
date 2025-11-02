@@ -295,8 +295,8 @@ const loadData = async () => {
         debugLog('🔧 キャッシュから概要データを取得 - loadingをtrueにしない')
         return // loadingをtrueにしない
       }
-      // overviewタブ: 既存の方法を維持
-      const response = await monthlyStore.fetchOverview()
+      // ステップ3: overviewタブ - 軽量APIを使用
+      const response = await monthlyStore.fetchOverviewMinimal()
       // Step 1-3修正: undefinedの場合のデフォルト値設定
       overviewData.value = response || {
         total_projects: 0,
