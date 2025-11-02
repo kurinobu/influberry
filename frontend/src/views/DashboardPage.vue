@@ -31,6 +31,9 @@ const monthlyStore = useMonthlyStore()
 // 月次管理タブ状態（初期化ロジック修正）
 const currentMonthTab = ref('overview')
 
+// ステップ3修正: 初期表示制御フラグ（環境に依存しない初期表示判定）
+const isInitialDisplay = ref(true)
+
 // Phase 3: 強制的な再レンダリングのためのカウンターとフラグ
 const forceRerenderCounter = ref(0)
 const forceRerenderFlag = ref(false)
@@ -392,13 +395,20 @@ const ensureVisualUpdate = async () => {
 
 // 月次切り替え状態の監視（新規追加）
 // 修正案2: 条件を緩和し、completed状態の変更をすべて検知
-// ステップ3修正: 初期表示時のtriggerTabUpdate()を防止
+// ステップ3修正: 初期表示時のtriggerTabUpdate()を防止（環境に依存しない判定）
 const handleRotationStateChange = (newState, oldState) => {
   console.log('月次切り替え状態変更を検知:', { newState, oldState })
   
   // ステップ3修正: 初期表示時（overviewタブ）は実行しない
-  if (currentMonthTab.value === 'overview' && oldState === null) {
-    console.log('⚠️ 初期表示時のため、triggerTabUpdate()をスキップ')
+  // 方法1: 初期表示フラグによる判定（環境に依存しない）
+  if (isInitialDisplay.value && currentMonthTab.value === 'overview') {
+    console.log('⚠️ 初期表示中のため、triggerTabUpdate()をスキップ（フラグ判定）')
+    return  // 初期表示時はスキップ
+  }
+  
+  // 方法2: oldStateによる判定（二重の防御）
+  if (currentMonthTab.value === 'overview' && (oldState === null || oldState === 'idle')) {
+    console.log('⚠️ 初期表示時のため、triggerTabUpdate()をスキップ（oldState判定）')
     return  // 初期表示時はスキップ
   }
   
@@ -471,12 +481,18 @@ onMounted(async () => {
   await nextTick()
   console.log('🔧 Phase 2: 初期化後の第2回nextTick完了')
   
+  // ステップ3修正: 初期表示完了フラグをオフ（初期化処理の完了を待つ）
+  await nextTick()
+  isInitialDisplay.value = false
+  console.log('🔧 初期表示完了フラグをオフ')
+  
   // Phase 2: 初期化後の状態確認
   console.log('🔧 Phase 2: 初期化後の状態確認', {
     currentMonthTab: currentMonthTab.value,
     rotationState: rotationStore.rotationState,
     lastRotationCheck: rotationStore.lastRotationCheck,
-    forceRerenderCounter: forceRerenderCounter.value
+    forceRerenderCounter: forceRerenderCounter.value,
+    isInitialDisplay: isInitialDisplay.value
   })
   
   // Phase 3: 初期化後の強制的な同期化
@@ -485,7 +501,7 @@ onMounted(async () => {
 })
 
 // 修正案1: 初期化時の実行を防止し、現在月優先ロジックを強化
-// ステップ3修正: 初期表示時のtriggerTabUpdate()を防止
+// ステップ3修正: 初期表示時のtriggerTabUpdate()を防止（環境に依存しない判定）
 watch(() => rotationStore.lastRotationCheck, (newValue, oldValue) => {
   // 初期化時や値が変わらない場合は実行しない
   if (!oldValue || !newValue || newValue === oldValue) {
@@ -493,8 +509,15 @@ watch(() => rotationStore.lastRotationCheck, (newValue, oldValue) => {
   }
   
   // ステップ3修正: 初期表示時（overviewタブ）は実行しない
+  // 方法1: 初期表示フラグによる判定（環境に依存しない）
+  if (isInitialDisplay.value && currentMonthTab.value === 'overview') {
+    console.log('⚠️ 初期表示中のため、triggerTabUpdate()をスキップ（フラグ判定）')
+    return  // 初期表示時はスキップ
+  }
+  
+  // 方法2: oldValueによる判定（二重の防御）
   if (currentMonthTab.value === 'overview' && !oldValue) {
-    console.log('⚠️ 初期表示時のため、triggerTabUpdate()をスキップ')
+    console.log('⚠️ 初期表示時のため、triggerTabUpdate()をスキップ（oldValue判定）')
     return  // 初期表示時はスキップ
   }
   
