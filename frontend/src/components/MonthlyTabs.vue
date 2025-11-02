@@ -1,9 +1,11 @@
 <template>
   <div class="monthly-tabs berry-card rounded-t-lg">
+    <!-- Step 4: レンダリング・描画時間最適化 - v-memoで再レンダリングを最適化 -->
     <div class="flex border-b border-gray-200 overflow-x-auto">
       <button 
         v-for="tab in tabs" 
         :key="tab.id"
+        v-memo="[currentTab, tab.id, tab.highlight, tab.isNewMonth, tab.isPreviousMonth, tab.monthlyRotation, tab.rotationRunning, tab.phase1Marker]"
         :data-tab-id="tab.id"
         @click="selectTab(tab.id)"
         :class="[
@@ -1415,9 +1417,15 @@ const enhanceUserExperience = () => {
 /* === タブシャドーの統一（Berryスタイル適用） === */
 .monthly-tabs button {
   box-shadow: 0 10px 25px rgba(244, 114, 182, 0.25) !important;
+  /* Step 4: レンダリング・描画時間最適化 - transition-colorsをGPU加速化 */
+  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+  /* Step 4: will-change属性を追加してレンダリング最適化 */
+  will-change: transform, color, background-color;
 }
 
 .monthly-tabs button:hover {
   box-shadow: 0 15px 35px rgba(244, 114, 182, 0.35) !important;
+  /* Step 4: レンダリング・描画時間最適化 - transformを使用してGPU加速を有効化 */
+  transform: translateY(-1px);
 }
 </style>

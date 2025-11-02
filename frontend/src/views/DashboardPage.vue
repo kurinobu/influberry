@@ -998,7 +998,8 @@ console.log('🔧 Phase 4: 利用可能なデバッグ関数:', [
         <div class="flex justify-between items-center h-16">
           <!-- InfluBerry ロゴ -->
           <div class="flex items-center">
-            <img src="/favicon512.png" alt="InfluBerry" class="w-8 h-8 mr-3">
+            <!-- Step 3: 画像の遅延読み込み - loading="lazy"属性を追加（初期読み込み時間の削減） -->
+            <img src="/favicon512.png" alt="InfluBerry" class="w-8 h-8 mr-3" loading="lazy">
             <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
               InfluBerry
             </h1>
@@ -1015,7 +1016,7 @@ console.log('🔧 Phase 4: 利用可能なデバッグ関数:', [
         
         <!-- 月次管理セクション（NEW） -->
         <div class="monthly-management-section mb-12" style="margin-bottom: 3rem !important;">
-          <MonthlyTabs v-model="currentMonthTab" :is-initial-display="isInitialDisplay" />
+          <MonthlyTabs v-model="currentMonthTab" />
           <MonthlyStatsSection :current-tab="currentMonthTab" />
           
         </div>
