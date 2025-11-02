@@ -8,15 +8,16 @@
         <h2 class="text-2xl font-bold text-gray-900">{{ personalizedText }}主要な実績</h2>
       </div>
       
+      <!-- Step 4: レンダリング・描画時間最適化 - v-memoで再レンダリングを最適化 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="stat-card bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
+        <div v-memo="[overviewData?.total_projects, personalizedText]" class="stat-card bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
           <div class="text-sm text-blue-600 font-medium mb-2">{{ personalizedText }}累計活動案件数</div>
           <div class="text-4xl font-bold text-blue-900">
             {{ overviewData?.total_projects || 0 }} 件
           </div>
         </div>
         
-        <div class="stat-card bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg">
+        <div v-memo="[overviewData?.total_income, personalizedText]" class="stat-card bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg">
           <div class="text-sm text-green-600 font-medium mb-2">{{ personalizedText }}累計入金額</div>
           <div class="text-4xl font-bold text-green-900">
             ¥{{ formatCurrency(overviewData?.total_income || 0) }}
@@ -57,7 +58,8 @@
       </div>
       
       <!-- プログレスバー群 -->
-      <div class="space-y-6">
+      <!-- Step 4: レンダリング・描画時間最適化 - v-memoで再レンダリングを最適化 -->
+      <div v-memo="[stats?.actual.acquired_projects, stats?.target?.projects, stats?.actual.completed_projects, stats?.actual.sent_invoices_amount, stats?.target?.income]" class="space-y-6">
         <ProgressBar 
           label="獲得案件"
           :current="stats?.actual.acquired_projects || 0"
@@ -295,7 +297,17 @@ const loadData = async () => {
         debugLog('🔧 キャッシュから概要データを取得 - loadingをtrueにしない')
         return // loadingをtrueにしない
       }
-      // ステップ3: overviewタブ - 軽量APIを使用
+      // Step 2: 重複API呼び出し削減 - DashboardPage.vueで既にfetchOverviewMinimal()が呼ばれている可能性があるため、
+      // 少し待ってからキャッシュを再確認（重複呼び出しを防止）
+      await nextTick()
+      if (monthlyStore.overview) {
+        overviewData.value = monthlyStore.overview
+        debugLog('🔧 キャッシュから概要データを取得（DashboardPage.vueでの取得完了後）')
+        return // loadingをtrueにしない
+      }
+      // キャッシュがない場合のみfetchOverviewMinimal()を呼び出し（フォールバック）
+      // Step 2: 重複API呼び出し削減 - DashboardPage.vueで既に取得済みの場合は呼び出さない
+      debugLog('🔧 キャッシュがないため、fetchOverviewMinimal()を呼び出し（フォールバック）')
       const response = await monthlyStore.fetchOverviewMinimal()
       // Step 1-3修正: undefinedの場合のデフォルト値設定
       overviewData.value = response || {
@@ -424,10 +436,11 @@ watch(() => props.currentTab, (newTab) => {
   
   lastProcessedTab = newTab
   debugLog('🔧 データ未取得のため、debounce後にAPI呼び出し:', newTab)
+  // Step 1: watch処理の最適化 - debounce時間を50ms → 30msに短縮（JavaScript実行時間改善）
   debounceTimer = setTimeout(async () => {
     await loadData()
     debounceTimer = null
-  }, 50)
+  }, 30)
 })
 
 // Phase 3: 不要なwatchを削除（根本解決）
@@ -529,6 +542,9 @@ onMounted(async () => {
 }
 
 .stat-card:hover {
+  /* Step 4: レンダリング・描画時間最適化 - transformを使用してGPU加速を有効化 */
   transform: translateY(-2px);
+  /* Step 4: will-change属性を追加してレンダリング最適化 */
+  will-change: transform;
 }
 </style>
