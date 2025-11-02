@@ -392,8 +392,15 @@ const ensureVisualUpdate = async () => {
 
 // 月次切り替え状態の監視（新規追加）
 // 修正案2: 条件を緩和し、completed状態の変更をすべて検知
+// ステップ3修正: 初期表示時のtriggerTabUpdate()を防止
 const handleRotationStateChange = (newState, oldState) => {
   console.log('月次切り替え状態変更を検知:', { newState, oldState })
+  
+  // ステップ3修正: 初期表示時（overviewタブ）は実行しない
+  if (currentMonthTab.value === 'overview' && oldState === null) {
+    console.log('⚠️ 初期表示時のため、triggerTabUpdate()をスキップ')
+    return  // 初期表示時はスキップ
+  }
   
   // 修正: newState === 'completed'の場合、すべてtriggerTabUpdate()を呼び出す
   if (newState === 'completed') {
@@ -478,10 +485,17 @@ onMounted(async () => {
 })
 
 // 修正案1: 初期化時の実行を防止し、現在月優先ロジックを強化
+// ステップ3修正: 初期表示時のtriggerTabUpdate()を防止
 watch(() => rotationStore.lastRotationCheck, (newValue, oldValue) => {
   // 初期化時や値が変わらない場合は実行しない
   if (!oldValue || !newValue || newValue === oldValue) {
     return
+  }
+  
+  // ステップ3修正: 初期表示時（overviewタブ）は実行しない
+  if (currentMonthTab.value === 'overview' && !oldValue) {
+    console.log('⚠️ 初期表示時のため、triggerTabUpdate()をスキップ')
+    return  // 初期表示時はスキップ
   }
   
   console.log('月次切り替えが検知されました。')
