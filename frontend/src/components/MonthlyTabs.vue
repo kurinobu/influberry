@@ -53,6 +53,10 @@ const props = defineProps({
   modelValue: {
     type: String,
     default: 'overview'
+  },
+  isInitialDisplay: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -544,6 +548,16 @@ watch(() => [rotationStore.rotationState, rotationStore.lastRotationCheck], ([ne
     newState, oldState, 
     newCheck, oldCheck 
   })
+  
+  // 🔧 優先度1修正: 初期表示中はスキップ（計画書ベースの修正）
+  if (props.isInitialDisplay) {
+    console.log('⚠️ 初期表示中のため、月次切り替え監視をスキップ', {
+      isInitialDisplay: props.isInitialDisplay,
+      newState,
+      oldState
+    })
+    return
+  }
   
   // 月次切り替え完了時の処理（初回表示時も含む）
   if (newState === 'completed' && newCheck) {
@@ -1069,6 +1083,16 @@ const checkCurrentState = () => {
 // タブの自動選択機能の実装
 const selectNewMonthTab = async () => {
   debugLog('🔧 タブの自動選択機能を実装')
+  
+  // 🔧 優先度1修正: 初期表示中はスキップ（計画書ベースの修正）
+  if (props.isInitialDisplay) {
+    console.log('⚠️ 初期表示中のため、selectNewMonthTab()をスキップ', {
+      isInitialDisplay: props.isInitialDisplay,
+      rotationState: rotationStore.rotationState,
+      lastRotationCheck: rotationStore.lastRotationCheck
+    })
+    return
+  }
   
   try {
     // 1. 月次切り替え状態を確認

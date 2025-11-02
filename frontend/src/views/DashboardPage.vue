@@ -1015,7 +1015,7 @@ console.log('🔧 Phase 4: 利用可能なデバッグ関数:', [
         
         <!-- 月次管理セクション（NEW） -->
         <div class="monthly-management-section mb-12" style="margin-bottom: 3rem !important;">
-          <MonthlyTabs v-model="currentMonthTab" />
+          <MonthlyTabs v-model="currentMonthTab" :is-initial-display="isInitialDisplay" />
           <MonthlyStatsSection :current-tab="currentMonthTab" />
           
         </div>
