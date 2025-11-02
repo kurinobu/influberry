@@ -7,14 +7,8 @@ import DashboardPage from '../views/DashboardPage.vue'
 import ProjectApp from '../views/ProjectApp.vue'
 import InvoiceApp from '../views/InvoiceApp.vue'
 import TodoApp from '../views/TodoApp.vue'
-// 法的ページコンポーネント
-import AboutPage from '../views/legal/AboutPage.vue'
-import PrivacyPage from '../views/legal/PrivacyPage.vue'
-import TermsPage from '../views/legal/TermsPage.vue'
-import CompanyPage from '../views/legal/CompanyPage.vue'
-import TokushoPage from '../views/legal/TokushoPage.vue'
-import BlogPage from '../views/BlogPage.vue'
-import FAQPage from '../views/FAQPage.vue'
+// 法的ページコンポーネント（遅延読み込み実装）
+// AboutPage, PrivacyPage, TermsPage, CompanyPage, TokushoPage, BlogPage, FAQPage は動的インポートに変更
 
 // ルート定義（3層分離アーキテクチャ）
 const routes = [
@@ -94,11 +88,11 @@ const routes = [
     }
   },
   
-  // 法的ページ（認証不要・独立ページ）
+  // 法的ページ（認証不要・独立ページ・遅延読み込み実装）
   {
     path: '/about',
     name: 'About',
-    component: AboutPage,
+    component: () => import('../views/legal/AboutPage.vue'),
     meta: { 
       requiresAuth: false,  // 認証不要（法的要件）
       title: 'InfluBerry - アプリ説明',
@@ -109,7 +103,7 @@ const routes = [
   {
     path: '/privacy',
     name: 'Privacy',
-    component: PrivacyPage,
+    component: () => import('../views/legal/PrivacyPage.vue'),
     meta: { 
       requiresAuth: false,  // 認証不要（法的要件）
       title: 'InfluBerry - プライバシーポリシー',
@@ -120,7 +114,7 @@ const routes = [
   {
     path: '/terms',
     name: 'Terms',
-    component: TermsPage,
+    component: () => import('../views/legal/TermsPage.vue'),
     meta: { 
       requiresAuth: false,  // 認証不要（法的要件）
       title: 'InfluBerry - ご利用規約',
@@ -131,7 +125,7 @@ const routes = [
   {
     path: '/company',
     name: 'Company',
-    component: CompanyPage,
+    component: () => import('../views/legal/CompanyPage.vue'),
     meta: { 
       requiresAuth: false,  // 認証不要（法的要件）
       title: 'InfluBerry - 運営会社情報',
@@ -142,7 +136,7 @@ const routes = [
   {
     path: '/tokusho',
     name: 'Tokusho',
-    component: TokushoPage,
+    component: () => import('../views/legal/TokushoPage.vue'),
     meta: { 
       requiresAuth: false,  // 認証不要（法的要件）
       title: 'InfluBerry - 特定商取引法に基づく表記',
@@ -151,11 +145,11 @@ const routes = [
     }
   },
   
-  // ブログページ
+  // ブログページ（遅延読み込み実装）
   {
     path: '/blog',
     name: 'Blog',
-    component: BlogPage,
+    component: () => import('../views/BlogPage.vue'),
     meta: { 
       requiresAuth: false,  // 認証不要（SEO用）
       title: 'InfluBerry Blog - インフルエンサー・クリエイター向け効率化・省力化ブログ',
@@ -164,11 +158,11 @@ const routes = [
     }
   },
   
-  // FAQページ
+  // FAQページ（遅延読み込み実装）
   {
     path: '/faq',
     name: 'FAQ',
-    component: FAQPage,
+    component: () => import('../views/FAQPage.vue'),
     meta: { 
       requiresAuth: false,  // 認証不要（SEO用）
       title: 'InfluBerry FAQ - よくある質問・効率化・省力化SaaS',
