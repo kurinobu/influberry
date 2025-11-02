@@ -1,0 +1,12 @@
+=== ProgressBar.vueファイル追加 - 実行前バックアップ ===
+バックアップ作成日時: Sat Oct 25 14:03:15 JST 2025
+バックアップディレクトリ: docs/backup/20251025_135145_progressbar_fix
+
+問題の概要:
+Could not resolve "./ProgressBar.vue" from "src/components/MonthlyStatsSection.vue"
+
+修正予定項目:
+1. ProgressBar.vueファイルのバックアップ
+2. ProgressBar.vueファイルをステージング環境に追加
+3. ステージング環境での再ビルドテスト
+4. 月次セクションの表示確認

@@ -42,9 +42,12 @@ const handleAuthSuccess = () => {
     <div class="max-w-md w-full space-y-4 p-4">
       <!-- InfluBerry ロゴ・ブランディング -->
       <div class="text-center">
-        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-noto mt-0 mb-0 leading-none">
-          🍓 InfluBerry
-        </h1>
+        <div class="flex items-center justify-center">
+          <img src="/favicon512.png" alt="InfluBerry" class="w-8 h-8 mr-3">
+          <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+            InfluBerry
+          </h1>
+        </div>
         <p class="mt-2 text-gray-600 font-noto">
           インフルエンサー向け案件管理システム
         </p>
@@ -102,5 +105,14 @@ const handleAuthSuccess = () => {
   .p-6 {
     padding: 1rem;
   }
+}
+
+/* ヘッダータイトル強制カラフル表示 */
+h1.text-2xl.font-bold {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-weight: 700 !important;
 }
 </style>

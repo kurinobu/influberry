@@ -1,0 +1,667 @@
+.
+├── cookie.txt
+├── cookies.txt
+├── index_backup_20250905_132114.html
+├── index_backup_20251003_123058.html
+├── index_backup_before_android_icon_20251003_150227.html
+├── index.html
+├── index.html_backup_20250918_115848.html
+├── index.html.backup_font_change_20251014_171302
+├── index.html.backup_font_fix_20251014_204037
+├── index.html.backup_mplus_rounded_20251014_173728
+├── index.html.backup_mplus_rounded_20251015_054617
+├── jsconfig.json
+├── package-lock.json
+├── package.json
+├── package.json.backup_node_version_fix_20251016_114934
+├── postcss_v4_backup_20250905_133427.config.js
+├── postcss.config.js
+├── project_structure.txt
+├── public
+│   ├── apple-touch-icon-ipad.png
+│   ├── apple-touch-icon-iphone.png
+│   ├── apple-touch-icon.png
+│   ├── favicon.ico
+│   ├── favicon512.png
+│   ├── icon-192.png
+│   ├── images
+│   │   └── sns
+│   ├── robots.txt
+│   └── sitemap.xml
+├── README.md
+├── src
+│   ├── App_backup_20250908_151003.vue
+│   ├── App_backup_20250908_161222.vue
+│   ├── App_backup_before_login_integration_20250905_164850.vue
+│   ├── App_backup_before_project_store_integration_20250906_115259.vue
+│   ├── App_backup_before_project_ui_implementation_20250906_160948.vue
+│   ├── App_backup_fixed_footer_implementation_20250925_121859.vue
+│   ├── App_backup_script_setup_fix_20250925_122748.vue
+│   ├── App.vue
+│   ├── App.vue.backup_20250908_134741
+│   ├── App.vue.backup_background_optimization_20250908_112340
+│   ├── App.vue.backup_before_invoice_integration_20250907_110055
+│   ├── App.vue.backup_before_invoice_ui_20250907_115036
+│   ├── App.vue.backup_color_palette_20250908_111436
+│   ├── App.vue.backup_color_palette_20250908_111459
+│   ├── App.vue.backup_color_palette_20250908_111842
+│   ├── App.vue.backup_css_variables_20250908_113722
+│   ├── App.vue.backup_deploy_fix_20251016_123031
+│   ├── App.vue.backup_font_change_20251014_171246
+│   ├── App.vue.backup_font_fix_20251014_204307
+│   ├── App.vue.backup_mobile_first_optimization_20250908_111157
+│   ├── App.vue.backup_mplus_rounded_20251014_173734
+│   ├── App.vue.backup_mplus_rounded_20251015_054644
+│   ├── assets
+│   │   ├── base.css
+│   │   ├── base.css.backup_font_change_20251014_171940
+│   │   ├── base.css.backup_font_fix_20251014_204316
+│   │   ├── base.css.backup_influberry_colors_20250908_113429
+│   │   ├── base.css.backup_mplus_rounded_20251014_173741
+│   │   ├── base.css.backup_mplus_rounded_20251015_055224
+│   │   ├── images
+│   │   ├── logo.svg
+│   │   ├── main_backup_20250905_131027.css
+│   │   ├── main_backup_20251004_072512.css
+│   │   ├── main_backup_app_container_fix_20250927_220058.css
+│   │   ├── main_import_backup_20250905_133906.css
+│   │   ├── main.css
+│   │   ├── main.css.backup_before_tailwind_fix_20250907_095320
+│   │   └── main.css.backup_before_v4_fix_20250907_100709
+│   ├── backup_architecture_refactor_20250910_122912
+│   │   ├── App.vue
+│   │   ├── components
+│   │   ├── main.js
+│   │   └── stores
+│   ├── components
+│   │   ├── AddToHomePrompt_backup_before_android_support_20251003_144145.vue
+│   │   ├── AddToHomePrompt_backup_before_device_specific_instructions_20251003_145004.vue
+│   │   ├── AddToHomePrompt_backup_before_icon_fix_20251003_141958.vue
+│   │   ├── AddToHomePrompt.vue
+│   │   ├── BasicDataModal_backup_20250918_083337.vue
+│   │   ├── BasicDataModal_backup_before_store_integration_20250919_181707.vue
+│   │   ├── BasicDataModal_backup_svg_unification_20251010_054434.vue
+│   │   ├── BasicDataModal.vue
+│   │   ├── FixedFooter_backup_color_unification_20251010_060142.vue
+│   │   ├── FixedFooter_backup_path_fix_20251010_110818.vue
+│   │   ├── FixedFooter_backup_route_fix_20250925_124138.vue
+│   │   ├── FixedFooter_backup_svg_unification_20251010_090945.vue
+│   │   ├── FixedFooter.vue
+│   │   ├── HamburgerMenu_backup_20250916_180825.vue
+│   │   ├── HamburgerMenu_backup_20250916_181746.vue
+│   │   ├── HamburgerMenu_backup_20250918_083337.vue
+│   │   ├── HamburgerMenu_backup_20250918_084537.vue
+│   │   ├── HamburgerMenu_backup_20250918_094531.vue
+│   │   ├── HamburgerMenu_backup_before_store_integration_20250919_181707.vue
+│   │   ├── HamburgerMenu_backup_berry_design_20250930_153605.vue
+│   │   ├── HamburgerMenu_backup_inheritance_fix_20250927_212251.vue
+│   │   ├── HamburgerMenu_backup_inline_style_removal_20250930_171544.vue
+│   │   ├── HamburgerMenu_backup_legal_menu_20250917_151520.vue
+│   │   ├── HamburgerMenu_backup_limited_css_fix_20250917_100658.vue
+│   │   ├── HamburgerMenu_backup_menu_rename_20250930_142500.vue
+│   │   ├── HamburgerMenu_backup_overlay_fix_20250927_162540.vue
+│   │   ├── HamburgerMenu_backup_stacking_test_20250927_213909.vue
+│   │   ├── HamburgerMenu_backup_stacking_test_20250927_214314.vue
+│   │   ├── HamburgerMenu_backup_structure_fix_20250928_010943.vue
+│   │   ├── HamburgerMenu_backup_svg_unification_20251010_051350.vue
+│   │   ├── HamburgerMenu_backup_tailwind_class_removal_20250930_172549.vue
+│   │   ├── HamburgerMenu_backup_teleport_app_constraint_fix_20250928_002502.vue
+│   │   ├── HamburgerMenu_backup_teleport_fix_20250928_004200.vue
+│   │   ├── HamburgerMenu_backup_teleport_implementation_20250927_215440.vue
+│   │   ├── HamburgerMenu_backup_teleport_test_20250927_215022.vue
+│   │   ├── HamburgerMenu_backup_transform_fix_20250927_142754.vue
+│   │   ├── HamburgerMenu_backup_vue_dom_fix_20250928_001012.vue
+│   │   ├── HamburgerMenu_backup_z_index_emergency_fix_20250927_120340.vue
+│   │   ├── HamburgerMenu_backup_z_index_final_fix_20250927_144713.vue
+│   │   ├── HamburgerMenu_backup_z_index_fix_20250917_094036.vue
+│   │   ├── HamburgerMenu_backup_z_index_fix_20250927_115327.vue
+│   │   ├── HamburgerMenu.vue
+│   │   ├── HamburgerMenu.vue_backup_20250918_103625
+│   │   ├── HelloWorld.vue
+│   │   ├── icons
+│   │   ├── icons_backup_svg_unification_20251010_044602
+│   │   ├── icons_backup_svg_unification_20251010_044714
+│   │   ├── InvoiceForm_backup_20250909_131139.vue
+│   │   ├── InvoiceForm_backup_20251006_102233.vue
+│   │   ├── InvoiceForm_backup_20251006_110319.vue
+│   │   ├── InvoiceForm_backup_before_project_name_fix_20250911_2115.vue
+│   │   ├── InvoiceForm_backup_before_project_name_restore_20250911_2118.vue
+│   │   ├── InvoiceForm_backup_berry_migration_20251006_112446.vue
+│   │   ├── InvoiceForm_backup_field_fix_20250930_110757.vue
+│   │   ├── InvoiceForm_backup_ga4_tracking_20251002_104843.vue
+│   │   ├── InvoiceForm_backup_remove_violations_20250911_1900.vue
+│   │   ├── InvoiceForm_backup_task2_project_display_20250911_1720.vue
+│   │   ├── InvoiceForm_backup_task3_project_editable_20250912_0947.vue
+│   │   ├── InvoiceForm_backup_todoapp_migration_20251006_111435.vue
+│   │   ├── InvoiceForm.vue
+│   │   ├── InvoiceForm.vue.backup_debug_investigation_20250908_100658
+│   │   ├── InvoiceForm.vue.backup_props_debug_20250908_104440
+│   │   ├── InvoiceForm.vue.backup_props_naming_fix_20250908_084943
+│   │   ├── InvoiceForm.vue.backup_props_required_fix_20250907_194455
+│   │   ├── InvoiceForm.vue.backup_props_unified_20250908_095447
+│   │   ├── InvoiceForm.vue.backup_resetform_fix_20250908_102926
+│   │   ├── InvoiceForm.vue.backup_root_fix_20250908_094830
+│   │   ├── InvoiceList_backup_20250909_151817.vue
+│   │   ├── InvoiceList_backup_20250909_152457.vue
+│   │   ├── InvoiceList_backup_20250915_162638.vue
+│   │   ├── InvoiceList_backup_20250915_163206.vue
+│   │   ├── InvoiceList_backup_20250915_163647.vue
+│   │   ├── InvoiceList_backup_20250915_174947.vue
+│   │   ├── InvoiceList_backup_20251006_095423.vue
+│   │   ├── InvoiceList_backup_api_fix_20250908_213600.vue
+│   │   ├── InvoiceList_backup_auth_fix_20250909_022425.vue
+│   │   ├── InvoiceList_backup_before_css_add_20251004_102736.vue
+│   │   ├── InvoiceList_backup_before_layout_change_20251004_111234.vue
+│   │   ├── InvoiceList_backup_berry_migration_20251006_112446.vue
+│   │   ├── InvoiceList_backup_button_unify_20250909_024519.vue
+│   │   ├── InvoiceList_backup_display_fix_20250930_111755.vue
+│   │   ├── InvoiceList_backup_edit_fix_20250930_104013.vue
+│   │   ├── InvoiceList_backup_fix_amount_overflow_20251005_152010.vue
+│   │   ├── InvoiceList_backup_fix_decimal_20251005_100208.vue
+│   │   ├── InvoiceList_backup_fix_total_amount_layout_20251005_161942.vue
+│   │   ├── InvoiceList_backup_ga4_tracking_20251002_104843.vue
+│   │   ├── InvoiceList_backup_gap_fix_20251004_143949.vue
+│   │   ├── InvoiceList_backup_header_width_fix_20251009_143045.vue
+│   │   ├── InvoiceList_backup_inline_gap_20251004_143154.vue
+│   │   ├── InvoiceList_backup_issue_date_20251011_092730.vue
+│   │   ├── InvoiceList_backup_layout_fix_20251004_110020.vue
+│   │   ├── InvoiceList_backup_margin_fix_20251004_135150.vue
+│   │   ├── InvoiceList_backup_mobile_ux_fix_20251004_101325.vue
+│   │   ├── InvoiceList_backup_pdf_button_20250928_120343.vue
+│   │   ├── InvoiceList_backup_phase4_horizontal_expansion_20250927_110138.vue
+│   │   ├── InvoiceList_backup_svg_unification_20251010_101321.vue
+│   │   ├── InvoiceList_backup_task3_project_name_20250912_0932.vue
+│   │   ├── InvoiceList_backup_text_size_fix_20250930_181241.vue
+│   │   ├── InvoiceList_backup_todoapp_migration_20251006_111435.vue
+│   │   ├── InvoiceList.vue
+│   │   ├── InvoiceList.vue.backup_before_detail_button_20250907_141005
+│   │   ├── InvoiceList.vue.backup_before_detail_modal_20250907_154818
+│   │   ├── InvoiceList.vue.backup_before_duplicate_fix_20250907_154615
+│   │   ├── InvoiceList.vue.backup_before_edit_form_20250907_170610
+│   │   ├── InvoiceList.vue.backup_before_edit_integration_20250907_172334
+│   │   ├── InvoiceList.vue.backup_card_width_fix_20251015_095121
+│   │   ├── InvoiceList.vue.backup_debug_20250908_100033
+│   │   ├── InvoiceList.vue.backup_debug_console_20250908_104036
+│   │   ├── InvoiceList.vue.backup_emergency_components_20250907_184012
+│   │   ├── InvoiceList.vue.backup_final_fix_20250908_092633
+│   │   ├── InvoiceList.vue.backup_pdf_notification_20251015_115145
+│   │   ├── InvoiceList.vue.backup_props_fix_20250907_193933
+│   │   ├── InvoiceList.vue.backup_props_kebab_case_fix_20250908_102438
+│   │   ├── InvoiceList.vue.backup_reactivity_fix_20250908_100212
+│   │   ├── InvoiceList.vue.backup_ref_export_fix_20250908_090140
+│   │   ├── InvoiceList.vue.backup_root_cause_fix_20250908_083127
+│   │   ├── InvoiceList.vue.backup_template_fix_20250908_105020
+│   │   ├── InvoiceList.vue.backup_vue_setup_fix_20250908_084256
+│   │   ├── InvoiceList.vue.backup_vue3_syntax_fix_20250907_192837
+│   │   ├── LoginForm_backup_20250915_230033.vue
+│   │   ├── LoginForm_backup_berry_card_20251001_102931.vue
+│   │   ├── LoginForm_backup_border_fix_20250916_093606.vue
+│   │   ├── LoginForm_backup_bottom_spacing_fix_20250916_102801.vue
+│   │   ├── LoginForm_backup_button_fix_20251001_104406.vue
+│   │   ├── LoginForm_backup_layout_fix_20250916_102059.vue
+│   │   ├── LoginForm_backup_phase4_berry_reform_20250928_015320.vue
+│   │   ├── LoginForm_backup_revert_berry_card_20251001_105654.vue
+│   │   ├── LoginForm_backup_spacing_fix_20250916_100221.vue
+│   │   ├── LoginForm_backup_test_account_removal_20250916_095622.vue
+│   │   ├── LoginForm_backup_white_border_20251001_110440.vue
+│   │   ├── LoginForm.vue
+│   │   ├── LoginForm.vue.backup_20250908_135510
+│   │   ├── LoginForm.vue.backup_final_fix_20251014_153700
+│   │   ├── NotificationModal.vue
+│   │   ├── ProjectForm_backup_before_inline_edit_20251004_180440.vue
+│   │   ├── ProjectForm_backup_date_fix_20250911_1429.vue
+│   │   ├── ProjectForm_backup_deadline_fix_20250911_1500.vue
+│   │   ├── ProjectForm_backup_ga4_tracking_20251002_091406.vue
+│   │   ├── ProjectForm_backup_ga4_tracking_20251002_092103.vue
+│   │   ├── ProjectForm_backup_invoice_integration_20250911_1324.vue
+│   │   ├── ProjectForm_backup_invoice_integration_20251211_1320.vue
+│   │   ├── ProjectForm_backup_modal_fix_20251004_1530.vue
+│   │   ├── ProjectForm_backup_validation_fix_20250930_123333.vue
+│   │   ├── ProjectForm.vue
+│   │   ├── ProjectForm.vue.backup_before_event_fix_20250907_101459
+│   │   ├── ProjectList_backup_20250909_045549.vue
+│   │   ├── ProjectList_backup_20250909_045829.vue
+│   │   ├── ProjectList_backup_20250909_052021.vue
+│   │   ├── ProjectList_backup_20250909_053947.vue
+│   │   ├── ProjectList_backup_20250915_114750.vue
+│   │   ├── ProjectList_backup_20250915_124158.vue
+│   │   ├── ProjectList_backup_20250915_140948.vue
+│   │   ├── ProjectList_backup_20250915_162638.vue
+│   │   ├── ProjectList_backup_20251002_142333.vue
+│   │   ├── ProjectList_backup_20251003_163735.vue
+│   │   ├── ProjectList_backup_20251003_HHMMSS.vue
+│   │   ├── ProjectList_backup_before_inline_edit_20251004_180440.vue
+│   │   ├── ProjectList_backup_before_layout_change_20251004_110916.vue
+│   │   ├── ProjectList_backup_before_projectform_integration_20250906_170332.vue
+│   │   ├── ProjectList_backup_berry_css_addition_20251005_090711.vue
+│   │   ├── ProjectList_backup_berry_ui_analysis_20250926_211306.vue
+│   │   ├── ProjectList_backup_button_hover_fix_20251004_071006.vue
+│   │   ├── ProjectList_backup_card_click_20251004_064230.vue
+│   │   ├── ProjectList_backup_confirm_debug_20251004_060334.vue
+│   │   ├── ProjectList_backup_edit_visibility_20251005_084511.vue
+│   │   ├── ProjectList_backup_emergency_fix_20250911_085913.vue
+│   │   ├── ProjectList_backup_event_stop_20251004_061923.vue
+│   │   ├── ProjectList_backup_fetch_fix_20251002_153141.vue
+│   │   ├── ProjectList_backup_final_berry_card_expansion_20250927_094917.vue
+│   │   ├── ProjectList_backup_fix_import_20251005_065402.vue
+│   │   ├── ProjectList_backup_fix_new_mode_20251005_071408.vue
+│   │   ├── ProjectList_backup_fix_new_mode_20251005_071817.vue
+│   │   ├── ProjectList_backup_ga4_tracking_20251002_092547.vue
+│   │   ├── ProjectList_backup_gap_fix_20251004_143949.vue
+│   │   ├── ProjectList_backup_header_width_fix_20251009_144324.vue
+│   │   ├── ProjectList_backup_inline_edit_implementation_20251004_182829.vue
+│   │   ├── ProjectList_backup_inline_gap_20251004_143154.vue
+│   │   ├── ProjectList_backup_is_todo_filter_fix_20251002_150708.vue
+│   │   ├── ProjectList_backup_layout_fix_20251004_110020.vue
+│   │   ├── ProjectList_backup_margin_fix_20251004_135150.vue
+│   │   ├── ProjectList_backup_mobile_ux_fix_20251004_101325.vue
+│   │   ├── ProjectList_backup_no_confirm_20251004_063348.vue
+│   │   ├── ProjectList_backup_phase4_horizontal_expansion_20250927_093359.vue
+│   │   ├── ProjectList_backup_stats_unify_20250910_183221.vue
+│   │   ├── ProjectList_backup_svg_unification_20251010_094045.vue
+│   │   ├── ProjectList_backup_track_error_fix_20251003_101952.vue
+│   │   ├── ProjectList_backup_trycatch_20251004_062716.vue
+│   │   ├── ProjectList_broken_20251003_180934.vue
+│   │   ├── ProjectList.vue
+│   │   ├── ProjectList.vue.backup_before_invoice_integration_20250907_110102
+│   │   ├── ProjectList.vue.backup_card_width_fix_20251015_095119
+│   │   ├── ProjectList.vue.backup_pdf_notification_20251015_115148
+│   │   ├── RegisterForm_backup_20250909_093539.vue
+│   │   ├── RegisterForm_backup_20250909_093855.vue
+│   │   ├── RegisterForm_backup_age_terms_checkbox_20251014_134257.vue
+│   │   ├── RegisterForm_backup_berry_card_20251001_102931.vue
+│   │   ├── RegisterForm_backup_fix_div_structure_20251014_140429.vue
+│   │   ├── RegisterForm_backup_layout_fix_20251001_102253.vue
+│   │   ├── RegisterForm_backup_phase4_berry_reform_20250928_015651.vue
+│   │   ├── RegisterForm.vue
+│   │   ├── RegisterForm.vue.backup_20250908_142104
+│   │   ├── RegisterForm.vue.backup_checkbox_fix_20251014_144315
+│   │   ├── RegisterForm.vue.backup_final_fix_20251014_153654
+│   │   ├── TheWelcome.vue
+│   │   ├── UserSettings_backup_20250908_161656.vue
+│   │   ├── UserSettings_backup_20250908_162343.vue
+│   │   ├── UserSettings_backup_20250908_163644.vue
+│   │   ├── UserSettings_backup_button_fix_20250908_173000.vue
+│   │   ├── UserSettings_backup_issuer_info_20251011_064121.vue
+│   │   ├── UserSettings_backup_payment_info_20250929_151644.vue
+│   │   ├── UserSettings_backup_placeholder_fix_20250929_153830.vue
+│   │   ├── UserSettings.vue
+│   │   ├── UserSettings.vue.backup_font_change_20251014_171250
+│   │   ├── UserSettings.vue.backup_font_fix_20251014_204312
+│   │   ├── UserSettings.vue.backup_mplus_rounded_20251014_173737
+│   │   ├── UserSettings.vue.backup_mplus_rounded_20251015_055221
+│   │   └── WelcomeItem.vue
+│   ├── components_backup_before_invoice_list_20250907_115036
+│   ├── components_backup_before_login_component_20250905_164715
+│   │   ├── HelloWorld.vue
+│   │   ├── icons
+│   │   ├── TheWelcome.vue
+│   │   └── WelcomeItem.vue
+│   ├── components_backup_before_projectform_implementation_20250906_165240
+│   │   ├── HelloWorld.vue
+│   │   ├── icons
+│   │   ├── LoginForm.vue
+│   │   ├── ProjectList.vue
+│   │   ├── TheWelcome.vue
+│   │   └── WelcomeItem.vue
+│   ├── components_backup_before_server_restart_20250906_183239
+│   │   ├── HelloWorld.vue
+│   │   ├── icons
+│   │   ├── LoginForm.vue
+│   │   ├── ProjectForm.vue
+│   │   ├── ProjectList_backup_before_projectform_integration_20250906_170332.vue
+│   │   ├── ProjectList.vue
+│   │   ├── TheWelcome.vue
+│   │   └── WelcomeItem.vue
+│   ├── main_backup_20250905_130904.js
+│   ├── main_backup_before_auth_integration_20250905_164224.js
+│   ├── main.js
+│   ├── router
+│   │   ├── index_backup_20250910_132638.js
+│   │   ├── index_backup_auth_guard_fix_20250917_180113.js
+│   │   ├── index_backup_before_berrydo_route_20250920_115241.js
+│   │   ├── index_backup_before_berrydo_route_20250920_154115.js
+│   │   ├── index_backup_before_berrydo_route_20250923_114915.js
+│   │   ├── index_backup_legal_auth_fix_20250917_182220.js
+│   │   ├── index_backup_legal_routes_20250917_160138.js
+│   │   ├── index_backup_manual_berrydo_20250920_160718.js
+│   │   ├── index_backup_privacy_router_fix_20250917_164044.js
+│   │   ├── index.js
+│   │   ├── index.js_backup_20250918_121159.js
+│   │   └── index.js_backup_20250918_132409.js
+│   ├── stores
+│   │   ├── auth_backup_20250908_150957.js
+│   │   ├── auth_backup_20250909_044805.js
+│   │   ├── auth_backup_20250909_051341.js
+│   │   ├── auth_backup_20250909_100351.js
+│   │   ├── auth_backup_20250910_111505.js
+│   │   ├── auth_backup_20250910_113455.js
+│   │   ├── auth_backup_20250915_112921.js
+│   │   ├── auth_backup_cookie_fix_20250909_023849.js
+│   │   ├── auth_backup_env_fix_20250918_154928.js
+│   │   ├── auth_backup_error_message_fix_20251001_095928.js
+│   │   ├── auth_backup_local_baseurl_fix_20250918_152438.js
+│   │   ├── auth_emergency_backup_20250913_164839.js
+│   │   ├── auth.js
+│   │   ├── auth.js.backup_20250908_134018
+│   │   ├── invoices_backup_20250909_164042.js
+│   │   ├── invoices_backup_20250915_112921.js
+│   │   ├── invoices_backup_20251006_095359.js
+│   │   ├── invoices_backup_20251006_095438.js
+│   │   ├── invoices_backup_auth_fix_20250928_131622.js
+│   │   ├── invoices_backup_baseurl_fix_20250928_130133.js
+│   │   ├── invoices_backup_env_fix_20250918_155327.js
+│   │   ├── invoices_backup_fix_decimal_20251005_101426.js
+│   │   ├── invoices_backup_local_baseurl_fix_20250918_153412.js
+│   │   ├── invoices_backup_pdf_store_20250928_113717.js
+│   │   ├── invoices_backup_remove_pagination_20251005_142452.js
+│   │   ├── invoices_backup_task4_integration_20250911_0827.js
+│   │   ├── invoices_backup_update_fix_20251006_121820.js
+│   │   ├── invoices_emergency_backup_20250913_164839.js
+│   │   ├── invoices.js
+│   │   ├── invoices.js.backup_pdf_notification_20251015_115151
+│   │   ├── projects_backup_20250915_112921.js
+│   │   ├── projects_backup_20251002_134950.js
+│   │   ├── projects_backup_before_url_fix_20250906_123415.js
+│   │   ├── projects_backup_env_fix_20250918_155254.js
+│   │   ├── projects_backup_is_todo_fix_20251002_151001.js
+│   │   ├── projects_backup_local_baseurl_fix_20250918_152803.js
+│   │   ├── projects_backup_per_page_fix_20251003_085141.js
+│   │   ├── projects_backup_remove_pagination_20251005_150436.js
+│   │   ├── projects_backup_stats_unify_20250910_183221.js
+│   │   ├── projects_backup_todos_store_reference_20250920_171439.js
+│   │   ├── projects_emergency_backup_20250913_164839.js
+│   │   ├── projects.js
+│   │   ├── todos_backup_api_debug_20250920_174652.js
+│   │   ├── todos_backup_api_response_fix_20250924_085306.js
+│   │   ├── todos_backup_api_response_fix_20250924_090225.js
+│   │   ├── todos_backup_fetchstats_removal_20250922_104408.js
+│   │   ├── todos_backup_finally_fix_20250921_134152.js
+│   │   ├── todos_backup_getter_safety_fix_20250921_202858.js
+│   │   ├── todos_backup_getter_safety_fix_20250921_203002.js
+│   │   ├── todos_backup_getter_state_fix_20250922_105508.js
+│   │   ├── todos_backup_linked_fields_20250930_225647.js
+│   │   ├── todos_backup_loading_init_fix_20250921_202400.js
+│   │   ├── todos_backup_null_safety_unified_20250921_120500.js
+│   │   ├── todos_backup_phase4_api_fix_20250925_180832.js
+│   │   ├── todos_backup_push_error_fix_20250922_103510.js
+│   │   ├── todos_backup_push_timing_fix_20250922_103800.js
+│   │   ├── todos_backup_response_data_fix_20250922_104958.js
+│   │   ├── todos_backup_staging_error_fix_20250924_090858.js
+│   │   ├── todos_backup_undefined_fix_20250922_145732.js
+│   │   ├── todos.js
+│   │   └── ui.js
+│   ├── stores_backup_before_github_ui_restore_20250923_121842
+│   │   ├── auth_backup_20250908_150957.js
+│   │   ├── auth_backup_20250909_044805.js
+│   │   ├── auth_backup_20250909_051341.js
+│   │   ├── auth_backup_20250909_100351.js
+│   │   ├── auth_backup_20250910_111505.js
+│   │   ├── auth_backup_20250910_113455.js
+│   │   ├── auth_backup_20250915_112921.js
+│   │   ├── auth_backup_cookie_fix_20250909_023849.js
+│   │   ├── auth_backup_env_fix_20250918_154928.js
+│   │   ├── auth_backup_local_baseurl_fix_20250918_152438.js
+│   │   ├── auth_emergency_backup_20250913_164839.js
+│   │   ├── auth.js
+│   │   ├── auth.js.backup_20250908_134018
+│   │   ├── invoices_backup_20250909_164042.js
+│   │   ├── invoices_backup_20250915_112921.js
+│   │   ├── invoices_backup_env_fix_20250918_155327.js
+│   │   ├── invoices_backup_local_baseurl_fix_20250918_153412.js
+│   │   ├── invoices_backup_task4_integration_20250911_0827.js
+│   │   ├── invoices_emergency_backup_20250913_164839.js
+│   │   ├── invoices.js
+│   │   ├── projects_backup_20250915_112921.js
+│   │   ├── projects_backup_before_url_fix_20250906_123415.js
+│   │   ├── projects_backup_env_fix_20250918_155254.js
+│   │   ├── projects_backup_local_baseurl_fix_20250918_152803.js
+│   │   ├── projects_backup_stats_unify_20250910_183221.js
+│   │   ├── projects_backup_todos_store_reference_20250920_171439.js
+│   │   ├── projects_emergency_backup_20250913_164839.js
+│   │   ├── projects.js
+│   │   ├── todos_backup_api_debug_20250920_174652.js
+│   │   ├── todos_backup_fetchstats_removal_20250922_104408.js
+│   │   ├── todos_backup_finally_fix_20250921_134152.js
+│   │   ├── todos_backup_getter_safety_fix_20250921_202858.js
+│   │   ├── todos_backup_getter_safety_fix_20250921_203002.js
+│   │   ├── todos_backup_getter_state_fix_20250922_105508.js
+│   │   ├── todos_backup_loading_init_fix_20250921_202400.js
+│   │   ├── todos_backup_null_safety_unified_20250921_120500.js
+│   │   ├── todos_backup_push_error_fix_20250922_103510.js
+│   │   ├── todos_backup_push_timing_fix_20250922_103800.js
+│   │   ├── todos_backup_response_data_fix_20250922_104958.js
+│   │   ├── todos_backup_undefined_fix_20250922_145732.js
+│   │   └── todos.js
+│   ├── stores_backup_before_invoice_store_20250907_105414
+│   │   ├── auth.js
+│   │   ├── projects_backup_before_url_fix_20250906_123415.js
+│   │   └── projects.js
+│   ├── utils
+│   │   └── analytics.js
+│   └── views
+│       ├── AuthPage_backup_20251003_123313.vue
+│       ├── AuthPage_backup_add_to_home_20251003_140505.vue
+│       ├── AuthPage_backup_berry_card_20251001_102931.vue
+│       ├── AuthPage_backup_error_clear_fix_20251001_100843.vue
+│       ├── AuthPage_backup_error_clear_fix_20251001_101301.vue
+│       ├── AuthPage_backup_logo_margin_fix_20250916_110123.vue
+│       ├── AuthPage_backup_padding_fix_20250916_101308.vue
+│       ├── AuthPage_backup_phase4_ui_reform_20250928_015047.vue
+│       ├── AuthPage_backup_spacing_fix_20250916_100221.vue
+│       ├── AuthPage_backup_text_modification_20250928_022658.vue
+│       ├── AuthPage.vue
+│       ├── AuthPage.vue.backup_font_change_20251014_171254
+│       ├── AuthPage.vue.backup_logo_font_fix_20251015_065834
+│       ├── DashboardPage_backup_20250915_224454.vue
+│       ├── DashboardPage_backup_20250915_225044.vue
+│       ├── DashboardPage_backup_20250918_083337.vue
+│       ├── DashboardPage_backup_20251003_123313.vue
+│       ├── DashboardPage_backup_add_to_home_20251003_140505.vue
+│       ├── DashboardPage_backup_basic_data_modal_20250917_152736.vue
+│       ├── DashboardPage_backup_basic_data_modal_20250917_153357.vue
+│       ├── DashboardPage_backup_before_berrydo_card_20250923_114331.vue
+│       ├── DashboardPage_backup_before_berrydo_integration_20250920_112623.vue
+│       ├── DashboardPage_backup_before_berrydo_restore_20250923_105956.vue
+│       ├── DashboardPage_backup_before_manual_berrydo_20250920_154426.vue
+│       ├── DashboardPage_backup_before_step1_restore_20250920_122207.vue
+│       ├── DashboardPage_backup_before_store_integration_20250919_181707.vue
+│       ├── DashboardPage_backup_berry_do_navigation_fix_20250923_144055.vue
+│       ├── DashboardPage_backup_berry_do_navigation_fix_20250923_144307.vue
+│       ├── DashboardPage_backup_berry_naming_20250930_134007.vue
+│       ├── DashboardPage_backup_berry_transform_fix_20250928_001127.vue
+│       ├── DashboardPage_backup_card_width_fix_20251009_143045.vue
+│       ├── DashboardPage_backup_dom_structure_fix_20250927_170113.vue
+│       ├── DashboardPage_backup_filter_fix_20250911_093417.vue
+│       ├── DashboardPage_backup_hamburger_20250916_145539.vue
+│       ├── DashboardPage_backup_header_responsive_fix_20250916_114616.vue
+│       ├── DashboardPage_backup_logo_userbar_fix_20250916_132426.vue
+│       ├── DashboardPage_backup_modal_unify_20250917_140718.vue
+│       ├── DashboardPage_backup_navigation_fix_20250923_144652.vue
+│       ├── DashboardPage_backup_overflow_fix_20250928_003627.vue
+│       ├── DashboardPage_backup_phase4_horizontal_expansion_20250927_113107.vue
+│       ├── DashboardPage_backup_phase4_ui_expansion_20250927_113547.vue
+│       ├── DashboardPage_backup_pre_berrydo_restoration_20250923_112235.vue
+│       ├── DashboardPage_backup_safe_step1_20250916_115833.vue
+│       ├── DashboardPage_backup_stacking_context_fix_20250927_164620.vue
+│       ├── DashboardPage_backup_stacking_context_fix_20250927_164959.vue
+│       ├── DashboardPage_backup_stats_fix_20250910_165731.vue
+│       ├── DashboardPage_backup_stats_unify_20250910_183221.vue
+│       ├── DashboardPage_backup_step2_userbar_20250916_120434.vue
+│       ├── DashboardPage_backup_step2_userbar_20250916_120548.vue
+│       ├── DashboardPage_backup_svg_unification_20251010_064510.vue
+│       ├── DashboardPage_backup_todo_card_20251009_112122.vue
+│       ├── DashboardPage_backup_todo_stats_20250930_125918.vue
+│       ├── DashboardPage_backup_total_invoice_amount_20251009_110547.vue
+│       ├── DashboardPage_backup_uistore_integration_20251009_123717.vue
+│       ├── DashboardPage.vue
+│       ├── DashboardPage.vue_backup_20250918_105713
+│       ├── DashboardPage.vue.backup_card_width_fix_20251015_095115
+│       ├── DashboardPage.vue.backup_logo_font_fix_20251015_065831
+│       ├── DashboardPage.vue.backup_main_padding_fix_20251015_101419
+│       ├── InvoiceApp_backup_20251006_095413.vue
+│       ├── InvoiceApp_backup_20251006_095438.vue
+│       ├── InvoiceApp_backup_basic_data_modal_20250917_155013.vue
+│       ├── InvoiceApp_backup_before_store_integration_20250919_181707.vue
+│       ├── InvoiceApp_backup_berry_migration_20251006_112446.vue
+│       ├── InvoiceApp_backup_berry_naming_20250930_135207.vue
+│       ├── InvoiceApp_backup_card_full_width_20251009_133845.vue
+│       ├── InvoiceApp_backup_css_fix_20250917_115626.vue
+│       ├── InvoiceApp_backup_hamburger_20250916_145539.vue
+│       ├── InvoiceApp_backup_hamburger_integration_20250917_102214.vue
+│       ├── InvoiceApp_backup_hamburger_integration_20250917_103314.vue
+│       ├── InvoiceApp_backup_header_unification_20250930_144223.vue
+│       ├── InvoiceApp_backup_header_unify_20250916_141355.vue
+│       ├── InvoiceApp_backup_header_unify_20250917_112145.vue
+│       ├── InvoiceApp_backup_logout_removal_20250916_085403.vue
+│       ├── InvoiceApp_backup_logout_removal_20250916_085504.vue
+│       ├── InvoiceApp_backup_main_padding_removal_20251009_135305.vue
+│       ├── InvoiceApp_backup_modal_css_fix_20250917_142323.vue
+│       ├── InvoiceApp_backup_pdf_ui_20250928_113708.vue
+│       ├── InvoiceApp_backup_phase4_horizontal_expansion_20250927_102138.vue
+│       ├── InvoiceApp_backup_phase4_horizontal_expansion_20250927_103546.vue
+│       ├── InvoiceApp_backup_phase4_ui_revolution_20250926_143452.vue
+│       ├── InvoiceApp_backup_remove_duplicate_total_20251005_172832.vue
+│       ├── InvoiceApp_backup_safe_root_fix_20250917_124026.vue
+│       ├── InvoiceApp_backup_selector_fix_20250917_130431.vue
+│       ├── InvoiceApp_backup_settings_fix_20250917_134652.vue
+│       ├── InvoiceApp_backup_settings_fix_20250917_135503.vue
+│       ├── InvoiceApp_backup_text_size_mobile_fix_20250930_175910.vue
+│       ├── InvoiceApp_backup_total_amount_right_align_20251009_094113.vue
+│       ├── InvoiceApp.vue
+│       ├── InvoiceApp.vue.backup_card_width_fix_20251015_095120
+│       ├── InvoiceApp.vue.backup_main_padding_fix_20251015_101422
+│       ├── legal
+│       ├── legal_backup_privacy_implementation_20250917_163250
+│       ├── ProjectApp_backup_20251002_133735.vue
+│       ├── ProjectApp_backup_basic_data_modal_20250917_154131.vue
+│       ├── ProjectApp_backup_before_store_integration_20250919_181707.vue
+│       ├── ProjectApp_backup_berry_integration_20250926_211547.vue
+│       ├── ProjectApp_backup_berry_integration_20250926_211828.vue
+│       ├── ProjectApp_backup_berry_integration_20250926_213314.vue
+│       ├── ProjectApp_backup_berry_naming_20250930_134828.vue
+│       ├── ProjectApp_backup_card_full_width_20251009_133845.vue
+│       ├── ProjectApp_backup_css_fix_20250917_115626.vue
+│       ├── ProjectApp_backup_css_priority_fix_20250926_174043.vue
+│       ├── ProjectApp_backup_error_fix_20250926_214015.vue
+│       ├── ProjectApp_backup_filter_fix_20250911_093417.vue
+│       ├── ProjectApp_backup_hamburger_20250916_145539.vue
+│       ├── ProjectApp_backup_hamburger_integration_20250917_102003.vue
+│       ├── ProjectApp_backup_header_unification_20250930_144216.vue
+│       ├── ProjectApp_backup_header_unify_20250916_141355.vue
+│       ├── ProjectApp_backup_is_todo_fix_20251002_151008.vue
+│       ├── ProjectApp_backup_logout_removal_20250916_083650.vue
+│       ├── ProjectApp_backup_logout_removal_20250916_084138.vue
+│       ├── ProjectApp_backup_main_padding_removal_20251009_135305.vue
+│       ├── ProjectApp_backup_phase4_horizontal_expansion_20250927_090818.vue
+│       ├── ProjectApp_backup_phase4_html_template_fix_20250926_171833.vue
+│       ├── ProjectApp_backup_phase4_ui_revolution_20250926_143435.vue
+│       ├── ProjectApp_backup_root_fix_20250917_122156.vue
+│       ├── ProjectApp_backup_safe_root_fix_20250917_122956.vue
+│       ├── ProjectApp_backup_settings_fix_20250917_134652.vue
+│       ├── ProjectApp_backup_stats_unify_20250910_183221.vue
+│       ├── ProjectApp.vue
+│       ├── ProjectApp.vue.backup_card_width_fix_20251015_095117
+│       ├── ProjectApp.vue.backup_main_padding_fix_20251015_101421
+│       ├── TodoApp_backup_20251002_134641.vue
+│       ├── TodoApp_backup_auth_bypass_fix_20250921_123630.vue
+│       ├── TodoApp_backup_before_button_move_20251004_111445.vue
+│       ├── TodoApp_backup_before_crud_implementation_20250921_111136.vue
+│       ├── TodoApp_backup_before_fix_20251004_115535.vue
+│       ├── TodoApp_backup_before_ui_store_fix_20250923_115911.vue
+│       ├── TodoApp_backup_berry_card_css_20251001_092010.vue
+│       ├── TodoApp_backup_berry_card_fix_20250926_182606.vue
+│       ├── TodoApp_backup_button_bottom_20251004_1520.vue
+│       ├── TodoApp_backup_button_scope_fix_20250925_093731.vue
+│       ├── TodoApp_backup_button_spacing_fix_20251004_133633.vue
+│       ├── TodoApp_backup_card_badges_20251001_090422.vue
+│       ├── TodoApp_backup_card_full_width_20251009_133845.vue
+│       ├── TodoApp_backup_card_ui_revolution_20250925_125321.vue
+│       ├── TodoApp_backup_card_width_unification_20251009_132948.vue
+│       ├── TodoApp_backup_component_store_fix_20250921_122232.vue
+│       ├── TodoApp_backup_console_verified_20250921_152340.vue
+│       ├── TodoApp_backup_create_form_implementation_20250922_102218.vue
+│       ├── TodoApp_backup_data_fix_20250922_171638.vue
+│       ├── TodoApp_backup_debug_20251002_142738.vue
+│       ├── TodoApp_backup_debugging_20250920_174245.vue
+│       ├── TodoApp_backup_display_fix_20250924_142917.vue
+│       ├── TodoApp_backup_display_fix_20250924_143349.vue
+│       ├── TodoApp_backup_duplicate_title_fix_20250925_170600.vue
+│       ├── TodoApp_backup_edit_delete_20250925_083026.vue
+│       ├── TodoApp_backup_emergency_fix_20250924_144103.vue
+│       ├── TodoApp_backup_emergency_ui_fix_20250926_125124.vue
+│       ├── TodoApp_backup_error_recovery_20250920_173229.vue
+│       ├── TodoApp_backup_fetch_sync_fix_20250925_062604.vue
+│       ├── TodoApp_backup_fetchTodos_fix_20250921_172725.vue
+│       ├── TodoApp_backup_field_name_fix_20251001_000541.vue
+│       ├── TodoApp_backup_final_reference_fix_20250921_201852.vue
+│       ├── TodoApp_backup_folder_icon_20251010_113648.vue
+│       ├── TodoApp_backup_ga4_tracking_20251002_102133.vue
+│       ├── TodoApp_backup_gap_fix_20251004_143949.vue
+│       ├── TodoApp_backup_header_field_fix_20250926_134224.vue
+│       ├── TodoApp_backup_header_fix_20250930_145356.vue
+│       ├── TodoApp_backup_infinite_loop_fix_20250921_173412.vue
+│       ├── TodoApp_backup_inline_gap_20251004_143154.vue
+│       ├── TodoApp_backup_layout_fix_20251004_110020.vue
+│       ├── TodoApp_backup_linked_fields_20250930_225754.vue
+│       ├── TodoApp_backup_linked_fields_20251001_083437.vue
+│       ├── TodoApp_backup_loading_debug_20250921_154436.vue
+│       ├── TodoApp_backup_main_padding_removal_20251009_135305.vue
+│       ├── TodoApp_backup_main_padding_removal_20251009_140312.vue
+│       ├── TodoApp_backup_margin_fix_20251004_135150.vue
+│       ├── TodoApp_backup_matrix_implementation_20250921_114956.vue
+│       ├── TodoApp_backup_matrix_implementation_20250924_213316.vue
+│       ├── TodoApp_backup_null_safety_fix_20250921_101145.vue
+│       ├── TodoApp_backup_phase4_adjustment_20250926_132635.vue
+│       ├── TodoApp_backup_phase4_button_spacing_fix_20250926_095539.vue
+│       ├── TodoApp_backup_phase4_card_ui_20250925_161833.vue
+│       ├── TodoApp_backup_phase4_complete_20250925_164217.vue
+│       ├── TodoApp_backup_phase4_edit_form_fix_20250926_094640.vue
+│       ├── TodoApp_backup_phase4_importance_edit_debug_20250926_090639.vue
+│       ├── TodoApp_backup_phase4_pilot_ui_fix_20250926_130832.vue
+│       ├── TodoApp_backup_phase4_pilot_ui_fix_20250926_130847.vue
+│       ├── TodoApp_backup_phase4_ui_layout_fix_20250926_093824.vue
+│       ├── TodoApp_backup_store_init_fix_20250921_155606.vue
+│       ├── TodoApp_backup_store_integration_20250920_172054.vue
+│       ├── TodoApp_backup_store_null_check_fix_20250920_173809.vue
+│       ├── TodoApp_backup_svg_unification_20251010_111349.vue
+│       ├── TodoApp_backup_template_store_fix_20250920_173114.vue
+│       ├── TodoApp_backup_todo_ui_fix_20250930_215504.vue
+│       ├── TodoApp_backup_todos_reference_fix_20250921_105818.vue
+│       ├── TodoApp_backup_vmodel_fix_20251002_143933.vue
+│       ├── TodoApp.vue
+│       ├── TodoApp.vue_backup_button_bottom_20251004_1515
+│       ├── TodoApp.vue.backup_badge_frame_20251015_091616
+│       ├── TodoApp.vue.backup_badge_frame_20251015_130327
+│       ├── TodoApp.vue.backup_badge_gradient_fix_20251015_092229
+│       ├── TodoApp.vue.backup_button_fix_20251015_085931
+│       └── TodoApp.vue.backup_main_padding_fix_20251015_101423
+├── src_backup_before_auth_service_20250905_164040
+│   ├── App.vue
+│   ├── assets
+│   │   ├── base.css
+│   │   ├── logo.svg
+│   │   ├── main_backup_20250905_131027.css
+│   │   ├── main_import_backup_20250905_133906.css
+│   │   └── main.css
+│   ├── components
+│   │   ├── HelloWorld.vue
+│   │   ├── icons
+│   │   ├── TheWelcome.vue
+│   │   └── WelcomeItem.vue
+│   ├── main_backup_20250905_130904.js
+│   └── main.js
+├── tailwind_backup_20250905_131718.config.js
+├── tailwind.config.js
+├── tailwind.config.js_backup_20250918_101233
+├── tailwind.config.js.backup_font_change_20251014_171305
+├── tailwind.config.js.backup_font_fix_20251014_204323
+├── tailwind.config.js.backup_mplus_rounded_20251014_173744
+├── tailwind.config.js.backup_mplus_rounded_20251015_055331
+├── temp_env_check.js
+├── vite.config_backup_20250906_095415.js
+├── vite.config_backup_api_auth_fix_20250920_182635.js
+├── vite.config.js
+└── vite.config.js.backup_before_domain_fix_20250906_103501
+
+33 directories, 632 files

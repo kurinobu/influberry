@@ -5,6 +5,7 @@ InfluBerry v2 - スポンサー案件管理システム
 
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
+from flask_wtf.csrf import CSRFProtect
 from datetime import datetime, date
 from decimal import Decimal, InvalidOperation
 
@@ -14,6 +15,7 @@ from app.utils.db_optimizations import ProjectQueryOptimizer
 from app.utils.security_validators import SecurityDecorator, ProjectValidator
 
 projects_bp = Blueprint('projects', __name__)
+csrf = CSRFProtect()
 
 @projects_bp.route('', methods=['POST'])
 @projects_bp.route('/', methods=['POST'])
@@ -107,6 +109,7 @@ def get_project(project_id):
         return jsonify({'error': 'プロジェクト取得エラー'}), 500
 
 @projects_bp.route('/<int:project_id>', methods=['PUT'])
+@csrf.exempt
 @login_required
 def update_project(project_id):
     """プロジェクト更新"""
@@ -119,12 +122,24 @@ def update_project(project_id):
         if not project:
             return jsonify({'error': 'プロジェクトが見つかりません'}), 404
         
-        if not project.can_edit():
-            return jsonify({'error': '完了済みプロジェクトは編集できません'}), 403
-        
         data = request.get_json()
         if not data:
             return jsonify({'error': 'データが送信されていません'}), 400
+        
+        # 編集権限チェック（完了済みプロジェクトはステータス変更のみ許可）
+        if project.status == 'completed':
+            # 完了済みプロジェクトの場合、ステータス変更以外は制限
+            allowed_fields = ['status']
+            restricted_fields = [key for key in data.keys() if key not in allowed_fields]
+            if restricted_fields:
+                # ステータス変更のみの場合、他のフィールドを無視して処理を続行
+                if 'status' in data and len(data) == 1:
+                    # ステータスのみの変更は許可
+                    pass
+                else:
+                    return jsonify({
+                        'error': f'完了済みプロジェクトは以下のフィールドを編集できません: {", ".join(restricted_fields)}'
+                    }), 403
         
         # 更新可能フィールド
         if 'company_name' in data:
@@ -155,8 +170,31 @@ def update_project(project_id):
             project.notes = data['notes']
         
         if 'status' in data:
+            old_status = project.status
             try:
                 project.update_status(data['status'])
+                
+                # ステータス変更履歴記録
+                if old_status != data['status']:
+                    from app.models.project_status_history import ProjectStatusHistory
+                    history = ProjectStatusHistory(
+                        project_id=project.id,
+                        old_status=old_status,
+                        new_status=data['status'],
+                        changed_by=current_user.id
+                    )
+                    db.session.add(history)
+                    
+                    # Phase 2: 事前集計テーブル更新
+                    try:
+                        from app.services.monthly_summary_updater import update_monthly_summary
+                        changed_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                        update_monthly_summary(current_user.id, changed_month)
+                        print(f"✅ プロジェクトステータス変更: 事前集計テーブル更新完了")
+                    except Exception as e:
+                        print(f"⚠️ プロジェクトステータス変更: 事前集計テーブル更新エラー: {e}")
+                        # エラーでも処理は継続（既存機能を破壊しない）
+                    
             except ValueError as e:
                 return jsonify({'error': str(e)}), 400
         

@@ -1,0 +1,231 @@
+位于分支 staging
+尚未暂存以备提交的变更：
+  （使用 "git add/rm <文件>..." 更新要提交的内容）
+  （使用 "git restore <文件>..." 丢弃工作区的改动）
+	修改：     app/__init__.py
+	修改：     app/blueprints/invoices.py
+	修改：     app/blueprints/projects.py
+	修改：     app/blueprints/todos.py
+	修改：     app/models/__init__.py
+	修改：     app/models/project.py
+	修改：     frontend/src/components/ProjectList.vue
+	修改：     frontend/src/components/UserSettings.vue
+	删除：     frontend/src/components/icons/CreditCardIcon.vue
+	修改：     frontend/src/components/icons/HelpIcon.vue
+	删除：     frontend/src/components/icons/LoadingIcon.vue
+	修改：     frontend/src/components/icons/LockIcon.vue
+	修改：     frontend/src/components/icons/SettingsIcon.vue
+	删除：     frontend/src/components/icons/UserIcon.vue
+	修改：     frontend/src/router/index.js
+	修改：     frontend/src/stores/auth.js
+	修改：     frontend/src/stores/projects.js
+	修改：     frontend/src/stores/ui.js
+	修改：     frontend/src/views/DashboardPage.vue
+	修改：     frontend/src/views/legal/AboutPage.vue
+	删除：     frontend/src/views/legal/AboutPage.vue.backup_deploy_fix_20251016_123029
+	删除：     frontend/src/views/legal/BlogPage.vue
+	修改：     frontend/src/views/legal/CompanyPage.vue
+	删除：     frontend/src/views/legal/FAQPage.vue
+	修改：     frontend/src/views/legal/PrivacyPage.vue
+	修改：     frontend/src/views/legal/TermsPage.vue
+	修改：     frontend/src/views/legal/TokushoPage.vue
+	修改：     frontend/tailwind.config.js
+	修改：     requirements.txt
+
+未跟踪的文件:
+  （使用 "git add <文件>..." 以包含要提交的内容）
+	RATE_LIMITING_FINAL_REPORT.md
+	RATE_LIMITING_SUMMARY_REPORT.md
+	app.backup_day4_20251016_163518/
+	app.backup_day5_20251016_170809/
+	app.backup_day6_20251016_171217/
+	app/__init__.py.backup_auth_fix_20251024_174623
+	app/__init__.py.backup_before_403_fix_20251022_155818
+	app/__init__.py.backup_before_csrf_fix_20251022_152643
+	app/__init__.py.backup_blueprint_registration_20251022_150812
+	app/__init__.py.backup_monthly_bp_fix_20251022_164759
+	app/__init__.py.backup_phase1_monthly_rotation_fix_20251024_165030
+	app/__init__.py.backup_rate_limiting_20251016_154656
+	app/blueprints.backup_monthly_rotation_20251023_100532/
+	app/blueprints/invoices.py.backup_invoice_status_history_fix_20251022_223311
+	app/blueprints/monthly.py
+	app/blueprints/monthly_snapshot.py
+	app/blueprints/monthly_stats.py
+	app/blueprints/monthly_stats.py.backup_aggregation_logic_fix_20251022_143048
+	app/blueprints/monthly_stats.py.backup_before_500_error_fix_20251022_154526
+	app/blueprints/monthly_stats.py.backup_before_acquired_projects_fix_20251022_152529
+	app/blueprints/monthly_stats.py.backup_before_clear_test_data_20251022_135513
+	app/blueprints/monthly_stats.py.backup_clear_test_data_20251022_151035
+	app/blueprints/monthly_stats.py.backup_completed_logic_fix_20251022_115634
+	app/blueprints/monthly_stats.py.backup_completed_logic_fix_20251022_121824
+	app/blueprints/monthly_stats.py.backup_completed_logic_net_change_fix_20251022_132835
+	app/blueprints/monthly_stats.py.backup_completed_logic_proper_fix_20251022_120115
+	app/blueprints/monthly_stats.py.backup_date_fix_20251022_102547
+	app/blueprints/monthly_stats.py.backup_ideal_completed_logic_fix_20251022_134157
+	app/blueprints/monthly_stats.py.backup_ideal_logic_fix_20251022_124539
+	app/blueprints/monthly_stats.py.backup_invoice_net_logic_fix_20251022_232446
+	app/blueprints/monthly_stats.py.backup_invoice_status_history_fix_20251022_223321
+	app/blueprints/monthly_stats.py.backup_net_status_logic_20251022_110621
+	app/blueprints/monthly_stats.py.backup_net_status_logic_fix_20251022_114330
+	app/blueprints/monthly_stats.py.backup_paid_invoice_removal_fix_20251022_231706
+	app/blueprints/monthly_stats.py.backup_rollback_ideal_logic_fix_20251022_131120
+	app/blueprints/monthly_stats.py.backup_syntax_fix_20251022_150812
+	app/blueprints/monthly_stats.py.backup_syntax_fix_20251023_162523
+	app/blueprints/projects.py.backup_before_403_fix_20251022_155815
+	app/blueprints/projects.py.backup_before_can_edit_fix_20251022_160625
+	app/blueprints/projects.py.backup_before_csrf_fix_20251022_152648
+	app/blueprints/projects.py.backup_before_variable_order_fix_20251022_161525
+	app/blueprints/projects.py.backup_changed_at_fix_20251022_105005
+	app/blueprints/projects.py.backup_status_history_fix_20251022_143048
+	app/blueprints/scheduler.py
+	app/blueprints/scheduler.py.backup_auth_fix_20251024_174615
+	app/blueprints/scheduler.py.backup_phase1_monthly_rotation_fix_20251024_165027
+	app/models.backup_snapshot_implementation_20251023_100334/
+	app/models/__init__.py.backup_snapshot_implementation_20251023_100329
+	app/models/invoice.py.backup_snapshot_implementation_20251023_100329
+	app/models/invoice_status_history.py
+	app/models/invoice_status_history.py.backup_snapshot_implementation_20251023_100329
+	app/models/monthly_snapshot.py
+	app/models/monthly_target.py
+	app/models/monthly_target.py.backup_snapshot_implementation_20251023_100329
+	app/models/project.py.backup_before_can_edit_fix_20251022_160512
+	app/models/project.py.backup_can_edit_fix_20251022_131125
+	app/models/project.py.backup_snapshot_implementation_20251023_100329
+	app/models/project_status_history.py
+	app/models/project_status_history.py.backup_changed_at_fix_20251022_105019
+	app/models/project_status_history.py.backup_completed_logic_fix_20251022_115646
+	app/models/project_status_history.py.backup_completed_logic_proper_fix_20251022_120432
+	app/models/project_status_history.py.backup_net_status_logic_20251022_110624
+	app/models/project_status_history.py.backup_net_status_logic_fix_20251022_114439
+	app/models/project_status_history.py.backup_snapshot_implementation_20251023_100329
+	app/models/project_status_history.py.backup_status_history_fix_20251022_143048
+	app/models/user.py.backup_snapshot_implementation_20251023_100329
+	app/schedulers/
+	backup_chattering_damage_state_20251023_171759/
+	backup_monthly_tab_auto_switch_fix_20251023_164606/
+	backup_tab_auto_switch_fix_20251023_170157/
+	backup_white_screen_fix_20251023_165140/
+	backups/current_stable_state_20251022_092631/
+	backups/documentation_update_monthly_rotation_fix_20251023_150355/
+	backups/final_fix_monthly_rotation_concept_and_tab_content_change_20251023_145334/
+	backups/final_fix_root_cause_20251023_142348/
+	backups/monthly_rotation_concept_fix_20251023_135240/
+	backups/monthly_rotation_fix_20251023_132203/
+	backups/monthly_rotation_fundamental_fix_20251023_133902/
+	backups/phase1_final_monthly_rotation_concept_fix_20251023_143248/
+	backups/phase1_monthly_rotation_concept_redefinition_20251023_140240/
+	backups/phase2_tab_detail_display_fix_20251023_144046/
+	backups/phase2_tab_generation_logic_fix_20251023_140459/
+	backups/phase3_rotation_state_based_tabs_20251023_140613/
+	backups/phase3_visual_changes_implementation_20251023_144211/
+	backups/phase4_testing_verification_optimization_20251023_140829/
+	backups/tab_auto_switch_fix_20251023_151240/
+	backups/tab_content_change_fix_20251023_153021/
+	backups/tab_generation_logic_fix_20251023_134601/
+	config.py.backup_auth_fix_20251024_174620
+	config.py.backup_day2_20251016_155152
+	config.py.backup_day3_20251016_160924
+	config.py.backup_day4_20251016_163535
+	config.py.backup_day5_20251016_170823
+	config.py.backup_day6_20251016_171230
+	create_monthly_migration.py
+	create_monthly_tables.py
+	docs.backup_before_architecture_update_20251021_084443/
+	docs/
+	fix_migration.py
+	frontend.backup_before_api_path_fix_20251021_070515/
+	frontend.backup_before_debug_20251021_071612/
+	frontend.backup_before_dep_reinstall_20251020_210039/
+	frontend.backup_before_final_auth_fix_20251021_071218/
+	frontend.backup_before_final_restore_20251021_072440/
+	frontend.backup_before_final_restore_20251021_083139/
+	frontend.backup_before_fix_20251021_083550/
+	frontend.backup_before_local_proxy_fix_20251021_071018/
+	frontend.backup_before_minimal_fix_20251021_071931/
+	frontend.backup_before_restore_20251020_205417/
+	frontend.backup_before_url_fix_20251021_084053/
+	frontend.backup_day4_20251016_163525/
+	frontend.backup_day5_20251016_170813/
+	frontend.backup_day6_20251016_171221/
+	frontend.backup_emergency_20251021_071725/
+	frontend/src/assets/base.css.backup_berry_style_fix_20251025_071545
+	frontend/src/components.backup_auto_start_20251023_103709/
+	frontend/src/components/MonthlyStatsSection.vue.backup_berry_style_fix_20251025_071543
+	frontend/src/components/MonthlyStatsSection.vue.backup_button_color_change_20251023_091707
+	frontend/src/components/MonthlyStatsSection.vue.backup_chattering_fix_20251022_170115
+	frontend/src/components/MonthlyStatsSection.vue.backup_completed_logic_fix_20251022_121830
+	frontend/src/components/MonthlyStatsSection.vue.backup_data_flow_fix_20251022_165455
+	frontend/src/components/MonthlyStatsSection.vue.backup_data_sync_fix_20251022_111827
+	frontend/src/components/MonthlyStatsSection.vue.backup_display_fix_20251022_102639
+	frontend/src/components/MonthlyStatsSection.vue.backup_display_name_fix_20251023_084759
+	frontend/src/components/MonthlyStatsSection.vue.backup_ideal_logic_fix_20251022_124548
+	frontend/src/components/MonthlyStatsSection.vue.backup_invoice_watch_fix_20251022_224030
+	frontend/src/components/MonthlyStatsSection.vue.backup_paid_invoice_removal_fix_20251022_231711
+	frontend/src/components/MonthlyStatsSection.vue.backup_personalized_text_fix_20251025_082345
+	frontend/src/components/MonthlyStatsSection.vue.backup_phase1_title_fix_20251023_095709
+	frontend/src/components/MonthlyStatsSection.vue.backup_tab_auto_switch_fix_20251023_151240
+	frontend/src/components/MonthlyStatsSection.vue.backup_tab_content_change_fix_20251023_153021
+	frontend/src/components/MonthlyStatsSection.vue.backup_title_change_20251023_085315
+	frontend/src/components/MonthlyStatsSection.vue.backup_ui_improvements_20251025_083929
+	frontend/src/components/MonthlyTabs.vue
+	frontend/src/components/MonthlyTabs.vue.backup_berry_style_fix_20251025_071542
+	frontend/src/components/MonthlyTabs.vue.backup_color_consistency_fix_20251023_093633
+	frontend/src/components/MonthlyTabs.vue.backup_css_selector_fix_20251023_092930
+	frontend/src/components/MonthlyTabs.vue.backup_mobile_tab_fix_20251023_092411
+	frontend/src/components/MonthlyTabs.vue.backup_nexttick_import_fix_20251024_093421.vue
+	frontend/src/components/MonthlyTabs.vue.backup_nexttick_import_fix_20251024_094501.vue
+	frontend/src/components/MonthlyTabs.vue.backup_phase2_monthly_rotation_fix_20251024_165132
+	frontend/src/components/MonthlyTabs.vue.backup_reactive_binding_fix_20251024_085455.vue
+	frontend/src/components/MonthlyTabs.vue.backup_shadow_color_fix_20251025_073605
+	frontend/src/components/MonthlyTabs.vue.backup_shadow_intensity_fix_20251025_074140
+	frontend/src/components/MonthlyTabs.vue.backup_tab_auto_switch_fix_20251023_151240
+	frontend/src/components/MonthlyTabs.vue.backup_tab_color_unification_20251025_072808
+	frontend/src/components/MonthlyTabs.vue.backup_tab_content_change_fix_20251023_153021
+	frontend/src/components/MonthlyTabs.vue.backup_tab_generation_fix_20251024_175730
+	frontend/src/components/MonthlyTabs.vue.backup_text_color_fix_20251025_073143
+	frontend/src/components/ProgressBar.vue
+	frontend/src/components/ProjectList.vue.backup_form_fix_20251022_104023
+	frontend/src/components/UserSettings.vue.backup_emoji_fix_20251022_101528
+	frontend/src/components/UserSettings.vue.backup_settings_restructure_20251022_100800
+	frontend/src/components/icons/SettingsIcon.vue.backup_icon_fix_20251022_102046
+	frontend/src/stores.backup_auto_start_20251023_103700/
+	frontend/src/stores.backup_monthly_rotation_20251023_100536/
+	frontend/src/stores/monthly.js
+	frontend/src/stores/monthly.js.backup_api_endpoint_fix_20251023_163521
+	frontend/src/stores/monthly.js.backup_api_fix_20251022_145702
+	frontend/src/stores/monthly.js.backup_data_sync_fix_20251022_111823
+	frontend/src/stores/monthly.js.backup_error_investigation_20251022_145815
+	frontend/src/stores/monthly.js.backup_phase3_monthly_rotation_fix_20251024_165348
+	frontend/src/stores/monthly.js.backup_sync_fix_20251022_102636
+	frontend/src/stores/monthly.js.backup_tab_generation_fix_20251024_175735
+	frontend/src/stores/monthlyRotation.js
+	frontend/src/stores/monthlyRotation.js.backup_phase2_monthly_rotation_fix_20251024_165129
+	frontend/src/stores/monthlyRotation.js.backup_tab_auto_switch_fix_20251023_151240
+	frontend/src/stores/monthlyRotation.js.backup_tab_content_change_fix_20251023_153021
+	frontend/src/stores/projects.js.backup_data_sync_fix_20251022_111820
+	frontend/src/stores/ui.js.backup_setSettingsTab_fix_20251022_165455
+	frontend/src/stores/ui.js.backup_settings_restructure_20251022_100802
+	frontend/src/views.backup_auto_start_20251023_103704/
+	frontend/src/views.backup_remove_test_button_20251023_105336/
+	frontend/src/views/BlogPage.vue
+	frontend/src/views/DashboardPage.vue.backup_phase3_monthly_rotation_fix_20251024_165351
+	frontend/src/views/DashboardPage.vue.backup_reactive_binding_fix_20251024_085508.vue
+	frontend/src/views/DashboardPage.vue.backup_spacing_fix_20251023_092414
+	frontend/src/views/DashboardPage.vue.backup_spacing_force_fix_20251023_093635
+	frontend/src/views/DashboardPage.vue.backup_spacing_verification_20251023_092933
+	frontend/src/views/DashboardPage.vue.backup_stats_cleanup_20251023_085312
+	frontend/src/views/DashboardPage.vue.backup_tab_auto_switch_fix_20251023_151240
+	frontend/src/views/DashboardPage.vue.backup_tab_content_change_fix_20251023_153021
+	frontend/src/views/FAQPage.vue
+	init_migrate.py
+	migrate_monthly.py
+	node_version_before_fix_20251020_185526.txt
+	project_structure.txt
+	render.yaml.backup_staging_environment_fix_20251025_091605
+	requirements.txt.backup_day4_20251016_163540
+	requirements.txt.backup_day5_20251016_170843
+	requirements.txt.backup_day6_20251016_171238
+	run_migration.py
+	tests/
+
+修改尚未加入提交（使用 "git add" 和/或 "git commit -a"）

@@ -18,9 +18,10 @@ const lastUpdated = '2025年9月17日'
     <header class="berry-header">
       <div class="max-w-4xl mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-noto">
-              🍓 InfluBerry
+          <div class="flex items-center">
+            <img src="/favicon512.png" alt="InfluBerry" class="w-8 h-8 mr-3">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              InfluBerry
             </h1>
           </div>
           <button 
@@ -252,6 +253,15 @@ html {
   background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
   border-bottom: 2px solid #f9a8d4;
   box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
+}
+
+/* ヘッダータイトル強制カラフル表示 */
+h1.text-2xl.font-bold {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-weight: 700 !important;
 }
 
 </style>

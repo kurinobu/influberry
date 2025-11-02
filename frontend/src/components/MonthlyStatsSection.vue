@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!loading" class="monthly-stats-section berry-card rounded-b-lg p-6">
+  <!-- Step 2 Phase 3修正: データが存在する場合は、loadingがtrueでも表示 -->
+  <div v-if="stats || overviewData" class="monthly-stats-section berry-card rounded-b-lg p-6">
     <!-- 概要タブ -->
     <div v-if="currentTab === 'overview'" class="overview-section">
       <div class="flex items-center mb-6">
@@ -60,7 +61,7 @@
         <ProgressBar 
           label="獲得案件"
           :current="stats?.actual.acquired_projects || 0"
-          :target="stats?.target.projects || 0"
+          :target="stats?.target?.projects || 0"
           unit="件"
           icon="box"
         />
@@ -68,7 +69,7 @@
         <ProgressBar 
           label="完了案件"
           :current="stats?.actual.completed_projects || 0"
-          :target="stats?.target.projects || 0"
+          :target="stats?.target?.projects || 0"
           unit="件"
           icon="check"
         />
@@ -76,7 +77,7 @@
         <ProgressBar 
           label="請求額"
           :current="stats?.actual.sent_invoices_amount || 0"
-          :target="stats?.target.income || 0"
+          :target="stats?.target?.income || 0"
           unit="円"
           icon="currency"
         />
@@ -84,9 +85,79 @@
     </div>
   </div>
   
-  <!-- ローディング -->
-  <div v-else class="flex justify-center items-center py-12">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
+  <!-- スケルトンローディング -->
+  <div v-else-if="monthlyStore.loading" class="monthly-stats-section berry-card rounded-b-lg p-6">
+    <!-- 概要タブのスケルトン -->
+    <div v-if="currentTab === 'overview'" class="overview-section">
+      <div class="flex items-center mb-6">
+        <div class="w-8 h-8 bg-gray-300 rounded animate-pulse mr-3"></div>
+        <div class="h-8 w-48 bg-gray-300 rounded animate-pulse"></div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- スケルトンカード1 -->
+        <div class="stat-card bg-gradient-to-br from-gray-100 to-gray-200 p-6 rounded-lg">
+          <div class="h-4 w-32 bg-gray-300 rounded animate-pulse mb-2"></div>
+          <div class="h-10 w-24 bg-gray-300 rounded animate-pulse"></div>
+        </div>
+        
+        <!-- スケルトンカード2 -->
+        <div class="stat-card bg-gradient-to-br from-gray-100 to-gray-200 p-6 rounded-lg">
+          <div class="h-4 w-32 bg-gray-300 rounded animate-pulse mb-2"></div>
+          <div class="h-10 w-24 bg-gray-300 rounded animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 月次タブのスケルトン -->
+    <div v-else class="monthly-section">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center">
+          <div class="w-8 h-8 bg-gray-300 rounded animate-pulse mr-3"></div>
+          <div class="h-8 w-48 bg-gray-300 rounded animate-pulse"></div>
+        </div>
+        <div class="w-24 h-10 bg-gray-300 rounded animate-pulse"></div>
+      </div>
+      
+      <!-- スケルトンプログレスバー群 -->
+      <div class="space-y-6">
+        <!-- スケルトンプログレスバー1 -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <div class="h-5 w-24 bg-gray-300 rounded animate-pulse"></div>
+            <div class="h-5 w-16 bg-gray-300 rounded animate-pulse"></div>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-6">
+            <div class="h-6 w-1/2 bg-gray-300 rounded-full animate-pulse"></div>
+          </div>
+          <div class="h-4 w-32 bg-gray-300 rounded animate-pulse"></div>
+        </div>
+        
+        <!-- スケルトンプログレスバー2 -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <div class="h-5 w-24 bg-gray-300 rounded animate-pulse"></div>
+            <div class="h-5 w-16 bg-gray-300 rounded animate-pulse"></div>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-6">
+            <div class="h-6 w-1/3 bg-gray-300 rounded-full animate-pulse"></div>
+          </div>
+          <div class="h-4 w-32 bg-gray-300 rounded animate-pulse"></div>
+        </div>
+        
+        <!-- スケルトンプログレスバー3 -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <div class="h-5 w-24 bg-gray-300 rounded animate-pulse"></div>
+            <div class="h-5 w-16 bg-gray-300 rounded animate-pulse"></div>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-6">
+            <div class="h-6 w-2/3 bg-gray-300 rounded-full animate-pulse"></div>
+          </div>
+          <div class="h-4 w-32 bg-gray-300 rounded animate-pulse"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -97,6 +168,21 @@ import { useUIStore } from '@/stores/ui'
 import { useProjectsStore } from '@/stores/projects'
 import { useInvoicesStore } from '@/stores/invoices'
 import { useMonthlyRotationStore } from '@/stores/monthlyRotation'
+
+// Step 2 Phase 1: 環境変数による条件付きログ出力
+const isDevelopment = import.meta.env.DEV
+
+// デバッグログ関数（開発環境でのみ出力）
+const debugLog = (...args) => {
+  if (isDevelopment) {
+    console.log(...args)
+  }
+}
+
+// エラーログ関数（常に出力）
+const errorLog = (...args) => {
+  console.error(...args)
+}
 import { useAuthStore } from '@/stores/auth'
 import ProgressBar from './ProgressBar.vue'
 import { ChartBarIcon, CalendarIcon, FlagIcon } from '@heroicons/vue/24/outline'
@@ -115,8 +201,14 @@ const invoicesStore = useInvoicesStore()
 const rotationStore = useMonthlyRotationStore()
 const authStore = useAuthStore()
 
-const loading = ref(false)
-const stats = ref(null)
+// Phase 3: ローディング状態管理の統一（シンプル構造 > 複雑構造）
+// ローカルloadingを削除し、ストアloadingのみを使用
+// 修正案7: statsをcomputedプロパティに変更してリアクティビティを確保
+const stats = computed(() => {
+  if (props.currentTab === 'overview') return null
+  const monthKey = props.currentTab + '-01'
+  return monthlyStore.getStatsByMonth(monthKey)
+})
 const overviewData = ref(null)
 
 // 重複実行防止フラグ
@@ -152,12 +244,11 @@ const isCurrentMonth = computed(() => {
   return parseInt(year) === currentYear && parseInt(month) === currentMonth
 })
 
-// 統計データのみ取得（無限ループ防止用）
+// Phase 2: 統計データのみ取得（無限ループ防止用）- nextTick削減
 const loadStatsOnly = async () => {
   if (props.currentTab === 'overview' || isLoadingStats.value) return
   
   isLoadingStats.value = true
-  loading.value = true
   
   try {
     const [year, month] = props.currentTab.split('-')
@@ -166,21 +257,11 @@ const loadStatsOnly = async () => {
     // 1. 統計データを強制的に再取得
     await monthlyStore.fetchStats(parseInt(year), parseInt(month))
     
-    // 2. データ同期の確実化（複数のnextTickを使用）
-    await nextTick()
-    stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
-    await nextTick() // 追加のnextTick
-    
-    // 3. 強制的なUI更新
-    await nextTick()
-    
-    // 4. データ同期の最終確認
-    await nextTick()
-    stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
-    await nextTick()
+    // 修正案7: statsはcomputedプロパティのため、自動的に更新される
+    // stats.value = ...の形式は不要
     
     // デバッグログ追加
-    console.log('統計データ更新完了 - データ同期確実化:', {
+    debugLog('統計データ更新完了 - データ同期確実化:', {
       tab: props.currentTab,
       stats: stats.value,
       targets: monthlyStore.targets,
@@ -191,26 +272,68 @@ const loadStatsOnly = async () => {
       dataSyncStatus: 'ensured'
     })
   } catch (error) {
-    console.error('統計データ読み込みエラー:', error)
+    errorLog('統計データ読み込みエラー:', error)
   } finally {
-    loading.value = false
     isLoadingStats.value = false
   }
 }
 
+// Phase 2: データ取得ロジック最適化（リスク対策: キャッシュの有効性チェック）
+// Step 2 Phase 3修正: キャッシュがある場合はloadingをtrueにしない
+// Step 2 Phase 4-3修正: fetchingCurrentMonthlyDataフラグもチェック
 const loadData = async () => {
-  if (isLoadingTargets.value || isLoadingStats.value) return
-  
-  loading.value = true
+  if (isLoadingTargets.value || isLoadingStats.value || monthlyStore.fetchingCurrentMonthlyData) {
+    debugLog('🔧 データ取得中または既に実行中のためスキップ')
+    return
+  }
   
   try {
     if (props.currentTab === 'overview') {
-      const response = await monthlyStore.fetchOverview()
-      overviewData.value = response
+      // Step 2 Phase 3修正: キャッシュがある場合は、loadingをtrueにしない
+      if (monthlyStore.overview) {
+        overviewData.value = monthlyStore.overview
+        debugLog('🔧 キャッシュから概要データを取得 - loadingをtrueにしない')
+        return // loadingをtrueにしない
+      }
+      // ステップ3: overviewタブ - 軽量APIを使用
+      const response = await monthlyStore.fetchOverviewMinimal()
+      // Step 1-3修正: undefinedの場合のデフォルト値設定
+      overviewData.value = response || {
+        total_projects: 0,
+        total_income: 0,
+        recent_months: []
+      }
+    } else if (monthlyStore.USE_NEW_API) {
+      // 修正案3: 新API使用時 - キャッシュチェックを最適化（目標値も含めてチェック）
+      const monthKey = props.currentTab + '-01'
+      const cachedStats = monthlyStore.getStatsByMonth(monthKey)
+      
+      // 修正案7: キャッシュがある場合は即座に表示（statsはcomputedプロパティのため、自動的に更新される）
+      if (cachedStats) {
+        debugLog('🔧 キャッシュから統計データを取得 - loadingをtrueにしない:', { 
+          monthKey, 
+          targetProjects: cachedStats.target?.projects,
+          targetIncome: cachedStats.target?.income
+        })
+        return // loadingをtrueにしない（statsはcomputedプロパティのため、自動的に更新される）
+      }
+      
+      // データがない場合のみAPI呼び出し（フォールバック）
+      debugLog('🔧 データ未取得のため、fetchCurrentMonthlyData()を呼び出し')
+      await monthlyStore.fetchCurrentMonthlyData()
+      // 修正案7: statsはcomputedプロパティのため、自動的に更新される（stats.value = ...は不要）
+      
+      // デバッグログ追加
+      debugLog('月次統計データ（新API）:', {
+        tab: props.currentTab,
+        monthKey,
+        stats: stats.value,
+        targets: monthlyStore.targets
+      })
     } else {
+      // 旧API使用時: 既存の方法を維持（後方互換性）
       const [year, month] = props.currentTab.split('-')
       
-      // 目標データと統計データを同時に取得
       isLoadingTargets.value = true
       await monthlyStore.fetchTargets(parseInt(year), [parseInt(month)])
       isLoadingTargets.value = false
@@ -219,12 +342,12 @@ const loadData = async () => {
       await monthlyStore.fetchStats(parseInt(year), parseInt(month))
       isLoadingStats.value = false
       
-      // nextTickを使用してリアクティブ更新を確実にする
+      // Phase 2: 必要な箇所のみnextTick()を維持
       await nextTick()
-      stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
+      // 修正案7: statsはcomputedプロパティのため、自動的に更新される（stats.value = ...は不要）
       
       // デバッグログ追加
-      console.log('月次統計データ:', {
+      debugLog('月次統計データ（旧API）:', {
         tab: props.currentTab,
         year: parseInt(year),
         month: parseInt(month),
@@ -233,9 +356,9 @@ const loadData = async () => {
       })
     }
   } catch (error) {
-    console.error('データ読み込みエラー:', error)
+    errorLog('データ読み込みエラー:', error)
   } finally {
-    loading.value = false
+    // Phase 3: ローディング状態管理を統一（ストアloadingのみ使用）
     isLoadingTargets.value = false
     isLoadingStats.value = false
   }
@@ -251,89 +374,146 @@ const formatCurrency = (amount) => {
   return new Intl.NumberFormat('ja-JP').format(amount)
 }
 
-watch(() => props.currentTab, () => {
-  loadData()
+// Phase 2: 簡易debounce関数の実装（lodash-es不要）
+let debounceTimer = null
+const debounce = (fn, delay) => {
+  return (...args) => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer)
+    }
+    debounceTimer = setTimeout(() => {
+      fn(...args)
+    }, delay)
+  }
+}
+
+// Step 2 Phase 3修正: watchの最適化とdebounce実装（リスク対策: lastProcessedTabで重複処理防止）
+let lastProcessedTab = null // 最後に処理したタブを記録
+
+watch(() => props.currentTab, (newTab) => {
+  // Step 2 Phase 3修正: 同じタブが既に処理済みの場合はスキップ
+  if (lastProcessedTab === newTab) {
+    debugLog('🔧 同じタブが既に処理済みのためスキップ:', newTab)
+    return
+  }
+  
+  // リスク対策: キャッシュがある場合は即座に表示（debounceをバイパス）
+  if (newTab === 'overview') {
+    if (monthlyStore.overview) {
+      overviewData.value = monthlyStore.overview
+      lastProcessedTab = newTab
+      debugLog('🔧 キャッシュから概要データを即座に表示:', newTab)
+      return // debounceをバイパスして即座に表示
+    }
+  } else {
+    const monthKey = newTab + '-01'
+    const cachedStats = monthlyStore.getStatsByMonth(monthKey)
+    if (cachedStats) {
+      // 修正案7: statsはcomputedプロパティのため、自動的に更新される（stats.value = ...は不要）
+      lastProcessedTab = newTab
+      debugLog('🔧 キャッシュから統計データを即座に表示:', { newTab, monthKey })
+      return // debounceをバイパスして即座に表示
+    }
+  }
+  
+  // データが存在しない場合のみdebounce後にAPI呼び出し
+  // 既存のタイマーをクリア
+  if (debounceTimer) {
+    clearTimeout(debounceTimer)
+  }
+  
+  lastProcessedTab = newTab
+  debugLog('🔧 データ未取得のため、debounce後にAPI呼び出し:', newTab)
+  debounceTimer = setTimeout(async () => {
+    await loadData()
+    debounceTimer = null
+  }, 50)
 })
 
-// プロジェクトデータの変更を監視して月次統計を自動更新
-watch(() => projectsStore.projects, () => {
-  // プロジェクトデータが更新されたら月次統計も再取得
-  if (props.currentTab !== 'overview') {
-    loadData()
-  }
-}, { deep: true })
+// Phase 3: 不要なwatchを削除（根本解決）
+// 月次統計は履歴ベースで計算されるため、プロジェクト・請求書の変更時に再取得する必要はない
+// ステータス変更時にバックエンドで自動更新される（monthly_summary_updater.py）
+// 削除: watch(() => projectsStore.projects) - 不要な再取得を防止
+// 削除: watch(() => invoicesStore.invoices) - 不要な再取得を防止
 
-// 請求書データの変更を監視して月次統計を自動更新
-watch(() => invoicesStore.invoices, () => {
-  // 請求書データが更新されたら月次統計も再取得
-  if (props.currentTab !== 'overview') {
-    loadData()
-  }
-}, { deep: true })
-
-// 月次目標データの変更を監視して月次統計を自動更新
-watch(() => monthlyStore.targets, async (newTargets, oldTargets) => {
-  // 実際にデータが変更された場合のみ実行（無限ループ防止）
-  if (props.currentTab !== 'overview' && newTargets !== oldTargets) {
-    console.log('目標データ変更検知 - データ同期確実化:', {
-      tab: props.currentTab,
-      newTargets,
-      oldTargets
-    })
+// Phase 2: 月次目標データ（当該月キー）の変更を監視し、統計を強制再取得（リスク対策強化版）
+watch(
+  () => {
+    if (props.currentTab === 'overview') return null
+    const monthKey = props.currentTab + '-01'
+    const target = monthlyStore.targets[monthKey]
+    // 値が存在し、かつ実際に変更された場合のみ再取得
+    return target ? JSON.stringify(target) : null
+  },
+  async (newVal, oldVal) => {
+    if (props.currentTab === 'overview') return
     
-    // データ同期の確実化（ステータス変更履歴による複雑な集計処理対応）
-    // 1. 強制的なデータ同期（リアクティブ更新の強制）
-    stats.value = null
-    await nextTick()
+    // リスク対策1: 初期化時（oldVal === undefined）は実行しない
+    if (!oldVal && newVal) {
+      // 初期化時の処理は不要（データは既に取得済み）
+      return
+    }
     
-    // 2. 統計データを強制的に再取得（target同期問題の解決）
-    await new Promise(resolve => setTimeout(resolve, 50))
-    await loadStatsOnly()
-    
-    // 3. 強制的なUI更新（複数のnextTickを使用）
-    await nextTick()
-    await nextTick()
-    
-    // 4. データ同期の最終確認
-    await nextTick()
-    stats.value = monthlyStore.getStatsByMonth(props.currentTab + '-01')
-    await nextTick()
-    
-    console.log('統計データ更新完了 - データ同期確実化:', {
-      tab: props.currentTab,
-      stats: stats.value,
-      targets: monthlyStore.targets,
-      targetProjects: stats.value?.target?.projects,
-      targetIncome: stats.value?.target?.income,
-      statsKeys: Object.keys(monthlyStore.stats),
-      currentStats: monthlyStore.stats[props.currentTab + '-01'],
-      dataSyncStatus: 'ensured'
-    })
-  }
-}, { deep: true })
+    // リスク対策2: 値が変更された場合のみ実行
+    if (newVal && oldVal && newVal !== oldVal) {
+      const [year, month] = props.currentTab.split('-')
+      const monthKey = props.currentTab + '-01'
+      
+      // リスク対策3: saveTarget()直後の更新は検知しない
+      // saveTarget()でfetchStats(forceRefresh=true)が実行される
+      // lastFetchTime.statsを確認し、1秒以内の更新はスキップ
+      if (monthlyStore.lastFetchTime.stats) {
+        const timeSinceLastFetch = Date.now() - monthlyStore.lastFetchTime.stats
+        if (timeSinceLastFetch < 1000) {
+          debugLog('目標設定直後の更新を検知 - saveTarget()で既に更新済みのためスキップ')
+          // 修正案7: statsはcomputedプロパティのため、自動的に更新される（stats.value = ...は不要）
+          return
+        }
+      }
+      
+      // リスク対策4: キャッシュの有効性を厳密にチェック
+      const cachedStats = monthlyStore.stats[monthKey]
+      if (cachedStats && monthlyStore.lastFetchTime.stats) {
+        const cacheAge = Date.now() - monthlyStore.lastFetchTime.stats
+        // キャッシュが5分以内であれば使用
+        if (cacheAge < monthlyStore.cacheDuration) {
+          debugLog('キャッシュを使用（目標変更時の統計更新）')
+          // 修正案7: statsはcomputedプロパティのため、自動的に更新される（stats.value = ...は不要）
+          return
+        }
+      }
+      
+      // キャッシュが無効な場合のみ再取得
+      debugLog('目標データ（当該月）変更検知 - 統計を強制再取得:', {
+        tab: props.currentTab,
+        monthKey: props.currentTab + '-01',
+        newTarget: newVal
+      })
+      await monthlyStore.fetchStats(parseInt(year), parseInt(month), true)
+      await nextTick()
+      // 修正案7: statsはcomputedプロパティのため、自動的に更新される（stats.value = ...は不要）
+      debugLog('統計データ更新完了（目標即時反映）:', {
+        targetProjects: stats.value?.target?.projects,
+        targetIncome: stats.value?.target?.income
+      })
+    }
+  },
+  { deep: false }
+)
 
 // 月次切り替え状態の監視（新規追加）
-watch(() => rotationStore.rotationState, async (newState, oldState) => {
-  console.log('🔄 月次切り替え状態変更を検知:', { newState, oldState })
-  if (newState === 'completed' && oldState === 'running') {
-    console.log('🎉 月次切り替え完了を検知 - データを再読み込み')
-    // データを強制的に再読み込み
-    await loadData()
-  }
-})
 
-// 月次切り替えチェック時刻の監視（新規追加）
-watch(() => rotationStore.lastRotationCheck, async (newValue, oldValue) => {
-  console.log('🔄 月次切り替えチェック時刻変更を検知:', { newValue, oldValue })
-  if (newValue !== oldValue) {
-    console.log('🔄 月次切り替えチェック時刻更新 - データを再読み込み')
-    // データを強制的に再読み込み
-    await loadData()
-  }
-})
-
-onMounted(() => {
-  loadData()
+// Phase 3: 初期化時のデータ取得を最適化（統一・同一化 > 特殊独自）
+// 新API (`/api/monthly/current`) の使用を徹底し、初期化時の重複呼び出しを削減
+// Step 2 Phase 3修正: lastProcessedTabをリセットして初期化時の重複処理を防止
+// Step 2 Phase 4-3修正: 初期化時はloadData()のみを呼び出し、fetchCurrentMonthlyData()の重複呼び出しを防止
+onMounted(async () => {
+  // Step 2 Phase 3修正: lastProcessedTabをリセット
+  lastProcessedTab = null
+  
+  // Step 2 Phase 4-3修正: 初期化時はloadData()のみを呼び出し、fetchCurrentMonthlyData()の重複呼び出しを防止
+  // loadData()内でキャッシュチェックとfetchCurrentMonthlyData()の呼び出しが統合管理される
+  await loadData()
 })
 </script>
 

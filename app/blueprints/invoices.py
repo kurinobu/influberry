@@ -6,7 +6,8 @@ InfluBerry Invoice Blueprint
 
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
-from datetime import date, timedelta
+from flask_wtf.csrf import CSRFProtect
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from app import db
@@ -15,6 +16,7 @@ from app.models.project import Project
 from flask import current_app
 
 invoices_bp = Blueprint('invoices', __name__)
+csrf = CSRFProtect()
 
 
 @invoices_bp.route('/', methods=['GET'])
@@ -237,6 +239,7 @@ def create_invoice():
 
 
 @invoices_bp.route('/<int:invoice_id>', methods=['PUT'])
+@csrf.exempt
 @login_required
 def update_invoice(invoice_id):
     """請求書更新"""
@@ -262,15 +265,46 @@ def update_invoice(invoice_id):
             'project_name', 'invoice_date', 'due_date'
         ]
         
+        # ステータス変更履歴記録用の変数
+        old_status = None
+        status_changed = False
+        
         # フィールド更新
         for field in updatable_fields:
             if field in data:
-                if field in ['subtotal', 'tax_rate']:
+                if field == 'status':
+                    # ステータス変更の場合は履歴記録用に保存
+                    old_status = invoice.status
+                    if old_status != data[field]:
+                        status_changed = True
+                    setattr(invoice, field, data[field])
+                elif field in ['subtotal', 'tax_rate']:
                     setattr(invoice, field, Decimal(str(data[field])))
                 elif field in ['payment_date', 'invoice_date', 'due_date'] and data[field]:
                     setattr(invoice, field, date.fromisoformat(data[field]))
                 else:
                     setattr(invoice, field, data[field])
+        
+        # ステータス変更履歴記録
+        if status_changed:
+            from app.models.invoice_status_history import InvoiceStatusHistory
+            history = InvoiceStatusHistory(
+                invoice_id=invoice.id,
+                old_status=old_status,
+                new_status=data['status'],
+                changed_by=current_user.id
+            )
+            db.session.add(history)
+            
+            # Phase 2: 事前集計テーブル更新
+            try:
+                from app.services.monthly_summary_updater import update_monthly_summary
+                changed_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                update_monthly_summary(current_user.id, changed_month)
+                print(f"✅ 請求書ステータス変更: 事前集計テーブル更新完了")
+            except Exception as e:
+                print(f"⚠️ 請求書ステータス変更: 事前集計テーブル更新エラー: {e}")
+                # エラーでも処理は継続（既存機能を破壊しない）
         
         # 金額再計算
         if 'subtotal' in data or 'tax_rate' in data:

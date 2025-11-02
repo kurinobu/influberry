@@ -1,0 +1,12 @@
+=== BlogPage.vueファイル修正 - 実行前バックアップ ===
+バックアップ作成日時: Sat Oct 25 14:36:57 JST 2025
+バックアップディレクトリ: docs/backup/20251025_143651_blogpage_fix
+
+問題の概要:
+Could not resolve "../views/BlogPage.vue" from "src/router/index.js"
+
+修正予定項目:
+1. BlogPage.vueファイルのバックアップ
+2. BlogPage.vueファイルをGitに追加
+3. 削除されたファイルをGitから削除
+4. ステージング環境での再ビルド

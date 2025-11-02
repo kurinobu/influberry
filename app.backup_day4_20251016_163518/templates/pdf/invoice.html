@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>請求書 #{{ invoice.invoice_number }}</title>
+    <style>
+        /* PDF用CSS - WeasyPrint最適化 */
+        @page {
+            size: A4;
+            margin: 2cm;
+            background-color: {{ user.pdf_paper_color }};
+        }
+        
+        @font-face {
+            font-family: "IPAexGothic";
+            src: url("{{ url_for('static', filename='fonts/ipaexg.ttf', _external=True) }}");
+        }
+        
+        body {
+            font-family: "IPAexGothic", "DejaVu Sans", sans-serif !important;
+            font-size: 12pt;
+            line-height: 1.6;
+            color: #333;
+            background-color: {{ user.pdf_paper_color }};
+        }
+        
+        /* レイアウト別スタイル */
+        {% if user.pdf_layout == 'business' %}
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            border-bottom: 3px solid #ec4899;
+        }
+        .company-name {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #ec4899;
+            margin-bottom: 10px;
+        }
+        {% elif user.pdf_layout == 'modern' %}
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 15px;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            color: white;
+            border-radius: 8px;
+        }
+        .company-name {
+            font-size: 20pt;
+            font-weight: bold;
+        }
+        {% else %} /* classic */
+        .header {
+            margin-bottom: 40px;
+            padding: 15px 0;
+            border-bottom: 2px solid #666;
+        }
+        .company-name {
+            font-size: 22pt;
+            font-weight: bold;
+            color: #333;
+            text-align: left;
+        }
+        {% endif %}
+        
+        .invoice-title {
+            font-size: 28pt;
+            font-weight: bold;
+            text-align: center;
+            margin: 30px 0;
+            {% if user.pdf_layout == 'business' %}
+            color: #ec4899;
+            {% elif user.pdf_layout == 'modern' %}
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            -webkit-background-clip: text;
+            color: transparent;
+            {% else %}
+            color: #333;
+            {% endif %}
+        }
+        
+        .invoice-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        
+        .invoice-details, .client-details {
+            width: 48%;
+        }
+        
+        .section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .detail-item {
+            margin-bottom: 8px;
+            display: flex;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            width: 120px;
+            margin-right: 10px;
+        }
+        
+        .detail-value {
+            flex: 1;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+        
+        .items-table th,
+        .items-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .items-table th {
+            {% if user.pdf_layout == 'business' %}
+            background-color: #fdf2f8;
+            color: #ec4899;
+            {% elif user.pdf_layout == 'modern' %}
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            color: white;
+            {% else %}
+            background-color: #f5f5f5;
+            color: #333;
+            {% endif %}
+            font-weight: bold;
+        }
+        
+        .amount-section {
+            text-align: right;
+            margin-top: 20px;
+        }
+        
+        .total-amount {
+            font-size: 18pt;
+            font-weight: bold;
+            {% if user.pdf_layout == 'business' %}
+            color: #ec4899;
+            {% elif user.pdf_layout == 'modern' %}
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            -webkit-background-clip: text;
+            color: transparent;
+            {% else %}
+            color: #333;
+            {% endif %}
+            margin-top: 10px;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 10pt;
+            color: #666;
+        }
+        
+        .payment-info {
+            margin-top: 30px;
+            padding: 15px;
+            {% if user.pdf_layout == 'business' %}
+            background-color: #fdf2f8;
+            border-left: 4px solid #ec4899;
+            {% elif user.pdf_layout == 'modern' %}
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(139, 92, 246, 0.1));
+            border-radius: 8px;
+            {% else %}
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            {% endif %}
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <div class="header">
+        <div class="company-name">{{ user.influencer_name or user.username }}</div>
+        {% if user.pdf_layout == 'modern' %}
+        <div class="invoice-number">請求書 #{{ invoice.invoice_number }}</div>
+        {% endif %}
+    </div>
+    
+    <!-- 請求書タイトル -->
+    <h1 class="invoice-title">請 求 書</h1>
+    
+    <!-- 請求書情報と顧客情報 -->
+    <div class="invoice-info">
+        <!-- 請求書詳細 -->
+        <div class="invoice-details">
+            <div class="section-title">請求書情報</div>
+            <div class="detail-item">
+                <span class="detail-label">請求書番号:</span>
+                <span class="detail-value">{{ invoice.invoice_number }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">発行日:</span>
+                <span class="detail-value">{{ invoice.invoice_date.strftime('%Y年%m月%d日') }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">支払期限:</span>
+                <span class="detail-value">{{ invoice.due_date.strftime('%Y年%m月%d日') }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">請求者:</span>
+                <span class="detail-value">{{ user.influencer_name or user.username }}</span>
+            </div>
+        </div>
+        
+        <!-- 顧客詳細 -->
+        <div class="client-details">
+            <div class="section-title">請求先</div>
+            <div class="detail-item">
+                <span class="detail-label">企業名:</span>
+                <span class="detail-value">{{ project.company_name }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">プロジェクト:</span>
+                <span class="detail-value">{{ project.project_name or 'プロジェクト名未設定' }}</span>
+            </div>
+            {% if invoice.client_company %}
+            <div class="detail-item">
+                <span class="detail-label">担当部署:</span>
+                <span class="detail-value">{{ invoice.client_company }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- 請求項目テーブル -->
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th style="width: 60%;">項目</th>
+                <th style="width: 20%;">数量</th>
+                <th style="width: 20%;">金額</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <strong>{{ project.project_name or 'インフルエンサー業務' }}</strong>
+                    <br>
+                    <small>{{ project.description or invoice.description or '業務内容の詳細' }}</small>
+                </td>
+                <td style="text-align: center;">1</td>
+                <td style="text-align: right;">¥{{ "{:,}".format(invoice.subtotal|int) }}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- 金額セクション -->
+    <div class="amount-section">
+        <div>小計: ¥{{ "{:,}".format(invoice.subtotal|int) }}</div>
+        {% if invoice.tax_amount and invoice.tax_amount > 0 %}
+        <div>消費税: ¥{{ "{:,}".format(invoice.tax_amount|int) }}</div>
+        <div class="total-amount">合計: ¥{{ "{:,}".format(invoice.total_amount|int) }}</div>
+        {% else %}
+        <div class="total-amount">合計: ¥{{ "{:,}".format(invoice.subtotal|int) }}</div>
+        {% endif %}
+    </div>
+    
+    <!-- 支払い情報 -->
+    <div class="payment-info">
+        <div class="section-title">お支払いについて</div>
+        <p>上記金額を{{ invoice.due_date.strftime('%Y年%m月%d日') }}までにお支払いください。</p>
+        <p>お支払い方法につきましては、別途ご連絡いたします。</p>
+        {% if invoice.notes %}
+        <div style="margin-top: 15px;">
+            <strong>備考:</strong><br>
+            {{ invoice.notes }}
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- フッター -->
+    <div class="footer">
+        <p>お支払いに関するお問い合わせは、{{ user.influencer_name or user.username }}までご連絡ください。</p>
+        <p>発行者: {{ user.influencer_name or user.username }}</p>
+    </div>
+</body>
+</html>

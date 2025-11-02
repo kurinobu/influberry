@@ -1,0 +1,2 @@
+migrations/versions/__pycache__/264c518cdcf3_add_monthly_snapshot_model.cpython-311.pyc
+migrations/versions/__pycache__/f59971728522_add_monthly_management_tables.cpython-311.pyc

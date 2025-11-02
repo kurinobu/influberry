@@ -59,6 +59,12 @@ def create_app(config_name='development'):
     from app.blueprints.main import main_bp
     from app.blueprints.invoices import invoices_bp
     from app.blueprints.todos import todos_bp
+    from app.blueprints.monthly_stats import monthly_stats_bp
+    from app.blueprints.monthly import monthly_bp
+    from app.blueprints.monthly_current import monthly_current_bp
+    from app.blueprints.monthly_summary_admin import monthly_summary_admin_bp
+    from app.blueprints.monthly_snapshot import monthly_snapshot_bp
+    from app.blueprints.scheduler import scheduler_bp
     from app.blueprints.domain_redirect import domain_redirect_bp
     from app.plugins.manager import plugin_manager
     
@@ -70,6 +76,10 @@ def create_app(config_name='development'):
     
     @app.route('/<path:filename>')
     def serve_static_files(filename):
+        # APIエンドポイントを除外
+        if filename.startswith('api/'):
+            return {'error': 'API endpoint not found'}, 404
+        
         # Root files (favicon.ico, robots.txt, etc.)
         if '.' in filename and '/' not in filename:
             try:
@@ -102,13 +112,39 @@ def create_app(config_name='development'):
     app.register_blueprint(projects_bp, url_prefix='/api/projects')
     app.register_blueprint(invoices_bp, url_prefix='/api/invoices')
     app.register_blueprint(todos_bp, url_prefix='/api/todos')
-    # Plugin System Integration
+    app.register_blueprint(monthly_stats_bp)
+    app.register_blueprint(monthly_bp)
+    app.register_blueprint(monthly_current_bp)
+    app.register_blueprint(monthly_summary_admin_bp)
+    app.register_blueprint(monthly_snapshot_bp)
+    app.register_blueprint(scheduler_bp)
+    
+    # CSRF除外設定（APIエンドポイント）
+    csrf.exempt(projects_bp)
+    csrf.exempt(invoices_bp)
+    csrf.exempt(todos_bp)
+    csrf.exempt(monthly_bp)
+    csrf.exempt(monthly_current_bp)
+    csrf.exempt(monthly_summary_admin_bp)
+    csrf.exempt(monthly_snapshot_bp)
+    csrf.exempt(scheduler_bp)
+    csrf.exempt(auth_bp)    # Plugin System Integration
     try:
         plugin_manager.initialize_plugins()
         plugin_manager.register_blueprints(app)
     except Exception as e:
         print(f"Plugin system initialization error: {e}")
         # プラグインエラーでもアプリは起動継続
+    
+    # Monthly Rotation Scheduler Integration
+    try:
+        from app.schedulers.monthly_rotation import MonthlyRotationScheduler
+        monthly_scheduler = MonthlyRotationScheduler(app)
+        app.monthly_scheduler = monthly_scheduler
+        print("Monthly rotation scheduler initialized")
+    except Exception as e:
+        print(f"Monthly rotation scheduler initialization error: {e}")
+        # スケジューラーエラーでもアプリは起動継続
     
     # Health check endpoint
     @app.route('/health')

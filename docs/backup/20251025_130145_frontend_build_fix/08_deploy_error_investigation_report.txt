@@ -1,0 +1,5 @@
+=== デプロイエラー調査レポート ===
+調査完了日時: Sat Oct 25 13:47:52 JST 2025
+
+エラー内容:
+Could not resolve "./ProgressBar.vue" from "src/components/MonthlyStatsSection.vue"

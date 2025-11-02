@@ -1,0 +1,332 @@
+<template>
+  <div class="min-h-fit flex items-start justify-center bg-gradient-to-br from-pink-50 to-purple-50 px-4 pt-8 pb-4">
+    <div class="max-w-md w-full space-y-8">
+      
+
+      <!-- 新規登録フォーム -->
+      <form @submit.prevent="handleRegister" class="mt-4 space-y-6">
+        <!-- エラーメッセージ -->
+        <div v-if="authStore.error" class="bg-red-50 border border-red-200 rounded-md p-3">
+          <div class="text-sm text-red-600">
+            {{ authStore.error }}
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <!-- ユーザー名入力 -->
+          <div>
+            <label for="username" class="berry-label">
+              ユーザー名
+            </label>
+            <input
+              id="username"
+              v-model="formData.username"
+              type="text"
+              required
+              class="berry-input"
+              placeholder="ユーザー名（英数字）"
+              :disabled="authStore.isLoading"
+            />
+          </div>
+
+          <!-- メールアドレス入力 -->
+          <div>
+            <label for="email" class="berry-label">
+              メールアドレス
+            </label>
+            <input
+              id="email"
+              v-model="formData.email"
+              type="email"
+              required
+              class="berry-input"
+              placeholder="your@email.com"
+              :disabled="authStore.isLoading"
+            />
+          </div>
+
+          <!-- パスワード入力 -->
+          <div>
+            <label for="password" class="berry-label">
+              パスワード
+            </label>
+            <input
+              id="password"
+              v-model="formData.password"
+              type="password"
+              required
+              class="berry-input"
+              placeholder="パスワード(8文字以上)"
+              :disabled="authStore.isLoading"
+            />
+          </div>
+
+          <!-- 年齢・規約同意チェックボックス（新規追加） -->
+          <div class="space-y-3 pt-2">
+            <p class="text-sm font-medium text-gray-600">利用を開始する前に、以下のチェックをお願いします。</p>
+            
+            <div class="flex items-start">
+              <input
+                id="age-check"
+                v-model="formData.isOver18"
+                type="checkbox"
+                class="berry-checkbox"
+                :disabled="authStore.isLoading"
+              />
+              <label for="age-check" class="ml-2 text-sm text-gray-600">
+                私は18歳以上です
+              </label>
+            </div>
+            
+            <div class="flex items-start">
+              <input
+                id="terms-check"
+                v-model="formData.agreedToTerms"
+                type="checkbox"
+                class="berry-checkbox"
+                :disabled="authStore.isLoading"
+              />
+              <label for="terms-check" class="ml-2 text-sm text-gray-600">
+                <router-link to="/terms" target="_blank" class="text-pink-600 hover:text-pink-800 underline">利用規約</router-link><span class="text-gray-600">と</span><router-link to="/privacy" target="_blank" class="text-pink-600 hover:text-pink-800 underline">プライバシーポリシー</router-link><span class="text-gray-600">に同意します</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <!-- 新規登録ボタン -->
+        <div>
+          <button
+            type="submit"
+            :disabled="authStore.isLoading || !isFormValid"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          >
+            <span v-if="authStore.isLoading" class="absolute left-0 inset-y-0 flex items-center pl-3">
+              <!-- ローディングスピナー -->
+              <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </span>
+            {{ authStore.isLoading ? '登録中...' : '新規登録' }}
+          </button>
+        </div>
+
+        <!-- ログインページへのリンク -->
+        <div class="text-center">
+          <p class="text-sm text-gray-600">
+            既にアカウントをお持ちですか？
+            <button
+              type="button"
+              @click="$emit('switch-to-login')"
+              class="font-medium text-pink-600 hover:text-pink-500"
+              :disabled="authStore.isLoading"
+            >
+              ログイン
+            </button>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { reactive, computed } from 'vue'
+import { useAuthStore } from '../stores/auth.js'
+
+// イベント定義
+const emit = defineEmits(['switch-to-login'])
+
+// 認証ストア
+const authStore = useAuthStore()
+
+// フォームデータ
+const formData = reactive({
+  username: '',
+  email: '',
+  password: '',
+  isOver18: false,      // 新規追加
+  agreedToTerms: false  // 新規追加
+})
+
+// フォームバリデーション
+const isFormValid = computed(() => {
+  return formData.username.trim() !== '' && 
+         formData.email.trim() !== '' && 
+         formData.password.trim() !== '' &&
+         formData.isOver18 &&        // 新規追加
+         formData.agreedToTerms      // 新規追加
+})
+
+// 新規登録処理
+const handleRegister = async () => {
+  // エラーメッセージクリア
+  authStore.clearError()
+  
+  try {
+    const result = await authStore.register(
+      formData.username.trim(),
+      formData.email.trim(),
+      formData.password
+    )
+    
+    if (result.success) {
+      // 新規登録成功時の処理
+      console.log('新規登録成功:', result.message)
+      // ページリロードまたはルート変更
+      window.location.reload()
+    }
+    // エラーは authStore.error に自動設定される
+    
+  } catch (error) {
+    console.error('新規登録処理エラー:', error)
+  }
+}
+</script>
+
+<style scoped>
+/* カスタムスタイル */
+.bg-gradient-to-br {
+  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
+}
+
+.bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-stops));
+}
+
+/* フォーカス時のアニメーション */
+input:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+/* ボタンホバーエフェクト */
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ローディング時のアニメーション */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* ボタンカラー強制適用（LoginForm統一） */
+.bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-stops)) !important;
+}
+
+/* グラデーション変数強制設定 */
+.from-pink-500 {
+  --tw-gradient-from: var(--color-pink-500) !important;
+  --tw-gradient-stops: var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position) !important;
+}
+
+.to-purple-500 {
+  --tw-gradient-to: var(--color-purple-500) !important;
+}
+
+/* === Phase 4 berry化CSS（TodoApp.vue成功パターン移植） === */
+.berry-label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4b5563;  /* text-gray-600に統一（#111827 → #4b5563） */
+  margin-bottom: 0.5rem;
+  text-shadow: none;
+}
+
+.berry-input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 2px solid #f9a8d4;
+  background: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+  margin-top: 0.25rem;
+}
+
+.berry-input:focus {
+  outline: none;
+  border-color: #ec4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+  background: #ffffff;
+}
+
+.berry-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.berry-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* === チェックボックス専用CSS（競合回避） === */
+input[type="checkbox"].berry-checkbox {
+  width: 1.5rem !important;             /* 24px - 入力フィールドと統一感 */
+  height: 1.5rem !important;            /* 24px */
+  min-width: 1.5rem !important;         /* 最小幅を強制 */
+  min-height: 1.5rem !important;         /* 最小高さを強制 */
+  max-width: 1.5rem !important;         /* 最大幅を強制 */
+  max-height: 1.5rem !important;        /* 最大高さを強制 */
+  border: 2px solid #f9a8d4 !important;
+  border-radius: 0.5rem !important;     /* 8px - 入力フィールドと統一 */
+  background: #ffffff !important;
+  accent-color: #ec4899 !important;     /* チェック時の色 */
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  margin-top: 0.25rem !important;
+  appearance: none !important;           /* ブラウザデフォルトスタイルを無効化 */
+  -webkit-appearance: none !important;   /* WebKitブラウザのデフォルトスタイルを無効化 */
+  -moz-appearance: none !important;      /* Firefoxのデフォルトスタイルを無効化 */
+  box-sizing: border-box !important;    /* ボックスモデルを統一 */
+  flex-shrink: 0 !important;            /* フレックスアイテムの縮小を防止 */
+}
+
+/* スマホ対応：タッチしやすいサイズ */
+@media (max-width: 640px) {
+  input[type="checkbox"].berry-checkbox {
+    width: 1.75rem !important;          /* 28px - スマホでタッチしやすい */
+    height: 1.75rem !important;         /* 28px */
+    min-width: 1.75rem !important;      /* 最小幅を強制 */
+    min-height: 1.75rem !important;     /* 最小高さを強制 */
+    max-width: 1.75rem !important;      /* 最大幅を強制 */
+    max-height: 1.75rem !important;     /* 最大高さを強制 */
+  }
+}
+
+input[type="checkbox"].berry-checkbox:focus {
+  outline: none !important;
+  border-color: #ec4899 !important;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1) !important;
+}
+
+input[type="checkbox"].berry-checkbox:checked {
+  background-color: #ec4899 !important;
+  border-color: #ec4899 !important;
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z'/%3e%3c/svg%3e") !important;
+  background-size: 100% 100% !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+input[type="checkbox"].berry-checkbox:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+</style>

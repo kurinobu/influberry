@@ -7,6 +7,7 @@ import { useInvoicesStore } from '../stores/invoices.js'
 import { useTodosStore } from '../stores/todos.js'
 import { useUIStore } from '../stores/ui.js'
 import { useMonthlyRotationStore } from '../stores/monthlyRotation.js'
+import { useMonthlyStore } from '../stores/monthly.js'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
 import BasicDataModal from '../components/BasicDataModal.vue'
 import UserSettings from '../components/UserSettings.vue'
@@ -25,112 +26,155 @@ const invoicesStore = useInvoicesStore()
 const todosStore = useTodosStore()
 const uiStore = useUIStore()
 const rotationStore = useMonthlyRotationStore()
+const monthlyStore = useMonthlyStore()
 
 // 月次管理タブ状態（初期化ロジック修正）
 const currentMonthTab = ref('overview')
+
+// ステップ3修正: 初期表示制御フラグ（環境に依存しない初期表示判定）
+const isInitialDisplay = ref(true)
 
 // Phase 3: 強制的な再レンダリングのためのカウンターとフラグ
 const forceRerenderCounter = ref(0)
 const forceRerenderFlag = ref(false)
 const visualUpdateCounter = ref(0)
 
-// 月次切り替え状態に基づく適切な初期値設定
+// タブ切り替え問題修正: 初期化時の優先順位の明確化
+// 修正: 初期化時は常に現在月を優先し、lastRotationCheckが古い場合は現在月を選択
 const initializeCurrentMonthTab = () => {
   console.log('🔧 月次管理タブの初期化を実行')
   
   try {
-    // 1. 月次切り替え状態を確認
+    // 1. 現在日時を取得（最優先）
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth() + 1
+    const currentMonthId = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
+    
+    // 2. 月次切り替え状態を確認
     const rotationState = rotationStore.rotationState
     const lastRotationCheck = rotationStore.lastRotationCheck
     
     console.log('🔧 初期化: 月次切り替え状態を確認', {
       rotationState,
-      lastRotationCheck
+      lastRotationCheck,
+      currentYear,
+      currentMonth,
+      currentMonthId
     })
     
-    // 2. 月次切り替え完了時の適切な初期値設定
+    // 3. 修正: 初期化時は常に現在月を優先するロジックを強化
+    // lastRotationCheckが存在し、かつ現在月より新しいまたは同じ場合のみ、lastRotationCheckを基準にする
     if (rotationState === 'completed' && lastRotationCheck) {
-      console.log('🎉 月次切り替え完了 - 新しい月のタブを初期値に設定')
-      
-      // 3. 新しい月のタブIDを計算
       const baseDate = new Date(lastRotationCheck)
-      const currentYear = baseDate.getFullYear()
-      const currentMonth = baseDate.getMonth() + 1
-      const newMonthId = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
+      const lastYear = baseDate.getFullYear()
+      const lastMonth = baseDate.getMonth() + 1
+      const lastMonthId = `${lastYear}-${lastMonth.toString().padStart(2, '0')}`
       
-      console.log('🔧 初期化: 新しい月のタブIDを計算', {
-        baseDate,
-        currentYear,
-        currentMonth,
-        newMonthId
+      // 修正: 現在日時とlastRotationCheckの比較を厳密化
+      // lastRotationCheckが現在月より古い場合（不一致）、現在月を優先
+      const isLastRotationOlder = (lastYear < currentYear) || 
+                                  (lastYear === currentYear && lastMonth < currentMonth)
+      
+      if (isLastRotationOlder) {
+        console.log('⚠️ lastRotationCheckが現在月より古い - 現在月を優先（初期化時の優先順位明確化）', {
+          currentMonthId,
+          lastMonthId,
+          lastRotationCheck,
+          reason: 'lastRotationCheckが現在月より古いため、現在月を優先'
+        })
+        currentMonthTab.value = currentMonthId
+        return
+      }
+      
+      // lastRotationCheckが現在月と同じか新しい場合のみ、lastRotationCheckを基準にタブ選択
+      console.log('🎉 月次切り替え完了 - lastRotationCheckを基準にタブ選択', {
+        lastMonthId,
+        currentMonthTab: currentMonthTab.value,
+        reason: 'lastRotationCheckが現在月と同じか新しいため、lastRotationCheckを基準に選択'
       })
-      
-      // 4. 新しい月のタブを初期値に設定
-      currentMonthTab.value = newMonthId
-      
-      console.log('🎉 初期化完了:', {
-        initialTab: newMonthId,
-        currentMonthTab: currentMonthTab.value
-      })
-      
-    } else {
-      console.log('⏳ 月次切り替え未完了 - デフォルト値(overview)を維持')
-      // デフォルト値の'overview'を維持
+      currentMonthTab.value = lastMonthId
+      return
     }
+    
+    // 4. フォールバック - 初期化時は常に現在月を初期値に設定
+    console.log('📅 現在月を初期値に設定（初期化時の優先順位明確化）:', currentMonthId)
+    currentMonthTab.value = currentMonthId
     
   } catch (error) {
     console.error('❌ 初期化エラー:', error)
-    // エラー時はデフォルト値の'overview'を維持
+    // エラー時も現在月を初期値に設定
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth() + 1
+    const currentMonthId = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
+    currentMonthTab.value = currentMonthId
   }
 }
 
-// タブ更新トリガー
-// 修正: データ同期の確実化とエラーハンドリングの強化
+// タブ切り替え問題修正: タブ更新トリガー（不一致チェックの厳密化）
+// 修正: 現在日時とlastRotationCheckの不一致を厳密にチェックし、現在月より古い場合は現在月を優先
 const triggerTabUpdate = async () => {
   console.log('🔧 タブ更新をトリガーします。')
   
   try {
-    // 1. 月次切り替え状態を確認
+    // 1. 現在日時を取得（最優先）
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth() + 1
+    const currentMonthId = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
+    
+    // 2. 月次切り替え状態を確認
     const rotationState = rotationStore.rotationState
     const lastRotationCheck = rotationStore.lastRotationCheck
     
     console.log('🔧 タブ更新: 月次切り替え状態を確認', {
       rotationState,
-      lastRotationCheck
+      lastRotationCheck,
+      currentYear,
+      currentMonth,
+      currentMonthId
     })
     
-    // 2. 月次切り替え完了時の処理
+    // 3. 修正: 月次切り替え完了時の処理（不一致チェックの厳密化）
     if (rotationState === 'completed' && lastRotationCheck) {
-      console.log('🎉 月次切り替え完了 - 新しい月のタブを自動選択')
-      
-      // 3. 新しい月のタブIDを計算
       const baseDate = new Date(lastRotationCheck)
-      const currentYear = baseDate.getFullYear()
-      const currentMonth = baseDate.getMonth() + 1
-      const newMonthId = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
+      const lastYear = baseDate.getFullYear()
+      const lastMonth = baseDate.getMonth() + 1
+      const lastMonthId = `${lastYear}-${lastMonth.toString().padStart(2, '0')}`
       
-      console.log('🔧 タブ更新: 新しい月のタブIDを計算', {
-        baseDate,
-        currentYear,
-        currentMonth,
-        newMonthId
+      // 修正: 現在日時とlastRotationCheckの不一致を厳密にチェック
+      // lastRotationCheckが現在月より古い場合のみ不一致と判断し、現在月を優先
+      const isLastRotationOlder = (lastYear < currentYear) || 
+                                  (lastYear === currentYear && lastMonth < currentMonth)
+      
+      if (isLastRotationOlder) {
+        console.log('⚠️ lastRotationCheckが現在月より古い - 現在月を優先（不一致チェックの厳密化）', {
+          currentMonthId,
+          lastMonthId,
+          lastRotationCheck,
+          reason: 'lastRotationCheckが現在月より古いため、現在月を優先'
+        })
+        currentMonthTab.value = currentMonthId
+        await rotationStore.refreshFrontendData()
+        return
+      }
+      
+      // lastRotationCheckが現在月と同じか新しい場合のみ、lastRotationCheckを基準にタブ切り替え
+      console.log('🎉 月次切り替え完了 - lastRotationCheckを基準にタブ切り替え', {
+        previousTab: currentMonthTab.value,
+        newTab: lastMonthId,
+        currentMonthTab: currentMonthTab.value,
+        reason: 'lastRotationCheckが現在月と同じか新しいため、lastRotationCheckを基準に選択'
       })
-      
-      // 4. 新しい月のタブに自動切り替え
-      currentMonthTab.value = newMonthId
-      
-      console.log('🎉 タブ更新完了:', {
-        previousTab: 'overview',
-        newTab: newMonthId,
-        currentMonthTab: currentMonthTab.value
-      })
-      
-      // 5. 修正: データ同期の確実化
+      currentMonthTab.value = lastMonthId
       await rotationStore.refreshFrontendData()
-      
-    } else {
-      console.log('⏳ 月次切り替え未完了 - タブ更新をスキップ')
+      return
     }
+    
+    // 4. フォールバック - 現在月を設定
+    console.log('📅 現在月を設定:', currentMonthId)
+    currentMonthTab.value = currentMonthId
     
   } catch (error) {
     console.error('❌ タブ更新エラー:', error)
@@ -350,9 +394,26 @@ const ensureVisualUpdate = async () => {
 }
 
 // 月次切り替え状態の監視（新規追加）
+// 修正案2: 条件を緩和し、completed状態の変更をすべて検知
+// ステップ3修正: 初期表示時のtriggerTabUpdate()を防止（環境に依存しない判定）
 const handleRotationStateChange = (newState, oldState) => {
   console.log('月次切り替え状態変更を検知:', { newState, oldState })
-  if (newState === 'completed' && oldState === 'running') {
+  
+  // ステップ3修正: 初期表示時（overviewタブ）は実行しない
+  // 方法1: 初期表示フラグによる判定（環境に依存しない）
+  if (isInitialDisplay.value && currentMonthTab.value === 'overview') {
+    console.log('⚠️ 初期表示中のため、triggerTabUpdate()をスキップ（フラグ判定）')
+    return  // 初期表示時はスキップ
+  }
+  
+  // 方法2: oldStateによる判定（二重の防御）
+  if (currentMonthTab.value === 'overview' && (oldState === null || oldState === 'idle')) {
+    console.log('⚠️ 初期表示時のため、triggerTabUpdate()をスキップ（oldState判定）')
+    return  // 初期表示時はスキップ
+  }
+  
+  // 修正: newState === 'completed'の場合、すべてtriggerTabUpdate()を呼び出す
+  if (newState === 'completed') {
     console.log('月次切り替え完了を検知 - タブ更新をトリガー')
     triggerTabUpdate()
   }
@@ -394,8 +455,14 @@ onMounted(async () => {
     console.error('月次切り替え監視の開始に失敗しました:', error)
   }
   
-  // 月次管理タブの初期化（新規追加）
-  initializeCurrentMonthTab()
+  // ステップ3: 初期表示ロジックの修正 - 概要タブを固定（最速表示）
+  currentMonthTab.value = 'overview'
+  
+  // 軽量概要APIを並行実行
+  await monthlyStore.fetchOverviewMinimal()
+  
+  // 月次データをバックグラウンドで非同期実行（awaitしない）
+  monthlyStore.fetchCurrentMonthlyData()
   
   // Phase 2: 親子コンポーネント間の状態同期を確実化
   console.log('🔧 Phase 2: 親子コンポーネント間の状態同期を確実化')
@@ -414,12 +481,18 @@ onMounted(async () => {
   await nextTick()
   console.log('🔧 Phase 2: 初期化後の第2回nextTick完了')
   
+  // ステップ3修正: 初期表示完了フラグをオフ（初期化処理の完了を待つ）
+  await nextTick()
+  isInitialDisplay.value = false
+  console.log('🔧 初期表示完了フラグをオフ')
+  
   // Phase 2: 初期化後の状態確認
   console.log('🔧 Phase 2: 初期化後の状態確認', {
     currentMonthTab: currentMonthTab.value,
     rotationState: rotationStore.rotationState,
     lastRotationCheck: rotationStore.lastRotationCheck,
-    forceRerenderCounter: forceRerenderCounter.value
+    forceRerenderCounter: forceRerenderCounter.value,
+    isInitialDisplay: isInitialDisplay.value
   })
   
   // Phase 3: 初期化後の強制的な同期化
@@ -427,12 +500,54 @@ onMounted(async () => {
   console.log('🔧 Phase 3: 初期化後の同期化完了（改善案4: forceRerender削除）')
 })
 
-// 月次切り替え監視の強化（新規追加）
+// 修正案1: 初期化時の実行を防止し、現在月優先ロジックを強化
+// ステップ3修正: 初期表示時のtriggerTabUpdate()を防止（環境に依存しない判定）
 watch(() => rotationStore.lastRotationCheck, (newValue, oldValue) => {
-  if (newValue !== oldValue) {
-    console.log('月次切り替えが検知されました。')
-    triggerTabUpdate()
+  // 初期化時や値が変わらない場合は実行しない
+  if (!oldValue || !newValue || newValue === oldValue) {
+    return
   }
+  
+  // ステップ3修正: 初期表示時（overviewタブ）は実行しない
+  // 方法1: 初期表示フラグによる判定（環境に依存しない）
+  if (isInitialDisplay.value && currentMonthTab.value === 'overview') {
+    console.log('⚠️ 初期表示中のため、triggerTabUpdate()をスキップ（フラグ判定）')
+    return  // 初期表示時はスキップ
+  }
+  
+  // 方法2: oldValueによる判定（二重の防御）
+  if (currentMonthTab.value === 'overview' && !oldValue) {
+    console.log('⚠️ 初期表示時のため、triggerTabUpdate()をスキップ（oldValue判定）')
+    return  // 初期表示時はスキップ
+  }
+  
+  console.log('月次切り替えが検知されました。')
+  
+  // 現在月を優先するため、triggerTabUpdate()を呼び出す前に現在日時を確認
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1
+  const currentMonthId = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
+  
+  const lastDate = new Date(newValue)
+  const lastYear = lastDate.getFullYear()
+  const lastMonth = lastDate.getMonth() + 1
+  const lastMonthId = `${lastYear}-${lastMonth.toString().padStart(2, '0')}`
+  
+  // lastRotationCheckが現在月より古い場合は、triggerTabUpdate()を呼び出さない
+  const isLastRotationOlder = (lastYear < currentYear) || 
+                              (lastYear === currentYear && lastMonth < currentMonth)
+  
+  if (isLastRotationOlder) {
+    console.log('⚠️ lastRotationCheckが現在月より古いため、triggerTabUpdate()をスキップ', {
+      currentMonthId,
+      lastMonthId,
+      lastRotationCheck: newValue
+    })
+    return
+  }
+  
+  triggerTabUpdate()
 })
 
 // 月次切り替え状態の監視（新規追加）
@@ -900,7 +1015,7 @@ console.log('🔧 Phase 4: 利用可能なデバッグ関数:', [
         
         <!-- 月次管理セクション（NEW） -->
         <div class="monthly-management-section mb-12" style="margin-bottom: 3rem !important;">
-          <MonthlyTabs v-model="currentMonthTab" />
+          <MonthlyTabs v-model="currentMonthTab" :is-initial-display="isInitialDisplay" />
           <MonthlyStatsSection :current-tab="currentMonthTab" />
           
         </div>
@@ -1073,7 +1188,21 @@ h1.text-2xl.font-bold {
 }
 
 <style scoped>
-/* === Phase 4 Z世代向けカードベースUI === */
+/* === Phase 4 berry化CSS - リーガルページ成功パターン移植 === */
+.berry-header {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-bottom: 2px solid #f9a8d4;
+  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
+}
+
+/* ヘッダータイトル強制カラフル表示 */
+h1.text-2xl.font-bold {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-weight: 700 !important;
+}
 .berry-card {
   background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
   border-radius: 1rem;

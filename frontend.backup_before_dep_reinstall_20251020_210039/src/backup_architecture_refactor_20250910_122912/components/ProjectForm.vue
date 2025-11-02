@@ -1,0 +1,353 @@
+<template>
+  <div v-if="isOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <!-- ヘッダー -->
+      <div class="sticky top-0 bg-gradient-to-r from-pink-500 to-purple-600 p-6 rounded-t-2xl">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="bg-white bg-opacity-20 rounded-full p-2">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-white">
+              {{ isEditMode ? '案件を編集' : '新しい案件を作成' }}
+            </h2>
+          </div>
+          <button
+            @click="closeModal"
+            class="text-white hover:text-pink-200 transition-colors duration-200"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- フォーム本体 -->
+      <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
+        <!-- エラー表示 -->
+        <div v-if="formError" class="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-red-700 font-medium">{{ formError }}</p>
+          </div>
+        </div>
+
+        <!-- 企業名 -->
+        <div class="space-y-2">
+          <label for="company_name" class="block text-sm font-bold text-gray-700">
+            企業名 <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="company_name"
+            v-model="formData.company_name"
+            type="text"
+            required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
+            placeholder="例: 株式会社InfluBerry"
+            :class="{ 'border-red-500': errors.company_name }"
+          />
+          <p v-if="errors.company_name" class="text-red-500 text-sm">{{ errors.company_name }}</p>
+        </div>
+
+        <!-- 金額 -->
+        <div class="space-y-2">
+          <label for="amount" class="block text-sm font-bold text-gray-700">
+            金額 <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-3 text-gray-500 font-medium">¥</span>
+            <input
+              id="amount"
+              v-model="formData.amount"
+              type="number"
+              min="1"
+              step="1"
+              required
+              class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
+              placeholder="50000"
+              :class="{ 'border-red-500': errors.amount }"
+            />
+          </div>
+          <p v-if="errors.amount" class="text-red-500 text-sm">{{ errors.amount }}</p>
+        </div>
+
+        <!-- 納期 -->
+        <div class="space-y-2">
+          <label for="deadline" class="block text-sm font-bold text-gray-700">
+            納期 <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="deadline"
+            v-model="formData.deadline"
+            type="date"
+            required
+            :min="today"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
+            :class="{ 'border-red-500': errors.deadline }"
+          />
+          <p v-if="errors.deadline" class="text-red-500 text-sm">{{ errors.deadline }}</p>
+        </div>
+
+        <!-- ステータス（編集時のみ） -->
+        <div v-if="isEditMode" class="space-y-2">
+          <label for="status" class="block text-sm font-bold text-gray-700">
+            ステータス
+          </label>
+          <select
+            id="status"
+            v-model="formData.status"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
+          >
+            <option value="proposed">提案中</option>
+            <option value="contracted">契約中</option>
+            <option value="completed">完了</option>
+          </select>
+        </div>
+
+        <!-- 案件概要 -->
+        <div class="space-y-2">
+          <label for="description" class="block text-sm font-bold text-gray-700">
+            案件概要 <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            id="description"
+            v-model="formData.description"
+            required
+            rows="4"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 resize-none"
+            placeholder="案件の詳細を入力してください..."
+            :class="{ 'border-red-500': errors.description }"
+          ></textarea>
+          <p v-if="errors.description" class="text-red-500 text-sm">{{ errors.description }}</p>
+        </div>
+
+        <!-- フォームボタン -->
+        <div class="flex space-x-4 pt-4">
+          <button
+            type="button"
+            @click="closeModal"
+            class="flex-1 py-3 px-6 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-all duration-200"
+            :disabled="isSubmitting"
+          >
+            キャンセル
+          </button>
+          <button
+            type="submit"
+            class="flex-1 py-3 px-6 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="isSubmitting"
+          >
+            <span v-if="isSubmitting" class="flex items-center justify-center">
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              処理中...
+            </span>
+            <span v-else>
+              {{ isEditMode ? '更新する' : '作成する' }}
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { useProjectsStore } from '../stores/projects.js'
+
+// Props
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: false
+  },
+  project: {
+    type: Object,
+    default: null
+  }
+})
+
+// Emits
+const emit = defineEmits(['close', 'success'])
+
+// Store
+const projectsStore = useProjectsStore()
+
+// Reactive data
+const formData = reactive({
+  company_name: '',
+  amount: '',
+  deadline: '',
+  description: '',
+  status: 'proposed'
+})
+
+const errors = reactive({
+  company_name: '',
+  amount: '',
+  deadline: '',
+  description: ''
+})
+
+const isSubmitting = ref(false)
+const formError = ref('')
+
+// Computed
+const isEditMode = computed(() => props.project !== null)
+
+const today = computed(() => {
+  const now = new Date()
+  return now.toISOString().split('T')[0]
+})
+
+// Methods
+const closeModal = () => {
+  emit('close')
+  resetForm()
+}
+
+const resetForm = () => {
+  formData.company_name = ''
+  formData.amount = ''
+  formData.deadline = ''
+  formData.description = ''
+  formData.status = 'proposed'
+  
+  errors.company_name = ''
+  errors.amount = ''
+  errors.deadline = ''
+  errors.description = ''
+  
+  formError.value = ''
+  isSubmitting.value = false
+}
+
+const validateForm = () => {
+  let isValid = true
+  
+  // エラーリセット
+  errors.company_name = ''
+  errors.amount = ''
+  errors.deadline = ''
+  errors.description = ''
+  formError.value = ''
+
+  // 企業名バリデーション
+  if (!formData.company_name.trim()) {
+    errors.company_name = '企業名は必須です'
+    isValid = false
+  } else if (formData.company_name.trim().length < 2) {
+    errors.company_name = '企業名は2文字以上である必要があります'
+    isValid = false
+  }
+
+  // 金額バリデーション
+  if (!formData.amount || formData.amount <= 0) {
+    errors.amount = '金額は1円以上である必要があります'
+    isValid = false
+  } else if (formData.amount > 10000000) {
+    errors.amount = '金額は1000万円以下である必要があります'
+    isValid = false
+  }
+
+  // 納期バリデーション
+  if (!formData.deadline) {
+    errors.deadline = '納期は必須です'
+    isValid = false
+  } else {
+    const deadlineDate = new Date(formData.deadline)
+    const todayDate = new Date()
+    todayDate.setHours(0, 0, 0, 0)
+    
+    if (deadlineDate < todayDate) {
+      errors.deadline = '納期は今日以降の日付である必要があります'
+      isValid = false
+    }
+  }
+
+  // 案件概要バリデーション
+  if (!formData.description.trim()) {
+    errors.description = '案件概要は必須です'
+    isValid = false
+  } else if (formData.description.trim().length < 10) {
+    errors.description = '案件概要は10文字以上である必要があります'
+    isValid = false
+  }
+
+  return isValid
+}
+
+const handleSubmit = async () => {
+  if (!validateForm()) {
+    return
+  }
+
+  isSubmitting.value = true
+  formError.value = ''
+
+  try {
+    const submitData = {
+      company_name: formData.company_name.trim(),
+      amount: parseFloat(formData.amount),
+      deadline: formData.deadline,
+      description: formData.description.trim()
+    }
+
+    // 編集時はステータスも送信
+    if (isEditMode.value) {
+      submitData.status = formData.status
+    }
+
+    let result
+    if (isEditMode.value) {
+      result = await projectsStore.updateProject(props.project.id, submitData)
+    } else {
+      result = await projectsStore.createProject(submitData)
+    }
+
+    if (result.success) {
+      emit('success', {
+        message: isEditMode.value ? 'プロジェクトを更新しました' : 'プロジェクトを作成しました',
+        project: result.data
+      })
+      closeModal()
+    } else {
+      formError.value = result.error || 'エラーが発生しました'
+    }
+  } catch (error) {
+    console.error('フォーム送信エラー:', error)
+    formError.value = '予期しないエラーが発生しました'
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+// Watch for project changes (edit mode)
+watch(() => props.project, (newProject) => {
+  if (newProject) {
+    formData.company_name = newProject.company_name || ''
+    formData.amount = newProject.amount || ''
+    formData.deadline = newProject.deadline || ''
+    formData.description = newProject.description || ''
+    formData.status = newProject.status || 'proposed'
+  } else {
+    resetForm()
+  }
+}, { immediate: true })
+
+// Watch for modal close
+watch(() => props.isOpen, (isOpen) => {
+  if (!isOpen) {
+    resetForm()
+  }
+})
+</script>

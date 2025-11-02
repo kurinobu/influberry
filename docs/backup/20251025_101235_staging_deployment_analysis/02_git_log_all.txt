@@ -1,0 +1,22 @@
+* f2ada6a Add monthly management tables migration
+* 97474e2 Add monthly management migration
+* 7ec3d2c feat: ステージング環境設定をrender.yamlに追加
+* 43b451f feat: パーソナライズドテキスト表示とUI改善
+* e7b37c6 feat: ログインページに年齢確認・利用規約同意チェックボックスを追加
+| *   bf87980 On main: 月次管理機能等の未完成変更を一時退避
+|/|\  
+| | * 3f9aae7 untracked files on main: aa9c327 Theradsアイコンあきらめる
+| * c8e0441 index on main: aa9c327 Theradsアイコンあきらめる
+|/  
+* aa9c327 Theradsアイコンあきらめる
+* fe4626e Threadsアイコンパス修正３
+* 9ae1830 Threadsアイコンパス修正２
+* 6a76d5b Threadsアイコンパス修正
+* a37061b RenderでNode.js 25.0.0自動更新のためpackage.json修正
+* bab835c Theredsアイコン実装
+* e5967b8 設定および設定モーダル内アイコンをSVGアイコン化
+* 728e26b SEO対策
+* e5804bf フィルター機能統一とタスク登録をボタン化
+* 69d196b タスク管理一覧内バッジデザイン修正
+* 9c9e611 PDF出力時メッセージとタスク一覧バッジデザイン変更
+* 4f15410 フォント変更3

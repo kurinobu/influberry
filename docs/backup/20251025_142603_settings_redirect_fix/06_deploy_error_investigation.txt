@@ -1,0 +1,15 @@
+=== デプロイエラー調査レポート ===
+調査完了日時: Sat Oct 25 14:33:22 JST 2025
+
+エラー内容:
+Could not resolve "../views/BlogPage.vue" from "src/router/index.js"
+
+問題の分析:
+1. BlogPage.vueファイルが存在しない可能性
+2. パスの指定が間違っている可能性
+3. ファイルがGitに追加されていない可能性
+
+次の調査ステップ:
+1. BlogPage.vueファイルの存在確認
+2. router/index.jsでのBlogPage.vueの参照確認
+3. ファイルパスの修正
