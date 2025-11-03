@@ -8,6 +8,7 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from flask_wtf.csrf import CSRFProtect
 from datetime import datetime, date, timedelta
+from sqlalchemy import case, and_
 from app import db
 from app.models.project import Project
 
@@ -44,17 +45,34 @@ def get_todos():
     
     # ソート処理
     if sort_by == 'urgency_importance_matrix':
+        # 第4段階: DB側ソート（メモリソートを削減）
         # 緊急度×重要度マトリックス順
         # 1. 緊急度高×重要度高 2. 重要度高×緊急度低 3. 緊急度高×重要度低 4. 緊急度低×重要度低
-        todos = query.all()
-        todos.sort(key=lambda t: (
-            -t.todo_importance if t.todo_importance else 0,  # 重要度降順
-            0 if t.todo_due_date and t.todo_due_date <= date.today() + timedelta(days=3) else 1  # 緊急度判定
-        ))
+        today = date.today()
+        three_days_later = today + timedelta(days=3)
+        
+        # 緊急度判定をDB側で計算（3日以内なら0、それ以外は1）
+        urgency_case = case(
+            (
+                and_(
+                    Project.todo_due_date.isnot(None),
+                    Project.todo_due_date <= three_days_later
+                ),
+                0  # 緊急（3日以内）
+            ),
+            else_=1  # 非緊急
+        )
+        
+        # DB側でソート：重要度降順 → 緊急度昇順（0=緊急優先）
+        todos = query.order_by(
+            Project.todo_importance.desc().nulls_last(),  # 重要度降順（NULLは最後）
+            urgency_case.asc(),  # 緊急度昇順（0=緊急優先）
+            Project.created_at.desc()  # 作成日時降順（同順位の場合）
+        ).all()
     elif sort_by == 'sponsor':
         todos = query.order_by(Project.company_name.asc()).all()
     elif sort_by == 'deadline':
-        todos = query.order_by(Project.todo_due_date.asc()).all()
+        todos = query.order_by(Project.todo_due_date.asc().nulls_last()).all()
     else:
         todos = query.order_by(Project.created_at.desc()).all()
     
@@ -76,9 +94,24 @@ def get_todos():
         })
         result.append(todo_data)
     
+    # 第2段階: 統計データを同時に計算（API呼び出し1回分削減）
+    # 全Todoを取得して統計計算（フィルター前の全データを使用）
+    all_todos = Project.query.filter_by(user_id=current_user.id, is_todo=True).all()
+    today = date.today()
+    pending_todos = len([t for t in all_todos if t.todo_status == 'pending'])
+    upcoming_todos = len([
+        t for t in all_todos 
+        if t.todo_due_date and t.todo_due_date <= today + timedelta(days=3) 
+        and t.todo_due_date >= today and t.todo_status == 'pending'
+    ])
+    
     return jsonify({
         'todos': result,
         'total': len(result),
+        'stats': {
+            'pending_todos': pending_todos,
+            'upcoming_todos': upcoming_todos
+        },
         'filters': {
             'status': status_filter,
             'priority': priority_filter,
