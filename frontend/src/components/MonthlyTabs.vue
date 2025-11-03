@@ -153,10 +153,13 @@ const generateTabsForNewMonth = (baseDate, rotationState, lastRotationCheck) => 
     concept: '月次切り替え日時を基準にタブを生成'
   })
   
-  const tabs = []
+  // タブ順序変更: 「概要」「当月」「前月」「前々月」の順に変更
+  const tabs = [
+    { id: 'overview', label: '概要', icon: ChartBarIcon }
+  ]
   
-  // 修正: 新しい月を基準に過去3ヶ月を生成
-  for (let i = 2; i >= 0; i--) {
+  // 修正: 当月→前月→前々月の順に追加（ループ順序を変更）
+  for (let i = 0; i <= 2; i++) {
     // 修正: 月次切り替え日時を基準にタブの内容を計算
     const targetYear = currentYear
     const targetMonth = currentMonth - i
@@ -194,9 +197,6 @@ const generateTabsForNewMonth = (baseDate, rotationState, lastRotationCheck) => 
       concept: '月次切り替え日時を基準にタブの内容を変化させる'
     })
   }
-  
-  // タブ順序変更: overviewタブを最後に追加
-  tabs.push({ id: 'overview', label: '概要', icon: ChartBarIcon })
   
   debugLog('🎉 新しい月のタブ生成完了:', tabs)
   
@@ -251,9 +251,13 @@ const generateTabsForRunningRotation = () => {
     concept: '月次切り替え日時を基準にタブを生成'
   })
   
-  const tabs = []
+  // タブ順序変更: 「概要」「当月」「前月」「前々月」の順に変更
+  const tabs = [
+    { id: 'overview', label: '概要', icon: ChartBarIcon }
+  ]
   
-  for (let i = 2; i >= 0; i--) {
+  // 修正: 当月→前月→前々月の順に追加（ループ順序を変更）
+  for (let i = 0; i <= 2; i++) {
     // 修正: 月次切り替え日時を基準にタブの内容を計算
     const targetYear = currentYear
     const targetMonth = currentMonth - i
@@ -292,9 +296,6 @@ const generateTabsForRunningRotation = () => {
     })
   }
   
-  // タブ順序変更: overviewタブを最後に追加
-  tabs.push({ id: 'overview', label: '概要', icon: ChartBarIcon })
-  
   debugLog('🔄 月次切り替え実行中のタブ生成完了:', tabs)
   
   // 修正: タブの詳細表示
@@ -327,9 +328,13 @@ const generateNormalTabs = (year, month) => {
     concept: '基本的なタブ生成ロジック'
   })
   
-  const tabs = []
+  // タブ順序変更: 「概要」「当月」「前月」「前々月」の順に変更
+  const tabs = [
+    { id: 'overview', label: '概要', icon: ChartBarIcon }
+  ]
   
-  for (let i = 2; i >= 0; i--) {
+  // 修正: 当月→前月→前々月の順に追加（ループ順序を変更）
+  for (let i = 0; i <= 2; i++) {
     // 修正: 基本的なタブ生成ロジック（年跨ぎ処理含む）
     const targetYear = year
     const targetMonth = month - i
@@ -357,9 +362,6 @@ const generateNormalTabs = (year, month) => {
       visualEffect: 'normal'
     })
   }
-  
-  // タブ順序変更: overviewタブを最後に追加
-  tabs.push({ id: 'overview', label: '概要', icon: ChartBarIcon })
   
   debugLog('📅 通常のタブ生成完了:', tabs)
   
