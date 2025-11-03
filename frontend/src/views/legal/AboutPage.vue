@@ -95,7 +95,7 @@ const steps = [
   },
   {
     iconComponent: NumberThreeIcon,
-    text: '請求書を自動生成'
+    text: '請求書をワンポチ作成'
   }
 ]
 </script>
