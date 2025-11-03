@@ -117,6 +117,12 @@ const initializeCurrentMonthTab = () => {
 const triggerTabUpdate = async () => {
   console.log('🔧 タブ更新をトリガーします。')
   
+  // 修正: 初期表示中（overviewタブ）は実行しない
+  if (isInitialDisplay.value && currentMonthTab.value === 'overview') {
+    console.log('⚠️ 初期表示中のため、triggerTabUpdate()をスキップ')
+    return
+  }
+  
   try {
     // 1. 現在日時を取得（最優先）
     const now = new Date()
@@ -1016,7 +1022,7 @@ console.log('🔧 Phase 4: 利用可能なデバッグ関数:', [
         
         <!-- 月次管理セクション（NEW） -->
         <div class="monthly-management-section mb-12" style="margin-bottom: 3rem !important;">
-          <MonthlyTabs v-model="currentMonthTab" />
+          <MonthlyTabs v-model="currentMonthTab" :is-initial-display="isInitialDisplay" />
           <MonthlyStatsSection :current-tab="currentMonthTab" />
           
         </div>
