@@ -1,5 +1,18 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import BriefcaseIcon from '@/components/icons/BriefcaseIcon.vue'
+import InvoiceIcon from '@/components/icons/InvoiceIcon.vue'
+import DashboardIcon from '@/components/icons/DashboardIcon.vue'
+import LightBulbIcon from '@/components/icons/LightBulbIcon.vue'
+import CalendarIcon from '@/components/icons/CalendarIcon.vue'
+import ScaleIcon from '@/components/icons/ScaleIcon.vue'
+import StarIcon from '@/components/icons/StarIcon.vue'
+import SmartphoneIcon from '@/components/icons/SmartphoneIcon.vue'
+import ClockIcon from '@/components/icons/ClockIcon.vue'
+import DiamondIcon from '@/components/icons/DiamondIcon.vue'
+import NumberOneIcon from '@/components/icons/NumberOneIcon.vue'
+import NumberTwoIcon from '@/components/icons/NumberTwoIcon.vue'
+import NumberThreeIcon from '@/components/icons/NumberThreeIcon.vue'
 
 const router = useRouter()
 
@@ -11,17 +24,17 @@ const goHome = () => {
 // アプリ機能一覧
 const features = [
   {
-    icon: '🏢',
+    iconComponent: BriefcaseIcon,
     title: 'スポンサー案件管理',
     description: '案件の進捗管理から納期管理まで、お仕事を整理して効率アップ！'
   },
   {
-    icon: '📋',
+    iconComponent: InvoiceIcon,
     title: '請求書自動生成',
     description: '案件情報から請求書を自動作成PDF印刷。近い将来、メール送信、会計ソフト連携予定！'
   },
   {
-    icon: '📊',
+    iconComponent: DashboardIcon,
     title: 'ダッシュボード',
     description: '収益や案件状況が一目でわかる。あなたの成長が見える化されます。'
   }
@@ -30,38 +43,80 @@ const features = [
 // 将来追加予定機能
 const comingSoonFeatures = [
   {
-    icon: '💡',
+    iconComponent: LightBulbIcon,
     title: 'ブランド提案文ジェネレーター',
     description: 'AIがあなたにぴったりのブランド提案文を自動生成。'
   },
   {
-    icon: '📅',
+    iconComponent: CalendarIcon,
     title: '投稿アイデアカレンダー',
     description: 'コンテンツアイデアをカレンダーで管理。投稿スケジュールもバッチリ。'
   },
   {
-    icon: '💰',
+    iconComponent: ScaleIcon,
     title: '案件単価計算ツール',
     description: '適正な単価設定をサポート。あなたの価値を正しく評価します。'
+  }
+]
+
+// ターゲット説明アイコン
+const targetFeatures = [
+  {
+    iconComponent: StarIcon,
+    title: 'インフルエンサー初心者',
+    description: '案件管理や請求書作成などの事務作業に慣れていない方'
+  },
+  {
+    iconComponent: SmartphoneIcon,
+    title: 'Z世代クリエイター',
+    description: 'TikTok、Instagram、YouTubeなどで活動中の方'
+  },
+  {
+    iconComponent: ClockIcon,
+    title: '効率化したい方',
+    description: '事務作業の時間を減らして、コンテンツ作りに集中したい方'
+  },
+  {
+    iconComponent: DiamondIcon,
+    title: '収益アップを目指す方',
+    description: '案件の見える化で収益管理を徹底したい方'
+  }
+]
+
+// ステップアイコン
+const steps = [
+  {
+    iconComponent: NumberOneIcon,
+    text: '無料でアカウント作成'
+  },
+  {
+    iconComponent: NumberTwoIcon,
+    text: '案件情報を登録'
+  },
+  {
+    iconComponent: NumberThreeIcon,
+    text: '請求書を自動生成'
   }
 ]
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
+  <div class="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
     <!-- ヘッダー -->
     <header class="berry-header">
-      <div class="max-w-4xl mx-auto px-4 py-6">
+      <div class="max-w-4xl mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
-          <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 font-noto">
-            🍓 InfluBerry
-          </h1>
-          <button
+          <div class="flex items-center">
+            <img src="/favicon512.png" alt="InfluBerry" class="w-8 h-8 mr-3">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              InfluBerry
+            </h1>
+          </div>
+          <button 
             @click="goHome"
-            class="text-gray-600 hover:text-pink-500 transition-colors"
-            aria-label="InfluBerryログインページに戻る"
+            class="px-4 py-2 bg-pink-500 text-white rounded-full hover:bg-pink-600 transition-colors text-sm font-medium"
           >
-            ← ログインに戻る
+            ログインに戻る
           </button>
         </div>
       </div>
@@ -85,7 +140,7 @@ const comingSoonFeatures = [
         
         <!-- 画像配置予定エリア（将来実装） -->
         <div class="berry-card-placeholder">
-          <p class="text-gray-500">📱 アプリスクリーンショット（近日公開）</p>
+          <p class="text-gray-500">アプリスクリーンショット（近日公開）</p>
         </div>
       </section>
 
@@ -100,7 +155,9 @@ const comingSoonFeatures = [
             :key="feature.title"
             class="berry-card"
           >
-            <div class="text-4xl mb-4">{{ feature.icon }}</div>
+            <div class="mb-4 flex justify-center">
+              <component :is="feature.iconComponent" :size="48" color="#ec4899" />
+            </div>
             <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ feature.title }}</h3>
             <p class="text-gray-600">{{ feature.description }}</p>
           </div>
@@ -116,14 +173,16 @@ const comingSoonFeatures = [
           <div
             v-for="feature in comingSoonFeatures"
             :key="feature.title"
-            class="bg-white rounded-lg shadow-md p-6 relative"
+            class="berry-card opacity-75 relative"
           >
             <div class="absolute top-4 right-4">
               <span class="bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded">
                 準備中
               </span>
             </div>
-            <div class="text-4xl mb-4 opacity-60">{{ feature.icon }}</div>
+            <div class="mb-4 flex justify-center">
+              <component :is="feature.iconComponent" :size="48" color="#a855f7" />
+            </div>
             <h3 class="text-lg font-semibold text-gray-700 mb-2">{{ feature.title }}</h3>
             <p class="text-gray-500">{{ feature.description }}</p>
           </div>
@@ -131,110 +190,96 @@ const comingSoonFeatures = [
       </section>
 
       <!-- ターゲット説明セクション -->
-      <section class="bg-white rounded-lg shadow-md p-8 mb-8">
+      <section class="berry-card p-8 mb-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
           こんな方におすすめ - Z世代女子・クリエイター向け
         </h2>
         <div class="grid md:grid-cols-2 gap-6">
-          <div class="flex items-start space-x-4">
-            <div class="text-2xl">🌟</div>
-            <div>
-              <h3 class="font-semibold text-gray-900 mb-2">インフルエンサー初心者</h3>
-              <p class="text-gray-600">案件管理や請求書作成などの事務作業に慣れていない方</p>
+          <div
+            v-for="target in targetFeatures"
+            :key="target.title"
+            class="flex items-start space-x-4"
+          >
+            <div class="flex-shrink-0">
+              <component :is="target.iconComponent" :size="32" color="#ec4899" />
             </div>
-          </div>
-          <div class="flex items-start space-x-4">
-            <div class="text-2xl">📱</div>
             <div>
-              <h3 class="font-semibold text-gray-900 mb-2">Z世代クリエイター</h3>
-              <p class="text-gray-600">TikTok、Instagram、YouTubeなどで活動中の方</p>
-            </div>
-          </div>
-          <div class="flex items-start space-x-4">
-            <div class="text-2xl">⏰</div>
-            <div>
-              <h3 class="font-semibold text-gray-900 mb-2">効率化したい方</h3>
-              <p class="text-gray-600">事務作業の時間を減らして、コンテンツ作りに集中したい方</p>
-            </div>
-          </div>
-          <div class="flex items-start space-x-4">
-            <div class="text-2xl">💎</div>
-            <div>
-              <h3 class="font-semibold text-gray-900 mb-2">収益アップを目指す方</h3>
-              <p class="text-gray-600">案件の見える化で収益管理を徹底したい方</p>
+              <h3 class="font-semibold text-gray-900 mb-2">{{ target.title }}</h3>
+              <p class="text-gray-600">{{ target.description }}</p>
             </div>
           </div>
         </div>
       </section>
 
       <!-- 使い方セクション -->
-      <section class="bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg text-white p-8 text-center">
-        <h2 class="text-2xl font-bold mb-4">
+      <section class="rounded-lg p-8 text-center usage-section">
+        <h2 class="text-2xl font-bold mb-4 usage-section-title">
           使い方はとってもシンプル！ - 3ステップで始められるSaaS
         </h2>
         <div class="grid md:grid-cols-3 gap-6 mb-6">
-          <div>
-            <div class="text-3xl mb-2">1️⃣</div>
-            <p>無料でアカウント作成</p>
-          </div>
-          <div>
-            <div class="text-3xl mb-2">2️⃣</div>
-            <p>案件情報を登録</p>
-          </div>
-          <div>
-            <div class="text-3xl mb-2">3️⃣</div>
-            <p>請求書を自動生成</p>
+          <div
+            v-for="step in steps"
+            :key="step.text"
+          >
+            <div class="flex justify-center mb-2">
+              <component :is="step.iconComponent" :size="48" color="#ffffff" />
+            </div>
+            <p class="usage-section-text">{{ step.text }}</p>
           </div>
         </div>
-        <div class="space-y-4">
+        <div>
           <button
             @click="goHome"
-            class="bg-white text-pink-500 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+            class="bg-white text-pink-500 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors usage-start-button"
             aria-label="InfluBerryにログインして案件管理・請求書自動生成SaaSを開始"
           >
             今すぐ始める
           </button>
           
           <!-- ソーシャルシェア -->
-          <div class="flex justify-center space-x-4 mt-6">
+          <div class="flex justify-center gap-4 usage-sns-buttons">
             <a
-              href="https://twitter.com/intent/tweet?text=InfluBerryでインフルエンサー・クリエイターの効率化・省力化を実現！案件管理・請求書自動生成SaaS&url=https://influberry.com"
+              href="https://x.com/intent/tweet?text=InfluBerryでインフルエンサー・クリエイターの効率化・省力化を実現！案件管理・請求書自動生成SaaS&url=https://influberry.com"
               target="_blank"
               rel="noopener noreferrer"
-              class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm"
-              aria-label="Twitterでシェア"
+              class="bg-black px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium whitespace-nowrap sns-share-button"
+              aria-label="X（旧Twitter）でシェア"
             >
-              🐦 Twitter
+              X
             </a>
             <a
               href="https://www.facebook.com/sharer/sharer.php?u=https://influberry.com"
               target="_blank"
               rel="noopener noreferrer"
-              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              class="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium whitespace-nowrap sns-share-button"
               aria-label="Facebookでシェア"
             >
-              📘 Facebook
+              Facebook
             </a>
             <a
               href="https://line.me/R/msg/text/?InfluBerryでインフルエンサー・クリエイターの効率化・省力化を実現！案件管理・請求書自動生成SaaS https://influberry.com"
               target="_blank"
               rel="noopener noreferrer"
-              class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm"
+              class="bg-green-500 px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm font-medium whitespace-nowrap sns-share-button"
               aria-label="LINEでシェア"
             >
-              💬 LINE
+              LINE
             </a>
           </div>
         </div>
       </section>
-    </main>
 
-    <!-- フッター -->
-    <footer class="berry-footer">
-      <div class="berry-footer-inner">
-        <p class="text-gray-400">© 2025 InfluBerry by Air Edison. All rights reserved.</p>
+      <!-- フッター -->
+      <div class="text-center mt-12 py-8">
+        <button 
+          @click="goHome"
+          class="px-8 py-3 text-white rounded-full hover:from-pink-600 hover:to-purple-700 transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl footer-cta-button"
+        >
+          今すぐInfluBerryを始める
+        </button>
+        <p class="text-gray-500 text-sm mt-4">© 2025 InfluBerry - Air Edison. All rights reserved.</p>
       </div>
-    </footer>
+    </main>
   </div>
 </template>
 
@@ -255,15 +300,6 @@ const comingSoonFeatures = [
   transition-property: box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
-}
-
-/* グラデーション背景 */
-.bg-gradient-to-br {
-  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
-}
-
-.bg-gradient-to-r {
-  background-image: linear-gradient(to right, var(--tw-gradient-stops));
 }
 
 /* レスポンシブ調整 */
@@ -308,23 +344,51 @@ const comingSoonFeatures = [
   margin-bottom: 2rem;
 }
 
-.berry-footer {
-  background: linear-gradient(135deg, #1f2937 0%, #374151 100%) !important;
-  border-top: 2px solid #f9a8d4 !important;
-  color: #ffffff !important;
-  padding: 2rem 0 !important;
-  box-shadow: 0 -4px 12px rgba(244, 114, 182, 0.15) !important;
-  min-height: 120px !important;
+/* ヘッダータイトル強制カラフル表示 */
+h1.text-2xl.font-bold {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-weight: 700 !important;
 }
 
-.berry-footer-inner {
-  max-width: 64rem;
-  margin: 0 auto;
-  padding: 0 1rem;
-  text-align: center;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* フッターCTAボタン - 背景グラデーション強制適用 */
+.footer-cta-button {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  background-color: transparent !important;
+}
+
+.footer-cta-button:hover {
+  background: linear-gradient(to right, #db2777, #7c3aed) !important;
+}
+
+/* 使い方セクション - 背景グラデーションとテキストカラー（TermsPage.vueパターンに統一） */
+.usage-section {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  color: #ffffff !important;
+}
+
+.usage-section-title {
+  color: #ffffff !important;
+}
+
+.usage-section-text {
+  color: #ffffff !important;
+}
+
+/* SNSシェアボタン - テキストカラー強制適用（グローバルスタイル上書き） */
+.usage-section .sns-share-button {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+/* 使い方セクション内のボタン間隔 - 強制適用 */
+.usage-section .usage-start-button {
+  margin-bottom: 2rem !important;
+}
+
+.usage-section .usage-sns-buttons {
+  margin-top: 0 !important;
 }
 </style>
