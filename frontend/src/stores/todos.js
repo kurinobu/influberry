@@ -36,31 +36,11 @@ export const useTodosStore = defineStore('todos', {
   }),
 
   getters: {
-    // 緊急度×重要度マトリックス（4段階ソート）
+    // 第4段階: DB側ソート対応（バックエンドでソート済みなのでそのまま返す）
+    // 緊急度×重要度マトリックス（4段階ソート）はバックエンドで実行済み
     sortedTodos: (state) => {
-      return [...(state.todos || [])].sort((a, b) => {
-        // Priority値の変換（high=3, medium=2, low=1）
-        const getPriorityValue = (priority) => {
-          switch(priority) {
-            case 'high': return 3
-            case 'medium': return 2  
-            case 'low': return 1
-            default: return 2
-          }
-        }
-        
-        const aPriority = getPriorityValue(a.todo_priority)
-        const bPriority = getPriorityValue(b.todo_priority)
-        const aImportance = a.todo_importance || 3
-        const bImportance = b.todo_importance || 3
-        
-        // 緊急度×重要度マトリックス計算
-        const aScore = aPriority * aImportance
-        const bScore = bPriority * bImportance
-        
-        // 降順ソート（高スコア優先）
-        return bScore - aScore
-      })
+      // バックエンドでソート済みのため、そのまま返す（パフォーマンス向上）
+      return state.todos || []
     },
     
     // ステータス別フィルター
@@ -93,8 +73,13 @@ export const useTodosStore = defineStore('todos', {
         const response = await axios.get('/api/todos/')
         this.todos = response.data.todos || []
         
-        // 統計データ同時取得
-        await this.fetchStats()
+        // 第2段階: 統計データを統合APIから取得（API呼び出し1回分削減）
+        if (response.data.stats) {
+          this.stats = response.data.stats
+        } else {
+          // 後方互換性: 統計データがない場合は既存のAPIを呼び出し
+          await this.fetchStats()
+        }
         
       } catch (error) {
         console.error('Todo一覧取得エラー:', error)
