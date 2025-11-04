@@ -16,7 +16,9 @@ export const useAuthStore = defineStore('auth', {
     user: null,
     isAuthenticated: false,
     isLoading: false,
-    error: null
+    error: null,
+    lastAuthCheck: null,  // 最後に認証状態を確認した時刻（キャッシュ用）
+    authCheckCacheTime: 5 * 60 * 1000  // キャッシュ有効期限（5分）
   }),
 
   getters: {
@@ -54,6 +56,7 @@ export const useAuthStore = defineStore('auth', {
         if (response.data.user) {
           this.user = response.data.user
           this.isAuthenticated = true
+          this.lastAuthCheck = Date.now()  // ログイン成功時もキャッシュ時刻を更新
           return { success: true, message: response.data.message }
         }
         
@@ -94,6 +97,7 @@ export const useAuthStore = defineStore('auth', {
         if (response.data.user) {
           this.user = response.data.user
           this.isAuthenticated = true
+          this.lastAuthCheck = Date.now()  // 新規登録成功時もキャッシュ時刻を更新
           return { success: true, message: response.data.message }
         }
         
@@ -126,12 +130,14 @@ export const useAuthStore = defineStore('auth', {
         this.user = null
         this.isAuthenticated = false
         this.error = null
+        this.lastAuthCheck = null  // ログアウト時はキャッシュをクリア
         return { success: true }
         
       } catch (error) {
         // ログアウトエラーでも状態はクリア
         this.user = null
         this.isAuthenticated = false
+        this.lastAuthCheck = null  // ログアウト時はキャッシュをクリア
         console.log('ログアウト完了（認証状態クリア済み）')
         return { success: true }
       } finally {
@@ -140,9 +146,21 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * 現在のユーザー情報取得
+     * 現在のユーザー情報取得（パフォーマンス最適化版）
      */
-    async getCurrentUser() {
+    async getCurrentUser(forceRefresh = false) {
+      // キャッシュチェック: 既に認証状態が確認済みで、キャッシュが有効な場合はスキップ
+      if (!forceRefresh && this.lastAuthCheck && this.isAuthenticated && this.user) {
+        const now = Date.now()
+        const cacheAge = now - this.lastAuthCheck
+        
+        // キャッシュが有効期限内の場合は、API呼び出しをスキップ
+        if (cacheAge < this.authCheckCacheTime) {
+          console.log('認証状態キャッシュ使用:', { cacheAge, cacheTime: this.authCheckCacheTime })
+          return { success: true, fromCache: true }
+        }
+      }
+      
       this.isLoading = true
       
       try {
@@ -151,6 +169,7 @@ export const useAuthStore = defineStore('auth', {
         if (response.data.user) {
           this.user = response.data.user
           this.isAuthenticated = true
+          this.lastAuthCheck = Date.now()  // キャッシュ時刻を更新
           console.log('認証状態更新完了:', this.isAuthenticated, this.user.email)
           console.log('State check:', this.$state.isAuthenticated, this.$state.user)
           return { success: true }
@@ -161,6 +180,7 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         this.user = null
         this.isAuthenticated = false
+        this.lastAuthCheck = Date.now()  // エラー時もキャッシュ時刻を更新（再試行防止）
         // 401エラーは正常（未認証状態）
         if (error.response?.status !== 401) {
           // ネットワークエラーやサーバーエラーの場合は詳細をログに記録
@@ -176,10 +196,16 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * 認証状態チェック（アプリ初期化時）
+     * 認証状態チェック（アプリ初期化時・パフォーマンス最適化版）
      */
-    async checkAuthStatus() {
-      return await this.getCurrentUser()
+    async checkAuthStatus(forceRefresh = false) {
+      // isLoggedIn が null の場合は強制的に確認（初回アクセス時）
+      if (this.isLoggedIn === null) {
+        return await this.getCurrentUser(true)
+      }
+      
+      // それ以外の場合は、キャッシュを活用
+      return await this.getCurrentUser(forceRefresh)
     },
 
     /**
