@@ -148,10 +148,14 @@
 
 <script setup>
 import { reactive, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 
 // イベント定義
 const emit = defineEmits(['switch-to-register'])
+
+// ルーター
+const router = useRouter()
 
 // 認証ストア
 const authStore = useAuthStore()
@@ -188,9 +192,9 @@ const handleLogin = async () => {
     if (result.success) {
       // ログイン成功時の処理
       console.log('ログイン成功:', result.message)
-      // ページリロードまたはルート変更
-      // この実装では単純にページリロードで認証状態を反映
-      window.location.reload()
+      // ルーター遷移でダッシュボードへ移動（SPAのメリットを活用）
+      // 認証状態は既にStoreに保存されているため、リロード不要
+      router.push('/dashboard')
     }
     // エラーは authStore.error に自動設定される
     
