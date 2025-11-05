@@ -123,17 +123,17 @@ const steps = [
     </header>
 
     <!-- メインコンテンツ -->
-    <main class="max-w-4xl mx-auto px-4 py-8">
+    <main class="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-12">
       <!-- ヒーローセクション -->
-      <section class="text-center mb-16">
-        <h1 class="text-4xl font-bold text-gray-900 mb-4">
+      <section class="text-center">
+        <h1 class="text-4xl font-bold text-gray-900 mb-6 leading-loose">
           インフルエンサー・クリエイター向け
           <br>
           <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
             案件管理・請求書自動生成SaaS
           </span>
         </h1>
-        <p class="text-xl text-gray-600 mb-8">
+        <p class="text-xl text-gray-600 mb-8 leading-relaxed">
           案件管理から請求書作成まで、面倒な事務作業はInfluBerryにお任せ！<br>
           あなたはコンテンツ作りに集中できます。
         </p>
@@ -145,7 +145,7 @@ const steps = [
       </section>
 
       <!-- 現在の機能セクション -->
-      <section class="mb-16">
+      <section>
         <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">
           今すぐ使える機能 - 効率化・省力化でDXを推進
         </h2>
@@ -165,7 +165,7 @@ const steps = [
       </section>
 
       <!-- 将来追加予定機能セクション -->
-      <section class="mb-16">
+      <section>
         <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">
           これから追加される機能 - さらなる効率化・省力化
         </h2>
@@ -190,7 +190,7 @@ const steps = [
       </section>
 
       <!-- ターゲット説明セクション -->
-      <section class="berry-card p-8 mb-8">
+      <section class="berry-card p-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
           こんな方におすすめ - Z世代女子・クリエイター向け
         </h2>

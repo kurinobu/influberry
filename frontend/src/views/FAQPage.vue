@@ -113,24 +113,24 @@ const toggleItem = (categoryIndex, faqIndex) => {
     </header>
 
     <!-- メインコンテンツ -->
-    <main class="max-w-4xl mx-auto px-4 py-8">
+    <main class="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-12">
       <!-- ヒーローセクション -->
-      <section class="text-center mb-16">
-        <h1 class="text-4xl font-bold text-gray-900 mb-4">
+      <section class="text-center">
+        <h1 class="text-4xl font-bold text-gray-900 mb-6 leading-loose">
           よくある質問
           <br>
           <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
             InfluBerry効率化・省力化SaaS
           </span>
         </h1>
-        <p class="text-xl text-gray-600 mb-8">
+        <p class="text-xl text-gray-600 mb-8 leading-relaxed">
           インフルエンサー・クリエイター向け案件管理・請求書自動生成ツールの<br>
           よくある質問と回答をまとめました
         </p>
       </section>
 
       <!-- FAQ カテゴリ別 -->
-      <section class="space-y-12">
+      <section class="flex flex-col gap-12">
         <div
           v-for="(category, categoryIndex) in faqCategories"
           :key="category.name"
@@ -141,7 +141,7 @@ const toggleItem = (categoryIndex, faqIndex) => {
             {{ category.name }}
           </h2>
           
-          <div class="space-y-4">
+          <div class="flex flex-col gap-4">
             <div
               v-for="(faq, faqIndex) in category.faqs"
               :key="faqIndex"
@@ -182,7 +182,7 @@ const toggleItem = (categoryIndex, faqIndex) => {
       </section>
 
       <!-- お問い合わせセクション -->
-      <section class="bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg text-white p-8 text-center mt-16">
+      <section class="bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg text-white p-8 text-center">
         <h2 class="text-2xl font-bold mb-4">
           他にご質問はありませんか？
         </h2>
@@ -194,7 +194,7 @@ const toggleItem = (categoryIndex, faqIndex) => {
           href="https://air-edison.com/ask/"
           target="_blank"
           rel="noopener noreferrer"
-          class="bg-white text-pink-500 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors inline-block"
+          class="bg-white text-pink-500 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors inline-block mt-4"
           aria-label="InfluBerryお問い合わせページを開く"
         >
           お問い合わせ
