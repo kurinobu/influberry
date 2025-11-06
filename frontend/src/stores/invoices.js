@@ -38,7 +38,7 @@ export const useInvoicesStore = defineStore('invoices', () => {
       sent: 0,
       paid: 0,
       overdue: 0,
-      cancelled: 0,
+      canceled: 0,
       total_invoice_amount: 0,  // 会計上の総請求書金額（sent + paid + overdue）
       paid_amount: 0,            // 支払済金額
       unpaid_amount: 0           // 未収金額（sent + overdue）

@@ -377,7 +377,7 @@ def get_invoice_stats():
         
         # ステータス別統計
         stats_by_status = {}
-        statuses = ['draft', 'sent', 'paid', 'overdue', 'cancelled']
+        statuses = ['draft', 'sent', 'paid', 'overdue', 'canceled']
         
         for status in statuses:
             count = Invoice.query.filter_by(

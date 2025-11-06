@@ -50,7 +50,7 @@ class Invoice(db.Model):
         default='draft',
         index=True
     )
-    # Status options: 'draft', 'sent', 'paid', 'overdue', 'cancelled'
+    # Status options: 'draft', 'sent', 'paid', 'overdue', 'canceled'
     
     # Description
     description = db.Column(db.Text, nullable=False)  # 案件内容
@@ -184,13 +184,13 @@ class Invoice(db.Model):
             'sent': '送信済み',
             'paid': '支払済み',
             'overdue': '支払期限超過',
-            'cancelled': 'キャンセル'
+            'canceled': 'キャンセル'
         }
         return status_map.get(self.status, self.status)
     
     def is_overdue(self):
         """支払期限超過チェック"""
-        if self.status in ['paid', 'cancelled']:
+        if self.status in ['paid', 'canceled']:
             return False
         return self.due_date < date.today()
     

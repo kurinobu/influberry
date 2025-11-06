@@ -108,7 +108,7 @@ const statusCounts = computed(() => ({
   sent: invoicesStore.invoiceStats.sent,
   paid: invoicesStore.invoiceStats.paid,
   overdue: invoicesStore.invoiceStats.overdue,
-  cancelled: invoicesStore.invoiceStats.cancelled
+  canceled: invoicesStore.invoiceStats.canceled
 }))
 
 const totalAmount = computed(() => invoicesStore.invoiceStats.total_invoice_amount)
@@ -263,7 +263,7 @@ const getStatusText = (status) => {
     sent: '送信済み',
     paid: '支払済み',
     overdue: '期限超過',
-    cancelled: 'キャンセル'
+    canceled: 'キャンセル'
   }
   return statusMap[status] || status
 }
@@ -274,7 +274,7 @@ const getStatusBadgeClass = (status) => {
     sent: 'bg-blue-100 text-blue-800',
     paid: 'bg-green-100 text-green-800',
     overdue: 'bg-red-100 text-red-800',
-    cancelled: 'bg-yellow-100 text-yellow-800'
+    canceled: 'bg-yellow-100 text-yellow-800'
   }
   return classMap[status] || 'bg-gray-100 text-gray-800'
 }
@@ -306,7 +306,7 @@ const getStatusDisplay = (status) => {
     sent: '送信済み',
     paid: '支払済み',
     overdue: '期限超過',
-    cancelled: 'キャンセル'
+    canceled: 'キャンセル'
   }
   return statusMap[status] || status
 }
@@ -318,7 +318,7 @@ const getStatusColor = (status) => {
     sent: 'bg-blue-100 text-blue-800',
     paid: 'bg-green-100 text-green-800',
     overdue: 'bg-red-100 text-red-800',
-    cancelled: 'bg-gray-100 text-gray-600'
+    canceled: 'bg-gray-100 text-gray-600'
   }
   return colorMap[status] || 'bg-gray-100 text-gray-800'
 }
@@ -598,7 +598,7 @@ const formatDate = (dateString) => {
                   <option value="sent">送信済み</option>
                   <option value="paid">支払済み</option>
                   <option value="overdue">期限超過</option>
-                  <option value="cancelled">キャンセル</option>
+                  <option value="canceled">キャンセル</option>
                 </select>
               </div>
 
