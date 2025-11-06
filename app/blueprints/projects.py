@@ -10,6 +10,7 @@ from datetime import datetime, date
 from decimal import Decimal, InvalidOperation
 
 from app.models.project import Project
+from app.models.invoice import Invoice
 from app import db
 from app.utils.db_optimizations import ProjectQueryOptimizer
 from app.utils.security_validators import SecurityDecorator, ProjectValidator
@@ -80,8 +81,25 @@ def get_projects():
         )
         # pagination.itemsを直接使用（変数代入を削除）
         
+        # 各プロジェクトの既存請求書情報を取得
+        project_ids = [project.id for project in projects]
+        existing_invoices = {}
+        if project_ids:
+            existing_invoices = {inv.project_id: inv.id for inv in Invoice.query.filter(
+                Invoice.project_id.in_(project_ids),
+                Invoice.user_id == current_user.id
+            ).all()}
+        
+        # プロジェクトデータに既存請求書情報を追加
+        projects_data = []
+        for project in projects:
+            project_dict = project.to_dict()
+            project_dict['has_invoice'] = project.id in existing_invoices
+            project_dict['invoice_id'] = existing_invoices.get(project.id)
+            projects_data.append(project_dict)
+        
         return jsonify({
-            'projects': [project.to_dict() for project in projects],
+            'projects': projects_data,
             'pagination': {
                 'total': len(projects)
             }

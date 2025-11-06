@@ -141,7 +141,7 @@ def create_invoice_from_project(project_id):
         if existing_invoice:
             return jsonify({
                 'success': False,
-                'message': 'このプロジェクトの請求書は既に作成されています',
+                'message': '請求書は既に以前発行されてます。二度の発行はできません。',
                 'existing_invoice_id': existing_invoice.id
             }), 400
         
