@@ -17,14 +17,15 @@ const uiStore = useUIStore()
 // アプリ初期化
 onMounted(async () => {
   // 未認証の場合は認証ページへリダイレクト
-  await authStore.checkAuthStatus()
+  // キャッシュ機能を活用するため、getCurrentUser()を使用（認証チェック統一化）
+  await authStore.getCurrentUser()
   if (!authStore.isLoggedIn) {
     router.push('/')
     return
   }
   
-  // 請求書データ取得
-  await invoicesStore.fetchInvoices()
+  // 請求書データ取得はInvoiceList.vueで実施（重複取得防止）
+  // await invoicesStore.fetchInvoices()  // ← 削除（InvoiceList.vueで取得）
 })
 
 // 設定モーダル表示状態
