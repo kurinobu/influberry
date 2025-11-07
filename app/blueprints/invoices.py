@@ -9,6 +9,7 @@ from flask_login import login_required, current_user
 from flask_wtf.csrf import CSRFProtect
 from datetime import date, datetime, timedelta
 from decimal import Decimal
+from sqlalchemy.orm import joinedload
 
 from app import db
 from app.models.invoice import Invoice
@@ -27,8 +28,10 @@ def get_invoices():
         # パラメーター取得
         status = request.args.get('status')
         
-        # クエリ構築
-        query = Invoice.query.filter_by(user_id=current_user.id)
+        # クエリ構築（N+1問題解決: joinedloadでリレーション先を一括取得）
+        query = Invoice.query.options(
+            joinedload(Invoice.project)  # ← N+1問題根本解決
+        ).filter_by(user_id=current_user.id)
         
         # ステータスフィルター
         if status:
