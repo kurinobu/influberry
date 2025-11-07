@@ -17,14 +17,15 @@ const uiStore = useUIStore()
 // アプリ初期化
 onMounted(async () => {
   // 未認証の場合は認証ページへリダイレクト
-  await authStore.checkAuthStatus()
+  // キャッシュ機能を活用するため、getCurrentUser()を使用（認証チェック統一化）
+  await authStore.getCurrentUser()
   if (!authStore.isLoggedIn) {
     router.push('/')
     return
   }
   
-  // プロジェクトデータ取得
-  await projectsStore.fetchProjects()
+  // プロジェクトデータ取得はProjectList.vueで実施（重複取得防止）
+  // await projectsStore.fetchProjects()  // ← 削除（ProjectList.vueで取得）
 })
 
 // 設定モーダル表示状態

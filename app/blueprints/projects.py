@@ -81,22 +81,24 @@ def get_projects():
         )
         # pagination.itemsを直接使用（変数代入を削除）
         
-        # 各プロジェクトの既存請求書情報を取得
-        project_ids = [project.id for project in projects]
+        # 各プロジェクトの既存請求書情報を取得（joinedloadで取得済みのInvoiceを活用）
         existing_invoices = {}
-        if project_ids:
-            existing_invoices = {inv.project_id: inv.id for inv in Invoice.query.filter(
-                Invoice.project_id.in_(project_ids),
-                Invoice.user_id == current_user.id
-            ).all()}
-        
-        # プロジェクトデータに既存請求書情報を追加
-        projects_data = []
         for project in projects:
-            project_dict = project.to_dict()
-            project_dict['has_invoice'] = project.id in existing_invoices
-            project_dict['invoice_id'] = existing_invoices.get(project.id)
-            projects_data.append(project_dict)
+            # project.invoicesは既にjoinedloadで取得済み
+            if project.invoices:
+                # 最初の請求書（通常は1件のみ）を使用
+                invoice = project.invoices[0]
+                existing_invoices[project.id] = invoice.id
+        
+        # プロジェクトデータに既存請求書情報を追加（リスト内包表記で最適化）
+        projects_data = [
+            {
+                **project.to_dict(),
+                'has_invoice': project.id in existing_invoices,
+                'invoice_id': existing_invoices.get(project.id)
+            }
+            for project in projects
+        ]
         
         return jsonify({
             'projects': projects_data,
