@@ -1,0 +1,40 @@
+5bdc083 HEAD@{2025-10-30 13:10:47 +0900}: reset: moving to HEAD~1
+0675bc5 HEAD@{2025-10-30 12:43:16 +0900}: commit: fix(monthly): esm-bundler alias + refreshKey re-mount for immediate reflect (phase2)
+5bdc083 HEAD@{2025-10-30 11:51:32 +0900}: commit: docs: 標準手順を正式化（整合チェック二段・計測・キャッシュ無効化・ドキュ更新・ロールバック確認）
+5f2b137 HEAD@{2025-10-30 11:29:09 +0900}: commit: docs(architecture,handover): 残存課題・進捗・標準手順を追記（2025-10-30）
+cb6a834 HEAD@{2025-10-30 11:11:26 +0900}: commit: fix(monthly): 目標設定即座反映問題を完全解決
+2d0fcc4 HEAD@{2025-10-30 10:31:31 +0900}: commit: fix(monthly): 月次目標表示問題を根本解決
+39dbfb5 HEAD@{2025-10-30 10:21:53 +0900}: commit: fix(monthly): 月次目標表示問題を完全修正
+ff2c7a4 HEAD@{2025-10-30 10:03:58 +0900}: merge feature/monthly-management-phase2: Fast-forward
+b3b4ce5 HEAD@{2025-10-30 10:03:46 +0900}: checkout: moving from feature/monthly-management-phase2 to staging
+ff2c7a4 HEAD@{2025-10-30 10:03:34 +0900}: commit: fix(monthly): 月次目標設定の即座反映問題を修正
+e65eec6 HEAD@{2025-10-30 09:51:16 +0900}: commit: feat(monthly): Phase2事前集計ロジック実装完了
+2aa377a HEAD@{2025-10-30 09:42:15 +0900}: commit: feat(monthly): Phase1基盤整備完了
+b3b4ce5 HEAD@{2025-10-30 09:35:15 +0900}: checkout: moving from staging to feature/monthly-management-phase2
+b3b4ce5 HEAD@{2025-10-30 07:11:41 +0900}: checkout: moving from staging to staging
+b3b4ce5 HEAD@{2025-10-30 07:09:55 +0900}: commit: feat(monthly): Phase 1実装完了 - 重複API呼び出し削除とキャッシュ機能
+2844c4e HEAD@{2025-10-29 16:15:32 +0900}: commit: fix: DashboardPage.vueを10月27日の完全な状態に復元
+995b49f HEAD@{2025-10-29 16:12:21 +0900}: commit: fix: 10/27状態に合わせてDashboardPageからMonthlyDashboardV2参照を削除
+629d1ae HEAD@{2025-10-29 16:06:53 +0900}: commit: fix: UI統一化修正を10月27日の状態に適用
+83f1043 HEAD@{2025-10-29 15:35:06 +0900}: reset: moving to HEAD
+83f1043 HEAD@{2025-10-29 15:32:01 +0900}: reset: moving to 83f1043
+25237e4 HEAD@{2025-10-29 15:24:02 +0900}: commit: fix: MonthlyDashboard.vueファイルを復元してローカルエラーを修正
+28872c9 HEAD@{2025-10-29 15:15:58 +0900}: commit: revert: 月次管理機能オンデマンド設計をステージングにデプロイ (UI統一化修正は保持)
+1a1ca18 HEAD@{2025-10-29 15:15:41 +0900}: reset: moving to 1a1ca18de849d474ee58b3ea03b726c3378b1f68
+1a1ca18 HEAD@{2025-10-29 15:15:27 +0900}: commit: UI統一化修正を一時保存
+0ef103f HEAD@{2025-10-28 11:50:04 +0900}: commit: feat: 月次自動切り替え機能の再実装
+3b43f40 HEAD@{2025-10-28 11:29:49 +0900}: revert: Revert "feat: 月次自動切り替え機能の完全統合"
+199b9e5 HEAD@{2025-10-28 11:15:26 +0900}: commit: feat: 月次自動切り替え機能の完全統合
+dec674f HEAD@{2025-10-28 10:53:24 +0900}: commit: revert: MonthlyTabs.vueの不要なデバッグコードを削除（未使用ファイル）
+3aa2a32 HEAD@{2025-10-28 10:39:23 +0900}: commit: fix: MonthlyDashboardV2のデバッグコード修正（store→dataService）
+0542e4c HEAD@{2025-10-28 10:27:47 +0900}: commit: feat: MonthlyDashboardV2のデバッグ用グローバル公開を追加
+6d77e5d HEAD@{2025-10-28 10:01:29 +0900}: commit: feat: 月次タブ機能のデバッグ用グローバル公開を追加
+03a4515 HEAD@{2025-10-28 07:34:05 +0900}: commit: docs: Phase 3 即座表示最適化完了記録
+dc9b998 HEAD@{2025-10-28 07:26:45 +0900}: commit: docs: アーキテクチャ設計書更新
+d8e3953 HEAD@{2025-10-28 07:24:20 +0900}: commit: perf: Phase 3 即座表示最適化実装
+23693c6 HEAD@{2025-10-28 07:17:36 +0900}: commit: feat: 月次管理機能オンデマンド設計をステージングにデプロイ
+c4b9264 HEAD@{2025-10-27 22:45:02 +0900}: commit: feat: 月次管理パフォーマンス根本改善
+25e672a HEAD@{2025-10-27 21:27:46 +0900}: commit: feat: 月次管理機能完全再設計完了
+58b9114 HEAD@{2025-10-27 15:59:51 +0900}: commit: feat: Phase 2 パフォーマンス最適化完了
+83f1043 HEAD@{2025-10-27 10:16:17 +0900}: reset: moving to 83f1043
+bd160af HEAD@{2025-10-27 10:07:21 +0900}: revert: Revert "perf: API並列化でダッシュボード初回表示速度を改善"

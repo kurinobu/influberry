@@ -1,13 +1,25 @@
 """
-Authentication Blueprint - Flask-Login認証
+Authentication Blueprint - Flask-Login認証 + TikTok OAuth
 InfluBerry v2
 """
 
-from flask import Blueprint, request, jsonify, session
+import os
+import secrets
+import requests
+from urllib.parse import urlencode
+from flask import Blueprint, request, jsonify, session, redirect
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.security import check_password_hash
 
 auth_bp = Blueprint('auth', __name__)
+
+# TikTok OAuth設定
+TIKTOK_CLIENT_KEY = os.environ.get('TIKTOK_CLIENT_KEY')
+TIKTOK_CLIENT_SECRET = os.environ.get('TIKTOK_CLIENT_SECRET')
+TIKTOK_REDIRECT_URI = os.environ.get('TIKTOK_REDIRECT_URI')
+TIKTOK_AUTH_URL = 'https://www.tiktok.com/v2/auth/authorize/'
+TIKTOK_TOKEN_URL = 'https://open.tiktokapis.com/v2/oauth/token/'
+TIKTOK_USER_INFO_URL = 'https://open.tiktokapis.com/v2/user/info/'
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -50,9 +62,12 @@ def logout():
 @login_required
 def get_current_user():
     """現在のユーザー情報取得"""
-    if current_user.is_authenticated:
-        return jsonify({'user': current_user.to_dict()}), 200
-    return jsonify({'error': 'ユーザーが認証されていません'}), 401
+    try:
+        return jsonify({
+            'user': current_user.to_dict()
+        }), 200
+    except Exception as e:
+        return jsonify({'error': 'ユーザー情報取得エラー'}), 500
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
@@ -60,49 +75,163 @@ def register():
     try:
         data = request.get_json()
         
-        # 必須フィールドバリデーション
-        required_fields = ['username', 'email', 'password']
-        for field in required_fields:
-            if not data or not data.get(field):
-                return jsonify({'error': f'{field}は必須項目です'}), 400
+        # バリデーション
+        if not data or not data.get('username') or not data.get('email') or not data.get('password'):
+            return jsonify({'error': 'ユーザー名、メールアドレス、パスワードが必要です'}), 400
         
-        # User モデルをインポート
         from app.models.user import User
         
-        # 重複チェック（email）
-        existing_user_email = User.query.filter_by(email=data['email']).first()
-        if existing_user_email:
-            return jsonify({'error': 'このメールアドレスは既に登録されています'}), 409
+        # 既存ユーザーチェック
+        if User.query.filter_by(username=data['username']).first():
+            return jsonify({'error': 'このユーザー名は既に使用されています'}), 400
         
-        # 重複チェック（username）
-        existing_user_username = User.query.filter_by(username=data['username']).first()
-        if existing_user_username:
-            return jsonify({'error': 'このユーザー名は既に使用されています'}), 409
+        if User.query.filter_by(email=data['email']).first():
+            return jsonify({'error': 'このメールアドレスは既に登録されています'}), 400
         
-        # 新規ユーザー作成（User.create()クラスメソッド活用）
+        # ユーザー作成
         user = User.create(
             username=data['username'],
             email=data['email'],
             password=data['password'],
-            influencer_name=None
+            influencer_name=data.get('influencer_name'),
+            oauth_provider='email'
         )
         
         # 自動ログイン
-        login_user(user, remember=False)
+        login_user(user)
         
         return jsonify({
-            'message': '新規登録が完了しました',
+            'message': '登録が完了しました',
             'user': user.to_dict()
         }), 201
         
     except Exception as e:
-        return jsonify({'error': '新規登録処理エラー'}), 500
+        return jsonify({'error': f'登録処理エラー: {str(e)}'}), 500
 
-@auth_bp.route('/test', methods=['GET'])
-def auth_test():
-    """認証システムテスト"""
-    return jsonify({
-        'message': 'Flask-Login認証システムテスト',
-        'authenticated': current_user.is_authenticated,
-        'user_id': current_user.get_id() if current_user.is_authenticated else None
-    }), 200
+
+# ==========================================
+# TikTok OAuth実装
+# ==========================================
+
+@auth_bp.route('/tiktok/login')
+def tiktok_login():
+    """TikTok OAuth認証開始"""
+    try:
+        # CSRFトークン生成（セッションに保存）
+        state = secrets.token_urlsafe(32)
+        session['oauth_state'] = state
+        
+        # TikTok認証URLにリダイレクト
+        params = {
+            'client_key': TIKTOK_CLIENT_KEY,
+            'response_type': 'code',
+            'scope': 'user.info.basic',
+            'redirect_uri': TIKTOK_REDIRECT_URI,
+            'state': state
+        }
+        auth_url = f"{TIKTOK_AUTH_URL}?{urlencode(params)}"
+        return redirect(auth_url)
+        
+    except Exception as e:
+        print(f"TikTok login error: {str(e)}")
+        return redirect('/?error=tiktok_login_failed')
+
+
+@auth_bp.route('/tiktok/callback')
+def tiktok_callback():
+    """TikTokコールバック処理"""
+    try:
+        # CSRF検証
+        state = request.args.get('state')
+        if state != session.get('oauth_state'):
+            print("Invalid state parameter")
+            return redirect('/?error=invalid_state')
+        
+        # 認証コード取得
+        code = request.args.get('code')
+        if not code:
+            print("No authorization code")
+            return redirect('/?error=no_code')
+        
+        # アクセストークン取得
+        token_data = {
+            'client_key': TIKTOK_CLIENT_KEY,
+            'client_secret': TIKTOK_CLIENT_SECRET,
+            'code': code,
+            'grant_type': 'authorization_code',
+            'redirect_uri': TIKTOK_REDIRECT_URI
+        }
+        
+        token_response = requests.post(
+            TIKTOK_TOKEN_URL,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            data=token_data,
+            timeout=10
+        )
+        
+        token_json = token_response.json()
+        print(f"Token response: {token_json}")
+        
+        if 'access_token' not in token_json:
+            error_msg = token_json.get('error', {}).get('message', 'Unknown error')
+            print(f"Failed to get access token: {error_msg}")
+            return redirect(f'/?error=token_failed&message={error_msg}')
+        
+        access_token = token_json['access_token']
+        
+        # ユーザー情報取得
+        headers = {'Authorization': f'Bearer {access_token}'}
+        user_response = requests.get(
+            TIKTOK_USER_INFO_URL,
+            headers=headers,
+            params={'fields': 'open_id,union_id,avatar_url,display_name'},
+            timeout=10
+        )
+        
+        user_json = user_response.json()
+        print(f"User info response: {user_json}")
+        
+        user_data = user_json.get('data', {}).get('user', {})
+        
+        tiktok_id = user_data.get('open_id')
+        tiktok_username = user_data.get('display_name', 'TikTok User')
+        tiktok_avatar = user_data.get('avatar_url', '')
+        
+        if not tiktok_id:
+            print("Failed to get user info")
+            return redirect('/?error=user_info_failed')
+        
+        from app.models.user import User
+        from app import db
+        
+        # 既存ユーザー検索（tiktok_idで検索）
+        user = User.query.filter_by(tiktok_id=tiktok_id).first()
+        
+        if user:
+            # 既存ユーザー：ログイン
+            print(f"Existing TikTok user login: {user.username}")
+            login_user(user)
+        else:
+            # 新規ユーザー：アカウント作成
+            print(f"Creating new TikTok user: {tiktok_id}")
+            user = User.create_from_tiktok(
+                tiktok_id=tiktok_id,
+                tiktok_username=tiktok_username,
+                tiktok_avatar_url=tiktok_avatar
+            )
+            login_user(user)
+        
+        # セッションからoauth_state削除
+        session.pop('oauth_state', None)
+        
+        # フロントエンドにリダイレクト
+        return redirect('/dashboard')
+        
+    except requests.exceptions.RequestException as e:
+        print(f"TikTok API request error: {str(e)}")
+        return redirect('/?error=api_request_failed')
+    except Exception as e:
+        print(f"TikTok OAuth callback error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return redirect('/?error=callback_failed')

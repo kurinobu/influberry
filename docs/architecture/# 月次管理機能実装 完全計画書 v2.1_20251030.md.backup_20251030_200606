@@ -1,0 +1,1026 @@
+\# 🔧 月次管理機能 修繕計画書（計画書v2.0完全準拠版）
+
+\#\# 📋 目次  
+1\. \[修繕の全体方針\](\#1-修繕の全体方針)  
+2\. \[Phase 1: 緊急対応（即効性あり）\](\#2-phase-1-緊急対応即効性あり)  
+3\. \[Phase 2: 根本解決（計画書v2.0完全準拠）\](\#3-phase-2-根本解決計画書v20完全準拠)  
+4\. \[Phase 3: 最適化（目標達成の確実化）\](\#4-phase-3-最適化目標達成の確実化)  
+5\. \[実装スケジュール\](\#5-実装スケジュール)  
+6\. \[完了判定基準\](\#6-完了判定基準)
+
+\---
+
+\#\# 1\. 修繕の全体方針
+
+\#\#\# 1.1 調査結果サマリー
+
+| 項目 | 現状 | 計画書v2.0の要求 | 判定 |  
+|------|------|------------------|------|  
+| \*\*monthly\_summary テーブル\*\* | 🔴 未実装 | 必須（事前集計用） | \*\*要修繕\*\* |  
+| \*\*monthly\_snapshots テーブル\*\* | 🟢 実装済み | 計画書に記載なし | 維持 |  
+| \*\*/api/monthly/current エンドポイント\*\* | 🔴 未実装 | 必須（API分離戦略） | \*\*要修繕\*\* |  
+| \*\*API呼び出し回数\*\* | 🔴 7回以上 | 1回（/current） | \*\*要修繕\*\* |  
+| \*\*表示速度\*\* | 🔴 2.09秒 | 1秒以内 | \*\*要修繕\*\* |  
+| \*\*APIレスポンスタイム\*\* | 🔴 5-13秒 | 200ms以内 | \*\*要修繕\*\* |
+
+\#\#\# 1.2 修繕の優先順位
+
+\`\`\`  
+🔴 最優先（Phase 1）: API重複呼び出し削除  
+   ↓ 効果: 読み込み時間 80%削減（2.09秒 → 約0.4秒）  
+     
+🔴 最優先（Phase 2）: API分離戦略実装  
+   ↓ 効果: 99%削減（56秒 → 500ms以内）  
+     
+🟡 高優先（Phase 3）: 事前集計テーブル活用  
+   ↓ 効果: さらなる高速化（500ms → 200ms）  
+\`\`\`
+
+\#\#\# 1.3 大原則の適用
+
+| 原則 | 適用方針 |  
+|------|----------|  
+| \*\*引き継ぎ書準拠\*\* | ✅ 計画書v2.0の設計を100%実装 |  
+| \*\*根本解決 \> 暫定解決\*\* | ✅ API分離戦略で重複呼び出しを根絶 |  
+| \*\*シンプル構造 \> 複雑構造\*\* | ✅ 1つの統合APIで解決 |  
+| \*\*拙速 \< 安全確実\*\* | ✅ 既存API維持＋段階的移行 |
+
+\---
+
+\#\# 2\. Phase 1: 緊急対応（即効性あり）
+
+\#\#\# 📊 Phase 1の目標
+
+| 指標 | 現状 | Phase 1後 | 改善率 |  
+|------|------|-----------|--------|  
+| \*\*API呼び出し回数\*\* | 7回以上 | 2回 | \*\*71%削減\*\* |  
+| \*\*読み込み時間\*\* | 2.09秒 | 約0.5秒 | \*\*76%改善\*\* |
+
+\#\#\# ⏱️ 所要時間: 1-2時間
+
+\---
+
+\#\#\# Step 1-1: フロントエンド重複呼び出しの削除
+
+\#\#\#\# 🎯 目的  
+同じAPIが4回以上呼ばれている問題を即座に解決
+
+\#\#\#\# 📝 修正内容
+
+\*\*修正対象\*\*: \`frontend/src/stores/monthly.js\`
+
+\*\*現在の問題点（推定）\*\*:  
+\`\`\`javascript  
+// ❌ 複数箇所で重複呼び出し  
+mounted() {  
+  this.fetchMonthlyTargets()  // 1回目  
+  this.fetchMonthlyStats()    // 1回目  
+}
+
+watch: {  
+  selectedMonth() {  
+    this.fetchMonthlyTargets()  // 2回目（重複）  
+    this.fetchMonthlyStats()    // 2回目（重複）  
+  }  
+}
+
+// タブ切り替え時にも呼び出し  
+// コンポーネント初期化時にも呼び出し  
+\`\`\`
+
+\*\*修正後の実装\*\*:
+
+\`\`\`javascript  
+import { defineStore } from 'pinia'  
+import { ref, computed } from 'vue'  
+import axios from 'axios'
+
+export const useMonthlyStore \= defineStore('monthly', () \=\> {  
+  // State  
+  const targets \= ref({})  
+  const stats \= ref({})  
+  const loading \= ref(false)  
+  const error \= ref(null)  
+    
+  // 重複呼び出し防止用のキャッシュ管理  
+  const fetchingTargets \= ref(false)  
+  const fetchingStats \= ref(false)  
+  const lastFetchTime \= ref({  
+    targets: null,  
+    stats: null  
+  })  
+    
+  // キャッシュ有効期限（5分）  
+  const CACHE\_DURATION \= 5 \* 60 \* 1000  
+    
+  // ✅ 重複防止機能付きの目標取得  
+  async function fetchTargets(year, months) {  
+    // 既に取得中なら待つ  
+    if (fetchingTargets.value) {  
+      console.log('🔧 目標取得: 既に実行中のためスキップ')  
+      return  
+    }  
+      
+    // キャッシュが有効なら再取得しない  
+    const cacheKey \= \`${year}-${months.join(',')}\`  
+    if (lastFetchTime.value.targets &&   
+        Date.now() \- lastFetchTime.value.targets \< CACHE\_DURATION &&  
+        targets.value\[cacheKey\]) {  
+      console.log('🔧 目標取得: キャッシュを使用')  
+      return  
+    }  
+      
+    fetchingTargets.value \= true  
+    console.log('🔧 月次目標取得開始:', { year, months })  
+      
+    try {  
+      const response \= await axios.get('/api/monthly-targets/', {  
+        params: { year, months: months.join(',') }  
+      })  
+        
+      targets.value\[cacheKey\] \= response.data  
+      lastFetchTime.value.targets \= Date.now()  
+      console.log('🔧 月次目標取得完了')  
+    } catch (err) {  
+      error.value \= err.message  
+      console.error('❌ 月次目標取得失敗:', err)  
+    } finally {  
+      fetchingTargets.value \= false  
+    }  
+  }  
+    
+  // ✅ 重複防止機能付きの統計取得  
+  async function fetchStats(year, month) {  
+    if (fetchingStats.value) {  
+      console.log('🔧 統計取得: 既に実行中のためスキップ')  
+      return  
+    }  
+      
+    const cacheKey \= \`${year}-${month}\`  
+    if (lastFetchTime.value.stats &&   
+        Date.now() \- lastFetchTime.value.stats \< CACHE\_DURATION &&  
+        stats.value\[cacheKey\]) {  
+      console.log('🔧 統計取得: キャッシュを使用')  
+      return  
+    }  
+      
+    fetchingStats.value \= true  
+    console.log('🔧 月次統計取得開始:', { year, month })  
+      
+    try {  
+      const response \= await axios.get(\`/api/monthly-stats/${year}/${month}\`)  
+        
+      stats.value\[cacheKey\] \= response.data  
+      lastFetchTime.value.stats \= Date.now()  
+      console.log('🔧 月次統計取得完了')  
+    } catch (err) {  
+      error.value \= err.message  
+      console.error('❌ 月次統計取得失敗:', err)  
+    } finally {  
+      fetchingStats.value \= false  
+    }  
+  }  
+    
+  // ✅ キャッシュクリア（ステータス変更時に呼び出す）  
+  function clearCache() {  
+    lastFetchTime.value.targets \= null  
+    lastFetchTime.value.stats \= null  
+    console.log('🔧 キャッシュをクリアしました')  
+  }  
+    
+  return {  
+    targets,  
+    stats,  
+    loading,  
+    error,  
+    fetchTargets,  
+    fetchStats,  
+    clearCache  
+  }  
+})  
+\`\`\`
+
+\#\#\#\# ✅ 完了条件
+
+\- \[ \] 同じAPIが2回以上呼ばれないことを確認（Chrome DevTools Network タブ）  
+\- \[ \] コンソールログで「既に実行中のためスキップ」が表示される  
+\- \[ \] 読み込み時間が0.5秒程度に改善
+
+\#\#\#\# 🧪 テスト手順
+
+\`\`\`bash  
+\# 1\. ローカル環境起動  
+flask run &  
+npm run dev
+
+\# 2\. ブラウザで http://127.0.0.1:5173/dashboard にアクセス
+
+\# 3\. Chrome DevTools → Network タブ  
+\# \- monthly-targets が1回のみ呼ばれることを確認  
+\# \- monthly-stats/{year}/{month} が1回のみ呼ばれることを確認
+
+\# 4\. タブ切り替えテスト  
+\# \- 月次タブを切り替える  
+\# \- キャッシュが有効な間は再取得しないことを確認
+
+\# 5\. ステータス変更テスト  
+\# \- Project のステータスを変更  
+\# \- 月次統計が即座に更新されることを確認  
+\`\`\`
+
+\---
+
+\#\# 3\. Phase 2: 根本解決（計画書v2.0完全準拠）
+
+\#\#\# 📊 Phase 2の目標
+
+| 指標 | Phase 1後 | Phase 2後 | 改善率 |  
+|------|-----------|-----------|--------|  
+| \*\*API呼び出し回数\*\* | 2回 | \*\*1回\*\* | \*\*50%削減\*\* |  
+| \*\*APIレスポンスタイム\*\* | 5-13秒 | \*\*\< 500ms\*\* | \*\*95-97%削減\*\* |  
+| \*\*Load完了時間\*\* | 0.5秒 | \*\*\< 1秒\*\* | \*\*目標達成\*\* |
+
+\#\#\# ⏱️ 所要時間: 3-5時間
+
+\---
+
+\#\#\# Step 2-1: 新規APIエンドポイントの実装
+
+\#\#\#\# 🎯 目的  
+計画書v2.0の「API分離戦略」を完全実装
+
+\#\#\#\# 📝 実装内容
+
+\*\*新規ファイル\*\*: \`app/blueprints/monthly\_current.py\`
+
+\`\`\`python  
+from flask import Blueprint, jsonify, request  
+from flask\_jwt\_extended import jwt\_required, get\_jwt\_identity  
+from sqlalchemy import extract, func  
+from datetime import datetime, timedelta  
+from app.models import (  
+    db, User, MonthlyTarget, MonthlySummary,  
+    Project, ProjectStatusHistory,  
+    Invoice, InvoiceStatusHistory  
+)
+
+monthly\_current\_bp \= Blueprint('monthly\_current', \_\_name\_\_)
+
+@monthly\_current\_bp.route('/api/monthly/current', methods=\['GET'\])  
+@jwt\_required()  
+def get\_current\_monthly\_data():  
+    """  
+    計画書v2.0準拠: 今月+先月+次月の3ヶ月分を1回で返す  
+    目標: レスポンスタイム \< 500ms  
+    """  
+    user\_id \= get\_jwt\_identity()  
+      
+    \# 現在日時から3ヶ月分を計算  
+    now \= datetime.utcnow()  
+    current\_month \= now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)  
+    last\_month \= (current\_month \- timedelta(days=1)).replace(day=1)  
+    next\_month \= (current\_month \+ timedelta(days=32)).replace(day=1)  
+      
+    months \= \[last\_month, current\_month, next\_month\]  
+      
+    \# 並列でデータ取得（高速化）  
+    result\_data \= {}  
+      
+    for month in months:  
+        month\_key \= month.strftime('%Y-%m-01')  
+          
+        \# 目標取得  
+        target \= MonthlyTarget.query.filter\_by(  
+            user\_id=user\_id,  
+            target\_month=month  
+        ).first()  
+          
+        \# 統計取得（事前集計テーブルがあれば使用、なければリアルタイム計算）  
+        summary \= MonthlySummary.query.filter\_by(  
+            user\_id=user\_id,  
+            summary\_month=month  
+        ).first()  
+          
+        if summary:  
+            \# ✅ 事前集計テーブルから高速取得（50-200ms）  
+            stats \= {  
+                'acquired\_projects': summary.acquired\_projects,  
+                'completed\_projects': summary.completed\_projects,  
+                'sent\_invoices\_count': summary.sent\_invoices\_count,  
+                'sent\_invoices\_amount': float(summary.sent\_invoices\_amount),  
+                'paid\_invoices\_count': summary.paid\_invoices\_count,  
+                'paid\_invoices\_amount': float(summary.paid\_invoices\_amount),  
+                'overdue\_invoices\_count': summary.overdue\_invoices\_count,  
+                'overdue\_invoices\_amount': float(summary.overdue\_invoices\_amount)  
+            }  
+        else:  
+            \# ❌ 事前集計テーブルがない場合はリアルタイム計算（遅い）  
+            stats \= calculate\_monthly\_stats\_realtime(user\_id, month)  
+          
+        result\_data\[month\_key\] \= {  
+            'target': {  
+                'projects': target.target\_projects if target else None,  
+                'income': target.target\_income if target else None  
+            },  
+            'stats': stats  
+        }  
+      
+    return jsonify({  
+        'success': True,  
+        'current\_month': current\_month.strftime('%Y-%m-01'),  
+        'data': result\_data  
+    })
+
+def calculate\_monthly\_stats\_realtime(user\_id, month):  
+    """  
+    リアルタイム計算（事前集計テーブルがない場合のフォールバック）  
+    ※ 計画書v2.0の正負集計ロジックを厳守  
+    """  
+    year \= month.year  
+    month\_num \= month.month  
+      
+    \# 獲得案件数（正負集計）  
+    acquired\_positive \= db.session.query(  
+        func.count(func.distinct(ProjectStatusHistory.project\_id))  
+    ).join(Project).filter(  
+        Project.user\_id \== user\_id,  
+        ProjectStatusHistory.old\_status \== 'proposed',  
+        ProjectStatusHistory.new\_status \== 'contracted',  
+        extract('year', ProjectStatusHistory.changed\_at) \== year,  
+        extract('month', ProjectStatusHistory.changed\_at) \== month\_num  
+    ).scalar() or 0  
+      
+    acquired\_negative \= db.session.query(  
+        func.count(func.distinct(ProjectStatusHistory.project\_id))  
+    ).join(Project).filter(  
+        Project.user\_id \== user\_id,  
+        ProjectStatusHistory.old\_status \== 'contracted',  
+        ProjectStatusHistory.new\_status \== 'proposed',  
+        extract('year', ProjectStatusHistory.changed\_at) \== year,  
+        extract('month', ProjectStatusHistory.changed\_at) \== month\_num  
+    ).scalar() or 0  
+      
+    acquired\_projects \= acquired\_positive \- acquired\_negative  
+      
+    \# 完了案件数（正負集計）  
+    completed\_positive \= db.session.query(  
+        func.count(func.distinct(ProjectStatusHistory.project\_id))  
+    ).join(Project).filter(  
+        Project.user\_id \== user\_id,  
+        ProjectStatusHistory.old\_status \== 'contracted',  
+        ProjectStatusHistory.new\_status \== 'completed',  
+        extract('year', ProjectStatusHistory.changed\_at) \== year,  
+        extract('month', ProjectStatusHistory.changed\_at) \== month\_num  
+    ).scalar() or 0  
+      
+    completed\_negative \= db.session.query(  
+        func.count(func.distinct(ProjectStatusHistory.project\_id))  
+    ).join(Project).filter(  
+        Project.user\_id \== user\_id,  
+        ProjectStatusHistory.old\_status \== 'completed',  
+        ProjectStatusHistory.new\_status \== 'contracted',  
+        extract('year', ProjectStatusHistory.changed\_at) \== year,  
+        extract('month', ProjectStatusHistory.changed\_at) \== month\_num  
+    ).scalar() or 0  
+      
+    completed\_projects \= completed\_positive \- completed\_negative  
+      
+    \# 送信済み請求書（会計ロジック準拠）  
+    sent\_result \= db.session.query(  
+        func.count(Invoice.id),  
+        func.coalesce(func.sum(Invoice.total\_amount), 0\)  
+    ).filter(  
+        Invoice.user\_id \== user\_id,  
+        Invoice.status \== 'sent',  
+        extract('year', Invoice.created\_at) \== year,  
+        extract('month', Invoice.created\_at) \== month\_num  
+    ).first()  
+      
+    \# 支払済み請求書  
+    paid\_result \= db.session.query(  
+        func.count(Invoice.id),  
+        func.coalesce(func.sum(Invoice.total\_amount), 0\)  
+    ).filter(  
+        Invoice.user\_id \== user\_id,  
+        Invoice.status \== 'paid',  
+        Invoice.payment\_date.isnot(None),  
+        extract('year', Invoice.payment\_date) \== year,  
+        extract('month', Invoice.payment\_date) \== month\_num  
+    ).first()  
+      
+    return {  
+        'acquired\_projects': acquired\_projects,  
+        'completed\_projects': completed\_projects,  
+        'sent\_invoices\_count': sent\_result\[0\],  
+        'sent\_invoices\_amount': float(sent\_result\[1\]),  
+        'paid\_invoices\_count': paid\_result\[0\],  
+        'paid\_invoices\_amount': float(paid\_result\[1\]),  
+        'overdue\_invoices\_count': 0,  \# TODO: 実装  
+        'overdue\_invoices\_amount': 0.0  
+    }  
+\`\`\`
+
+\*\*Blueprint登録\*\*: \`app/\_\_init\_\_.py\`
+
+\`\`\`python  
+\# 既存のコード...
+
+from app.blueprints.monthly\_current import monthly\_current\_bp
+
+def create\_app(config\_name='default'):  
+    app \= Flask(\_\_name\_\_)  
+      
+    \# ... 既存の設定 ...  
+      
+    \# ✅ 新しいBlueprintを登録  
+    app.register\_blueprint(monthly\_current\_bp)  
+      
+    return app  
+\`\`\`
+
+\#\#\#\# ✅ 完了条件
+
+\- \[ \] \`/api/monthly/current\` エンドポイントが動作  
+\- \[ \] レスポンス形式が計画書v2.0通り  
+\- \[ \] レスポンスタイム \< 500ms（事前集計テーブルなしでも）  
+\- \[ \] 既存API（\`/api/monthly-targets\`, \`/api/monthly-stats\`）は維持
+
+\#\#\#\# 🧪 テスト手順
+
+\`\`\`bash  
+\# 1\. ローカル環境で動作確認  
+flask run
+
+\# 2\. API呼び出しテスト  
+curl \-X GET http://127.0.0.1:5000/api/monthly/current \\  
+  \-H "Authorization: Bearer YOUR\_TOKEN" | jq
+
+\# 3\. レスポンスタイム測定  
+time curl \-X GET http://127.0.0.1:5000/api/monthly/current \\  
+  \-H "Authorization: Bearer YOUR\_TOKEN"
+
+\# 目標: real 0m0.5s 以内  
+\`\`\`
+
+\---
+
+\#\#\# Step 2-2: フロントエンドの段階的切り替え
+
+\#\#\#\# 🎯 目的  
+新APIを使用するように安全に移行
+
+\#\#\#\# 📝 修正内容
+
+\*\*修正対象\*\*: \`frontend/src/stores/monthly.js\`
+
+\`\`\`javascript  
+import { defineStore } from 'pinia'  
+import { ref, computed } from 'vue'  
+import axios from 'axios'
+
+export const useMonthlyStore \= defineStore('monthly', () \=\> {  
+  // ✅ フラグ管理で段階的切り替え  
+  const USE\_NEW\_API \= true  // false で即座に旧APIに戻せる  
+    
+  // State  
+  const currentDate \= ref(new Date())  
+  const monthlyData \= ref({})  // { '2025-10-01': { target: {...}, stats: {...} } }  
+  const loading \= ref(false)  
+  const error \= ref(null)  
+    
+  // Computed  
+  const displayMonths \= computed(() \=\> {  
+    const now \= currentDate.value  
+    const lastMonth \= new Date(now.getFullYear(), now.getMonth() \- 1, 1\)  
+    const thisMonth \= new Date(now.getFullYear(), now.getMonth(), 1\)  
+    const nextMonth \= new Date(now.getFullYear(), now.getMonth() \+ 1, 1\)  
+      
+    return \[  
+      { id: formatMonth(lastMonth), label: getMonthLabel(lastMonth) },  
+      { id: formatMonth(thisMonth), label: getMonthLabel(thisMonth) },  
+      { id: formatMonth(nextMonth), label: getMonthLabel(nextMonth) }  
+    \]  
+  })  
+    
+  const defaultTab \= computed(() \=\> {  
+    const now \= currentDate.value  
+    return formatMonth(new Date(now.getFullYear(), now.getMonth(), 1))  
+  })  
+    
+  // ✅ 新API: 統合取得（計画書v2.0準拠）  
+  async function fetchCurrentMonthlyData() {  
+    if (USE\_NEW\_API) {  
+      loading.value \= true  
+      error.value \= null  
+        
+      try {  
+        console.log('🔧 新API使用: /api/monthly/current')  
+        const response \= await axios.get('/api/monthly/current')  
+          
+        // データを格納  
+        monthlyData.value \= response.data.data  
+          
+        console.log('✅ 月次データ取得完了（新API）')  
+      } catch (err) {  
+        console.warn('⚠️ 新APIが失敗、旧APIにフォールバック')  
+        error.value \= err.message  
+          
+        // フォールバック: 旧APIを使用  
+        await fetchMonthlyDataLegacy()  
+      } finally {  
+        loading.value \= false  
+      }  
+    } else {  
+      // 旧APIを使用（後方互換性）  
+      console.log('🔧 旧API使用（フラグ=false）')  
+      await fetchMonthlyDataLegacy()  
+    }  
+  }  
+    
+  // ❌ 旧API: 個別取得（フォールバック用に保持）  
+  async function fetchMonthlyDataLegacy() {  
+    loading.value \= true  
+    error.value \= null  
+      
+    try {  
+      const now \= currentDate.value  
+      const months \= \[  
+        now.getMonth(),      // 今月  
+        now.getMonth() \- 1,  // 先月  
+        now.getMonth() \+ 1   // 来月  
+      \]  
+        
+      console.log('🔧 旧API: 個別取得開始')  
+        
+      // 目標取得  
+      const targetsRes \= await axios.get('/api/monthly-targets/', {  
+        params: {  
+          year: now.getFullYear(),  
+          months: months.join(',')  
+        }  
+      })  
+        
+      // 統計取得（各月ごと）  
+      for (const month of months) {  
+        const statsRes \= await axios.get(  
+          \`/api/monthly-stats/${now.getFullYear()}/${month \+ 1}\`  
+        )  
+          
+        const monthKey \= formatMonth(new Date(now.getFullYear(), month, 1))  
+        monthlyData.value\[monthKey\] \= {  
+          target: targetsRes.data\[monthKey\] || {},  
+          stats: statsRes.data || {}  
+        }  
+      }  
+        
+      console.log('✅ 月次データ取得完了（旧API）')  
+    } catch (err) {  
+      error.value \= err.message  
+      console.error('❌ 旧API取得失敗:', err)  
+    } finally {  
+      loading.value \= false  
+    }  
+  }  
+    
+  // ✅ 目標設定保存  
+  async function saveTarget(targetMonth, data) {  
+    try {  
+      const response \= await axios.post('/api/monthly-targets', {  
+        target\_month: targetMonth,  
+        ...data  
+      })  
+        
+      // 保存後、即座に再取得  
+      await fetchCurrentMonthlyData()  
+        
+      return { success: true }  
+    } catch (err) {  
+      return { success: false, error: err.message }  
+    }  
+  }  
+    
+  // ✅ キャッシュクリア（ステータス変更時）  
+  async function refreshMonthlyData() {  
+    await fetchCurrentMonthlyData()  
+  }  
+    
+  // Utility  
+  function formatMonth(date) {  
+    return \`${date.getFullYear()}-${String(date.getMonth() \+ 1).padStart(2, '0')}-01\`  
+  }  
+    
+  function getMonthLabel(date) {  
+    return \`${date.getMonth() \+ 1}月\`  
+  }  
+    
+  // 日付自動更新  
+  setInterval(() \=\> {  
+    const now \= new Date()  
+    if (now.getDate() \!== currentDate.value.getDate()) {  
+      currentDate.value \= now  
+      fetchCurrentMonthlyData()  
+    }  
+  }, 60000\)  
+    
+  return {  
+    currentDate,  
+    monthlyData,  
+    loading,  
+    error,  
+    displayMonths,  
+    defaultTab,  
+    fetchCurrentMonthlyData,  
+    saveTarget,  
+    refreshMonthlyData  
+  }  
+})  
+\`\`\`
+
+\*\*コンポーネント修正\*\*: \`frontend/src/components/DashboardPage.vue\`
+
+\`\`\`vue  
+\<script setup\>  
+import { onMounted } from 'vue'  
+import { useMonthlyStore } from '@/stores/monthly'
+
+const monthlyStore \= useMonthlyStore()
+
+onMounted(async () \=\> {  
+  // ✅ 1回の呼び出しで全データ取得  
+  await monthlyStore.fetchCurrentMonthlyData()  
+})  
+\</script\>  
+\`\`\`
+
+\#\#\#\# ✅ 完了条件
+
+\- \[ \] \`/api/monthly/current\` が1回のみ呼ばれる  
+\- \[ \] フラグを \`false\` にすると旧APIが使われる  
+\- \[ \] ステータス変更時に即座に更新される  
+\- \[ \] 読み込み時間 \< 1秒
+
+\#\#\#\# 🧪 テスト手順
+
+\`\`\`bash  
+\# 1\. 新API使用テスト（USE\_NEW\_API \= true）  
+npm run dev
+
+\# Chrome DevTools → Network タブ  
+\# \- /api/monthly/current が1回だけ呼ばれることを確認  
+\# \- Load完了 \< 1秒を確認
+
+\# 2\. フォールバックテスト  
+\# \- バックエンドを停止して新APIをエラーにする  
+\# \- 旧APIが自動的に使われることを確認
+
+\# 3\. ロールバックテスト（USE\_NEW\_API \= false）  
+\# \- フラグを false に変更  
+\# \- 旧APIが使われることを確認  
+\`\`\`
+
+\---
+
+\#\# 4\. Phase 3: 最適化（目標達成の確実化）
+
+\#\#\# 📊 Phase 3の目標
+
+| 指標 | Phase 2後 | Phase 3後 | 改善率 |  
+|------|-----------|-----------|--------|  
+| \*\*APIレスポンスタイム\*\* | \< 500ms | \*\*\< 200ms\*\* | \*\*60%改善\*\* |  
+| \*\*Load完了時間\*\* | \< 1秒 | \*\*\< 800ms\*\* | \*\*20%改善\*\* |
+
+\#\#\# ⏱️ 所要時間: 3-4時間
+
+\#\#\# 🎯 実装判断基準
+
+\`\`\`  
+IF (Phase 2後の速度 \< 1秒) THEN  
+  → Phase 3は不要（目標達成済み）  
+ELSE  
+  → Phase 3を実装（さらなる高速化）  
+\`\`\`
+
+\---
+
+\#\#\# Step 3-1: 事前集計テーブル（monthly\_summary）の実装
+
+\#\#\#\# 📝 実装内容
+
+\*\*1. モデル作成\*\*: \`app/models/monthly\_summary.py\`
+
+\`\`\`python  
+from app.models import db  
+from datetime import datetime
+
+class MonthlySummary(db.Model):  
+    """事前集計テーブル（計画書v2.0準拠）"""  
+    \_\_tablename\_\_ \= 'monthly\_summary'  
+      
+    id \= db.Column(db.Integer, primary\_key=True)  
+    user\_id \= db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)  
+    summary\_month \= db.Column(db.Date, nullable=False)  
+      
+    \# 案件関連（正負集計済み）  
+    acquired\_projects \= db.Column(db.Integer, default=0)  
+    completed\_projects \= db.Column(db.Integer, default=0)  
+      
+    \# 請求書関連（会計ロジック準拠）  
+    sent\_invoices\_count \= db.Column(db.Integer, default=0)  
+    sent\_invoices\_amount \= db.Column(db.Numeric(12, 2), default=0)  
+    paid\_invoices\_count \= db.Column(db.Integer, default=0)  
+    paid\_invoices\_amount \= db.Column(db.Numeric(12, 2), default=0)  
+    overdue\_invoices\_count \= db.Column(db.Integer, default=0)  
+    overdue\_invoices\_amount \= db.Column(db.Numeric(12, 2), default=0)  
+      
+    last\_updated\_at \= db.Column(db.DateTime, nullable=False, default=datetime.utcnow)  
+      
+    \_\_table\_args\_\_ \= (  
+        db.UniqueConstraint('user\_id', 'summary\_month', name='uq\_user\_summary\_month'),  
+        db.Index('ix\_monthly\_summary\_user\_month', 'user\_id', 'summary\_month')  
+    )  
+\`\`\`
+
+\*\*2. マイグレーション実行\*\*:
+
+\`\`\`bash  
+\# ローカル  
+python manage.py db migrate \-m "Add monthly\_summary table for pre-aggregation"  
+python manage.py db upgrade
+
+\# 本番  
+flask db upgrade  
+\`\`\`
+
+\*\*3. 更新ロジック実装\*\*: \`app/services/monthly\_summary\_updater.py\`
+
+\`\`\`python  
+from app.models import db, MonthlySummary  
+from datetime import datetime  
+from sqlalchemy import extract, func
+
+def update\_monthly\_summary(user\_id, changed\_month):  
+    """  
+    月次サマリーを再計算・更新  
+    ステータス変更時に呼び出される  
+    """  
+    from app.models import Project, ProjectStatusHistory, Invoice, InvoiceStatusHistory  
+      
+    year \= changed\_month.year  
+    month \= changed\_month.month  
+      
+    \# 正負集計（計画書v2.0準拠）  
+    acquired \= \_calculate\_acquired\_projects(user\_id, year, month)  
+    completed \= \_calculate\_completed\_projects(user\_id, year, month)  
+    sent\_count, sent\_amount \= \_calculate\_sent\_invoices(user\_id, year, month)  
+    paid\_count, paid\_amount \= \_calculate\_paid\_invoices(user\_id, year, month)  
+      
+    \# UPSERT  
+    summary \= MonthlySummary.query.filter\_by(  
+        user\_id=user\_id,  
+        summary\_month=changed\_month  
+    ).first()  
+      
+    if summary:  
+        summary.acquired\_projects \= acquired  
+        summary.completed\_projects \= completed  
+        summary.sent\_invoices\_count \= sent\_count  
+        summary.sent\_invoices\_amount \= sent\_amount  
+        summary.paid\_invoices\_count \= paid\_count  
+        summary.paid\_invoices\_amount \= paid\_amount  
+        summary.last\_updated\_at \= datetime.utcnow()  
+    else:  
+        summary \= MonthlySummary(  
+            user\_id=user\_id,  
+            summary\_month=changed\_month,  
+            acquired\_projects=acquired,  
+            completed\_projects=completed,  
+            sent\_invoices\_count=sent\_count,  
+            sent\_invoices\_amount=sent\_amount,  
+            paid\_invoices\_count=paid\_count,  
+            paid\_invoices\_amount=paid\_amount  
+        )  
+        db.session.add(summary)  
+      
+    db.session.commit()  
+    print(f"✅ 月次サマリー更新完了: {user\_id} \- {changed\_month}")
+
+def \_calculate\_acquired\_projects(user\_id, year, month):  
+    """獲得案件数の正負集計"""  
+    from app.models import Project, ProjectStatusHistory  
+      
+    positive \= db.session.query(  
+        func.count(func.distinct(ProjectStatusHistory.project\_id))  
+    ).join(Project).filter(  
+        Project.user\_id \== user\_id,  
+        ProjectStatusHistory.old\_status \== 'proposed',  
+        ProjectStatusHistory.new\_status \== 'contracted',  
+        extract('year', ProjectStatusHistory.changed\_at) \== year,  
+        extract('month', ProjectStatusHistory.changed\_at) \== month  
+    ).scalar() or 0  
+      
+    negative \= db.session.query(  
+        func.count(func.distinct(ProjectStatusHistory.project\_id))  
+    ).join(Project).filter(  
+        Project.user\_id \== user\_id,  
+        ProjectStatusHistory.old\_status \== 'contracted',  
+        ProjectStatusHistory.new\_status \== 'proposed',  
+        extract('year', ProjectStatusHistory.changed\_at) \== year,  
+        extract('month', ProjectStatusHistory.changed\_at) \== month  
+    ).scalar() or 0  
+      
+    return positive \- negative
+
+def \_calculate\_completed\_projects(user\_id, year, month):  
+    """完了案件数の正負集計"""  
+    from app.models import Project, ProjectStatusHistory  
+      
+    positive \= db.session.query(  
+        func.count(func.distinct(ProjectStatusHistory.project\_id))  
+    ).join(Project).filter(  
+        Project.user\_id \== user\_id,  
+        ProjectStatusHistory.old\_status \== 'contracted',  
+        ProjectStatusHistory.new\_status \== 'completed',  
+        extract('year', ProjectStatusHistory.changed\_at) \== year,  
+        extract('month', ProjectStatusHistory.changed\_at) \== month  
+    ).scalar() or 0  
+      
+    negative \= db.session.query(  
+        func.count(func.distinct(ProjectStatusHistory.project\_id))  
+    ).join(Project).filter(  
+        Project.user\_id \== user\_id,  
+        ProjectStatusHistory.old\_status \== 'completed',  
+        ProjectStatusHistory.new\_status \== 'contracted',  
+        extract('year', ProjectStatusHistory.changed\_at) \== year,  
+        extract('month', ProjectStatusHistory.changed\_at) \== month  
+    ).scalar() or 0  
+      
+    return positive \- negative
+
+def \_calculate\_sent\_invoices(user\_id, year, month):  
+    """送信済み請求書の集計（会計ロジック準拠）"""  
+    from app.models import Invoice  
+      
+    result \= db.session.query(  
+        func.count(Invoice.id),  
+        func.coalesce(func.sum(Invoice.total\_amount), 0\)  
+    ).filter(  
+        Invoice.user\_id \== user\_id,  
+        Invoice.status \== 'sent',  
+        extract('year', Invoice.created\_at) \== year,  
+        extract('month', Invoice.created\_at) \== month  
+    ).first()  
+      
+    return result\[0\], float(result\[1\])
+
+def \_calculate\_paid\_invoices(user\_id, year, month):  
+    """支払済み請求書の集計"""  
+    from app.models import Invoice  
+      
+    result \= db.session.query(  
+        func.count(Invoice.id),  
+        func.coalesce(func.sum(Invoice.total\_amount), 0\)  
+    ).filter(  
+        Invoice.user\_id \== user\_id,  
+        Invoice.status \== 'paid',  
+        Invoice.payment\_date.isnot(None),  
+        extract('year', Invoice.payment\_date) \== year,  
+        extract('month', Invoice.payment\_date) \== month  
+    ).first()  
+      
+    return result\[0\], float(result\[1\])  
+\`\`\`
+
+\*\*4. トリガー実装\*\*: ステータス変更時に自動更新
+
+\`\`\`python  
+\# app/blueprints/projects.py（拡張）
+
+from app.services.monthly\_summary\_updater import update\_monthly\_summary  
+from datetime import datetime
+
+@projects\_bp.route('/\<int:project\_id\>', methods=\['PUT'\])  
+@jwt\_required()  
+def update\_project(project\_id):  
+    project \= Project.query.get\_or\_404(project\_id)  
+    old\_status \= project.status  
+    new\_status \= request.json.get('status')  
+      
+    if new\_status and new\_status \!= old\_status:  
+        \# 履歴記録  
+        history \= ProjectStatusHistory(  
+            project\_id=project.id,  
+            old\_status=old\_status,  
+            new\_status=new\_status,  
+            changed\_at=datetime.utcnow()  
+        )  
+        db.session.add(history)  
+          
+        \# ステータス更新  
+        project.status \= new\_status  
+        db.session.commit()  
+          
+        \# ✅ 事前集計を更新（非同期推奨だが、まずは同期実装）  
+        changed\_month \= datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)  
+        update\_monthly\_summary(get\_jwt\_identity(), changed\_month)  
+      
+    return jsonify({'success': True})  
+\`\`\`
+
+\#\#\#\# ✅ 完了条件
+
+\- \[ \] \`monthly\_summary\` テーブル作成完了  
+\- \[ \] ステータス変更時に自動更新される  
+\- \[ \] \`/api/monthly/current\` のレスポンスタイム \< 200ms  
+\- \[ \] 既存テーブル（\`monthly\_snapshots\`）は維持
+
+\---
+
+\#\# 5\. 実装スケジュール
+
+\#\#\# 📅 全体タイムライン
+
+\`\`\`  
+┌─────────────────────────────────────────┐  
+│ Phase 1: 緊急対応（1-2時間）             │  
+├─────────────────────────────────────────┤  
+│ Day 1: 重複呼び出し削除                  │  
+│        ↓ 効果: 読み込み時間 76%改善     │  
+└─────────────────────────────────────────┘  
+                ↓  
+┌─────────────────────────────────────────┐  
+│ Phase 2: 根本解決（3-5時間）             │  
+├─────────────────────────────────────────┤  
+│ Day 2: 新API実装（2-3時間）              │  
+│ Day 3: フロントエンド移行（1-2時間）     │  
+│        ↓ 効果: 目標達成（\< 1秒）        │  
+└─────────────────────────────────────────┘  
+                ↓  
+┌─────────────────────────────────────────┐  
+│ Phase 3: 最適化（条件付き・3-4時間）     │  
+├─────────────────────────────────────────┤  
+│ Day 4: 事前集計テーブル実装              │  
+│        ↓ 効果: さらなる高速化（\< 800ms） │  
+└─────────────────────────────────────────┘
+
+合計所要時間: 7-11時間  
+\`\`\`
+
+\#\#\# 🎯 マイルストーン
+
+| Phase | 完了判定 | 次フェーズ開始条件 |  
+|-------|---------|-------------------|  
+| \*\*Phase 1\*\* | 読み込み \< 0.5秒 | 即座にPhase 2開始 |  
+| \*\*Phase 2\*\* | 読み込み \< 1秒 | \*\*目標達成→Phase 3は任意\*\* |  
+| \*\*Phase 3\*\* | 読み込み \< 800ms | 完了 |
+
+\---
+
+\#\# 6\. 完了判定基準
+
+\#\#\# ✅ Phase 1完了条件
+
+\- \[ \] API呼び出し回数が2回以下（Chrome DevTools確認）  
+\- \[ \] コンソールログで重複防止機能が動作  
+\- \[ \] 読み込み時間 \< 0.5秒
+
+\#\#\# ✅ Phase 2完了条件
+
+\- \[ \] \`/api/monthly/current\` エンドポイント実装  
+\- \[ \] API呼び出し回数が1回  
+\- \[ \] レスポンスタイム \< 500ms  
+\- \[ \] 読み込み時間 \< 1秒（\*\*目標達成\*\*）  
+\- \[ \] フラグで旧APIに切り戻し可能
+
+\#\#\# ✅ Phase 3完了条件（任意）
+
+\- \[ \] \`monthly\_summary\` テーブル実装  
+\- \[ \] ステータス変更時の自動更新動作  
+\- \[ \] レスポンスタイム \< 200ms  
+\- \[ \] 読み込み時間 \< 800ms
+
+\#\#\# 🎯 最終目標の達成判定
+
+| 項目 | 目標値 | 測定方法 |  
+|------|--------|---------|  
+| \*\*Load完了時間\*\* | \< 1秒 | Chrome DevTools → Performance |  
+| \*\*API呼び出し回数\*\* | 1回 | Chrome DevTools → Network |  
+| \*\*APIレスポンスタイム\*\* | \< 500ms | Chrome DevTools → Network |  
+| \*\*既存機能の維持\*\* | 全て正常動作 | 手動テスト |
+
+\---
+
+\#\# 🚀 次のアクション
+
+\#\#\# 即座に開始してください
+
+\*\*Phase 1: 緊急対応（1-2時間で完了可能）\*\*
+
+1\. \`frontend/src/stores/monthly.js\` を修正  
+2\. 重複呼び出し防止ロジックを追加  
+3\. Chrome DevToolsで動作確認
+
+\*\*完了後すぐに報告してください。Phase 2の実装コードを提示します。\*\*
+
+\---
+
+\*\*実装を開始してよろしいでしょうか？\*\*
