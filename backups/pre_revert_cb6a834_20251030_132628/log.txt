@@ -1,0 +1,30 @@
+5bdc083 (HEAD -> staging) docs: 標準手順を正式化（整合チェック二段・計測・キャッシュ無効化・ドキュ更新・ロールバック確認）
+5f2b137 docs(architecture,handover): 残存課題・進捗・標準手順を追記（2025-10-30）
+cb6a834 (origin/staging) fix(monthly): 目標設定即座反映問題を完全解決
+2d0fcc4 fix(monthly): 月次目標表示問題を根本解決
+39dbfb5 fix(monthly): 月次目標表示問題を完全修正
+ff2c7a4 (origin/feature/monthly-management-phase2, feature/monthly-management-phase2) fix(monthly): 月次目標設定の即座反映問題を修正
+e65eec6 feat(monthly): Phase2事前集計ロジック実装完了
+2aa377a feat(monthly): Phase1基盤整備完了
+b3b4ce5 feat(monthly): Phase 1実装完了 - 重複API呼び出し削除とキャッシュ機能
+2844c4e fix: DashboardPage.vueを10月27日の完全な状態に復元
+995b49f fix: 10/27状態に合わせてDashboardPageからMonthlyDashboardV2参照を削除
+629d1ae fix: UI統一化修正を10月27日の状態に適用
+83f1043 feat: 改善案4 - 不要な再レンダリング削除
+50c31d6 Revert "feat: 改善案2 - タブ再生成重複削除（debounce適用）"
+a278f8c feat: 改善案2 - タブ再生成重複削除（debounce適用）
+0b311b5 feat: 改善案5 - スケルトンUI実装完了
+3f1ea7d fix: 改善案3 - 月次データ取得とタブ再生成の重複削減
+d60c67b perf: MonthlyStatsSectionのrotation監視watch削除（改善策3）
+a11ae7d perf: 月次切り替え監視の1秒待機を削除（改善策1）
+3261221 Revert test changes: remove test button and restore original code
+b5bcd22 Fix test button method name
+28cfbc5 Add monthly rotation test button for staging
+ffaff59 fix: 月次管理テーブル作成マイグレーションの修正
+7dd4a8c fix: 完全修正 - Flask-WTF依存関係とCSRF除外設定
+33876b7 fix: Render.comのpackage.json参照問題を修正
+152ae9c fix: ステージング環境の月次管理機能完全同期
+1e19911 docs: 月次管理機能アーキテクチャ設計書に残存課題を記録
+4d67dc7 fix: FAQPage.vueファイルの同期と削除されたファイルの整理
+cd77f0a fix: BlogPage.vueファイルの同期と削除されたファイルの整理
+1bb3f6b fix: /settings ルートを追加してUserSettings.vueを直接表示

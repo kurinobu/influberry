@@ -109,6 +109,30 @@
           </button>
         </div>
 
+        <!-- 区切り線（新規追加） -->
+        <div class="relative">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-300"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-gradient-to-br from-pink-50 to-purple-50 text-gray-500">または</span>
+          </div>
+        </div>
+
+        <!-- TikTokログインボタン（TikTok公式カラー） -->
+        <div>
+          <a
+            :href="tiktokLoginUrl"
+            class="group relative w-full flex justify-center items-center gap-3 text-sm font-medium rounded-md text-white transition-all duration-200"
+            style="background-color: #000000; border: 2px solid #25F4EE; padding: 8px 16px;"
+          >
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#25F4EE">
+              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+            </svg>
+            <span style="color: #25F4EE;">TikTokでログイン</span>
+          </a>
+        </div>
+
         <!-- テスト用ユーザー情報 - 本番環境では非表示 -->
         <!--
         <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
@@ -160,6 +184,9 @@ const router = useRouter()
 // 認証ストア
 const authStore = useAuthStore()
 
+// TikTokログインURL（新規追加）
+const tiktokLoginUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5001'}/api/auth/tiktok/login`
+
 // フォームデータ
 const formData = reactive({
   email: '',
@@ -197,48 +224,20 @@ const handleLogin = async () => {
       router.push('/dashboard')
     }
     // エラーは authStore.error に自動設定される
-    
   } catch (error) {
-    console.error('ログイン処理エラー:', error)
+    console.error('ログインエラー:', error)
   }
 }
 
-// テストアカウント入力
+// テスト用アカウント入力（開発用）
 const fillTestAccount = () => {
   formData.email = 'test@example.com'
   formData.password = 'password123'
-  formData.remember = true
 }
 </script>
 
 <style scoped>
-/* カスタムスタイル */
-.bg-gradient-to-br {
-  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
-}
-
-.bg-gradient-to-r {
-  background-image: linear-gradient(to right, var(--tw-gradient-stops));
-}
-
-/* フォーカス時のアニメーション */
-input:focus {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-}
-
-/* ボタンホバーエフェクト */
-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* ローディング時のアニメーション */
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
   to {
     transform: rotate(360deg);
   }
@@ -341,5 +340,16 @@ input[type="checkbox"].berry-checkbox:checked {
 input[type="checkbox"].berry-checkbox:disabled {
   opacity: 0.6 !important;
   cursor: not-allowed !important;
+}
+
+/* TikTok公式風デザイン */
+.tiktok-login-button {
+  background: linear-gradient(135deg, #000000 0%, #FE2C55 100%);
+  box-shadow: 0 4px 12px rgba(254, 44, 85, 0.3);
+}
+
+.tiktok-login-button:hover {
+  box-shadow: 0 6px 20px rgba(254, 44, 85, 0.5);
+  transform: translateY(-1px);
 }
 </style>

@@ -1,0 +1,59 @@
+{
+  "timestamp": "2025-10-31T07:04:00.981157",
+  "frontend_analysis": {
+    "fetchCurrentMonthlyData": true,
+    "fetchTargets": true,
+    "fetchStats": true,
+    "USE_NEW_API": false,
+    "call_patterns": [
+      "sequential: fetchTargets -> fetchStats"
+    ]
+  },
+  "api_analysis": {
+    "new_api": {
+      "exists": true,
+      "response_format": "v2.0_compliant",
+      "uses_preaggregation": true,
+      "has_fallback": true
+    },
+    "old_api_targets": {
+      "exists": true
+    },
+    "old_api_stats": {
+      "exists": true,
+      "has_positive_negative_logic": true
+    }
+  },
+  "preaggregation_analysis": {
+    "update_function_exists": true,
+    "called_from_projects": true,
+    "called_from_invoices": true
+  },
+  "data_flow_analysis": {
+    "dashboard_initialization": [],
+    "monthly_stats_section_initialization": [
+      "calls_loadData"
+    ],
+    "api_calls": []
+  },
+  "differences": [
+    {
+      "type": "feature_flag",
+      "issue": "USE_NEW_API = false",
+      "impact": "新APIが無効化されているため、計画書v2.0のAPI分離戦略が適用されていない",
+      "recommendation": "USE_NEW_API を true に変更して新APIを有効化"
+    },
+    {
+      "type": "performance",
+      "issue": "並列API呼び出し未実装",
+      "impact": "fetchTargets と fetchStats が順次実行されるため、総レスポンスタイムが長い",
+      "recommendation": "Promise.all を使用して並列実行を実装"
+    },
+    {
+      "type": "implementation",
+      "issue": "fetchCurrentMonthlyData が実装済みだが未使用",
+      "impact": "新API機能が無効化されている",
+      "recommendation": "USE_NEW_API = true に変更"
+    }
+  ]
+}

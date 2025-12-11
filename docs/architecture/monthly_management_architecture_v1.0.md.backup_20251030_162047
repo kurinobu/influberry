@@ -1,0 +1,410 @@
+# 月次管理機能 アーキテクチャ設計書 v1.0
+
+## 📋 概要
+
+### 目的
+ユーザーが月次で案件管理の進捗を可視化し、目標設定と達成度評価を行える機能を実装する。
+
+### 目標とする効果
+- **安心感**: "ちゃんと進んでる"の可視化
+- **達成感**: "努力が可視化される"体験
+- **継続性**: 興味増→定着→利用頻度増
+
+## 🏗️ システム構成
+
+### 技術スタック
+- **Backend**: Python 3.11, Flask, SQLAlchemy
+- **Frontend**: Vue 3.5.18, Pinia, Tailwind CSS 4
+- **Database**: PostgreSQL (本番), SQLite (ローカル)
+- **Deploy**: Render.com
+
+### 環境差異
+| 項目 | 本番環境 | ローカル環境 |
+|------|---------|-------------|
+| DB | PostgreSQL | SQLite |
+| URL | influberry.jp | http://127.0.0.1:5173 |
+| Branch | staging | local development |
+
+## 🗄️ データベース設計
+
+### 新規テーブル
+
+#### monthly_targets
+```sql
+CREATE TABLE monthly_targets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    target_month DATE NOT NULL,
+    target_projects INTEGER,
+    target_income INTEGER,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, target_month),
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
+
+#### project_status_history
+```sql
+CREATE TABLE project_status_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id INTEGER NOT NULL,
+    changed_by INTEGER,
+    old_status VARCHAR(20),
+    new_status VARCHAR(20) NOT NULL CHECK (new_status IN ('proposed', 'contracted', 'completed')),
+    notes TEXT,
+    changed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY(changed_by) REFERENCES users(id)
+);
+```
+
+#### invoice_status_history
+```sql
+CREATE TABLE invoice_status_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    invoice_id INTEGER NOT NULL,
+    changed_by INTEGER,
+    old_status VARCHAR(20),
+    new_status VARCHAR(20) NOT NULL CHECK (new_status IN ('draft', 'sent', 'paid', 'overdue', 'cancelled')),
+    notes TEXT,
+    changed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
+    FOREIGN KEY(changed_by) REFERENCES users(id)
+);
+```
+
+## 🔌 API設計
+
+### 月次目標管理API
+
+#### GET /api/monthly-targets
+```json
+{
+  "success": true,
+  "data": {
+    "targets": [
+      {
+        "target_month": "2025-10-01",
+        "target_projects": 5,
+        "target_income": 200000
+      }
+    ]
+  }
+}
+```
+
+#### POST /api/monthly-targets
+```json
+{
+  "target_month": "2025-10-01",
+  "target_projects": 5,
+  "target_income": 200000
+}
+```
+
+#### DELETE /api/monthly-targets/{month}
+```json
+{
+  "success": true,
+  "message": "目標を削除しました"
+}
+```
+
+### 月次統計API
+
+#### GET /api/monthly-stats/{year}/{month}
+```json
+{
+  "success": true,
+  "data": {
+    "target": {
+      "projects": 5,
+      "income": 200000
+    },
+    "actual": {
+      "acquired_projects": 3,
+      "completed_projects": 2,
+      "sent_invoices_amount": 150000,
+      "paid_invoices_amount": 100000
+    },
+    "rates": {
+      "projects": 0.6,
+      "income": 0.5
+    }
+  }
+}
+```
+
+#### GET /api/monthly-stats/overview
+```json
+{
+  "success": true,
+  "data": {
+    "total_projects": 15,
+    "total_income": 500000,
+    "recent_months": [
+      {
+        "month": "2025-10-01",
+        "acquired": 3,
+        "completed": 2,
+        "income": 100000
+      }
+    ]
+  }
+}
+```
+
+## 🎨 フロントエンド設計
+
+### コンポーネント構成
+
+#### MonthlyTabs.vue
+```vue
+<template>
+  <div class="monthly-tabs">
+    <div class="tab-list">
+      <button 
+        v-for="tab in tabs" 
+        :key="tab.value"
+        :class="['tab-button', { active: currentTab === tab.value }]"
+        @click="$emit('update:modelValue', tab.value)"
+      >
+        {{ tab.label }}
+      </button>
+    </div>
+  </div>
+</template>
+```
+
+#### ProgressBar.vue
+```vue
+<template>
+  <div class="progress-container">
+    <div class="progress-header">
+      <div class="progress-label">{{ label }}</div>
+      <div class="progress-value">{{ current }}{{ unit }}</div>
+    </div>
+    <div class="progress-bar">
+      <div 
+        class="progress-fill" 
+        :style="{ width: percentage + '%' }"
+        :class="progressClass"
+      ></div>
+    </div>
+    <div class="progress-target">目標: {{ target }}{{ unit }}</div>
+  </div>
+</template>
+```
+
+#### MonthlyStatsSection.vue
+```vue
+<template>
+  <div class="monthly-stats-section">
+    <!-- 概要タブ -->
+    <div v-if="currentTab === 'overview'" class="overview-section">
+      <h2>主要な実績</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">累計活動案件数</div>
+          <div class="stat-value">{{ overviewData?.total_projects || 0 }} 件</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">累計入金額</div>
+          <div class="stat-value">¥{{ formatCurrency(overviewData?.total_income || 0) }}</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 月次タブ -->
+    <div v-else class="monthly-section">
+      <h2>{{ monthLabel }}の実績</h2>
+      <div class="progress-bars">
+        <ProgressBar 
+          label="獲得案件"
+          :current="stats?.actual.acquired_projects || 0"
+          :target="stats?.target.projects || 0"
+          unit="件"
+        />
+        <ProgressBar 
+          label="完了案件"
+          :current="stats?.actual.completed_projects || 0"
+          :target="stats?.target.projects || 0"
+          unit="件"
+        />
+        <ProgressBar 
+          label="報酬額"
+          :current="stats?.actual.sent_invoices_amount || 0"
+          :target="stats?.target.income || 0"
+          unit="円"
+        />
+      </div>
+    </div>
+  </div>
+</template>
+```
+
+### 状態管理（Pinia）
+
+#### monthlyStore
+```javascript
+export const useMonthlyStore = defineStore('monthly', {
+  state: () => ({
+    targets: {},           // { '2025-10-01': { projects: 5, income: 200000 } }
+    stats: {},             // { '2025-10-01': { acquired: 3, completed: 2 ... } }
+    overview: null,        // 概要統計データ
+    currentMonth: null,    // '2025-10-01'
+    loading: false,
+    error: null
+  }),
+  
+  getters: {
+    getTargetByMonth: (state) => (month) => state.targets[month] || null,
+    getStatsByMonth: (state) => (month) => state.stats[month] || null,
+    achievementRate: (state) => (month) => { /* 達成率計算 */ }
+  },
+  
+  actions: {
+    async fetchTargets(year, months) { /* 目標取得 */ },
+    async fetchStats(year, month) { /* 統計取得 */ },
+    async fetchOverview() { /* 概要取得 */ },
+    async saveTarget(targetMonth, data) { /* 目標保存 */ },
+    async deleteTarget(targetMonth) { /* 目標削除 */ }
+  }
+})
+```
+
+### UI設計
+
+#### タブ切替UI
+- **概要タブ**: 全期間の累計統計表示
+- **月次タブ**: 各月の詳細統計・プログレスバー表示
+- **横スクロール**: スマホ対応
+
+#### プログレスバー
+- **獲得案件**: 契約になった件数 / 目標案件数
+- **完了案件**: 完了した件数 / 目標案件数
+- **報酬額**: 入金額 / 目標報酬額
+- **色分け**: 達成率に応じて色変化
+
+#### アイコン設計
+- **ChartBarIcon**: 統計用（オレンジ #f59e0b）
+- **CalendarIcon**: 月次用（アンバー #f59e0b）
+- **FlagIcon**: 目標用（インディゴ #6366f1）
+
+## 🔄 データフロー
+
+### 1. 目標設定フロー（実装完了）
+```
+ユーザー → UserSettings → 月次目標設定セクション → monthlyStore.saveTarget() → API → DB → 統計データ自動更新
+```
+
+### 2. 統計表示フロー（実装完了）
+```
+DashboardPage → MonthlyStatsSection → monthlyStore.fetchStats() → API → DB → 表示
+```
+
+### 3. ステータス変更フロー（実装完了）
+```
+案件/請求書更新 → ステータス変更履歴記録 → 月次統計自動更新 → UI反映
+```
+
+## 📊 監視項目（実装完了）
+
+### デプロイ後1週間の監視（完了）
+- [x] エラーログの確認（毎日）
+- [x] ページ読み込み速度（< 3秒）
+- [x] API レスポンスタイム（< 500ms）
+- [x] データベースサイズ増加率
+- [x] ユーザーからの問い合わせ内容
+
+### 実装完了機能の監視
+- [x] 月次統計集計ロジックの正確性
+- [x] データ同期機能の動作確認
+- [x] 動的タブ表示の動作確認
+- [x] プログレスバーの表示精度
+- [x] 目標設定・保存機能の動作確認
+
+## 🔮 今後の拡張計画
+
+### Phase 2: マイクロインタラクション実装（将来実装）
+- 数値カウントアップアニメーション
+- プログレスバー充填アニメーション
+- 目標達成時のバッジ演出
+- スケルトンスクリーン
+
+### Phase 3: 高度な分析機能（将来実装）
+- 月次比較グラフ（折れ線・棒グラフ）
+- 前月比・前年比表示
+- トレンド分析
+- 予測機能
+
+### Phase 4: 通知機能（将来実装）
+- 目標達成時の通知
+- 月末リマインダー
+- 進捗遅延アラート
+
+## ✅ 実装完了機能
+
+### 月次管理機能の完全実装
+- ✅ 動的月次タブ表示（現在月基準の過去3ヶ月）
+- ✅ 月次目標設定（当月のみ、シンプルUI）
+- ✅ 月次統計表示（獲得案件数・完了案件数・売上）
+- ✅ データ同期（目標保存後の自動更新）
+- ✅ 統計集計ロジック（正負集計による正確な計算）
+- ✅ ステータス変更履歴（完全記録と追跡）
+- ✅ プロジェクト管理統合（案件作成・更新時の月次統計自動更新）
+
+## 📊 会計概念の統一と表示ロジック修正
+
+### 会計上正しい定義（重要：継承必須）
+
+#### 請求書ステータス別の会計概念
+| 項目              | 定義                            | 含まれる請求書             | 金額の扱い            | 備考                 |
+| --------------- | ----------------------------- | ------------------- | ---------------- | ------------------ |
+| **下書き（件数）**     | まだ正式に発行されていない請求書。番号未確定・顧客送付前。 | draft 状態            | 会計上の金額に含めない      | 会計帳簿未反映。見積書に近い扱い。  |
+| **キャンセル（件数）**   | 発行後に無効・取り消しになった請求書。           | canceled 状態         | 会計上の金額に含めない      | 元帳上も取消仕訳やマイナス請求扱い。 |
+| **送信済み（件数）**    | 顧客に正式送付した請求書。支払待ち状態。          | sent 状態             | 請求残高として含める       | ＝ 売掛金（AR）発生中。      |
+| **支払済（件数・金額）**  | 入金が確認済みの請求書。                  | paid 状態             | 入金額として計上         | 売掛金消込済。            |
+| **未収金額（金額）**    | 請求済みだが、まだ入金されていない金額。          | sent ＋ overdue      | 「総請求書金額」−「支払済金額」 | 売掛金残高。             |
+| **総請求書金額（金額）**  | 発行済（送信済＋支払済＋期限超過）請求書の合計金額。    | sent, paid, overdue | 含める              | 下書き・キャンセルは含めない。    |
+| **期限超過（件数・金額）** | 支払期日を過ぎても未入金の請求書。             | overdue 状態          | 「未収金額」に含まれる      | 支払遅延分。             |
+
+#### ステータス別金額集計例
+| ステータス | 金額     | 支払済    | 残高     | 備考    |
+| ----- | ------ | ------ | ------ | ----- |
+| 下書き   | 10,000 | 0      | 0      | × 集計外 |
+| キャンセル | 8,000  | 0      | 0      | × 集計外 |
+| 送信済   | 20,000 | 0      | 20,000 | 未収    |
+| 支払済   | 30,000 | 30,000 | 0      | 完了    |
+| 期限超過  | 15,000 | 0      | 15,000 | 未収    |
+
+#### 表示項目の会計的意味
+| 表示項目   | 集計対象           | 含む金額 | 会計上の意味  |
+| ------ | -------------- | ---- | ------- |
+| 下書き    | 下書き請求書         | 含まない | 未発行書類   |
+| キャンセル  | キャンセル済         | 含まない | 取り消し処理  |
+| 送信済    | 顧客送付済          | 含む   | 売掛金発生   |
+| 支払済    | 入金確認済          | 含む   | 売掛金消込済  |
+| 未収金額   | 送信済＋期限超過 − 支払済 | 含む   | 売掛残高    |
+| 総請求書金額 | 送信済＋支払済＋期限超過   | 含む   | 累計売上ベース |
+| 期限超過   | 期日超過未入金        | 含む   | 債権管理用   |
+
+### 修正完了項目（2025年1月23日）
+
+#### 月次管理セクション修正
+- **「累計案件数」→「累計活動案件数」**: 全ステータス（提案中含む）を明確化
+- **「累計報酬額」→「累計入金額」**: 支払済み金額のみを明確化
+- **「全体の実績」→「主要な実績」**: セクションの位置づけを明確化
+
+#### 統計セクション修正
+- **「総案件数」削除**: 月次セクションとの重複を解消
+- **「概要」→「その他の実績」**: セクションの位置づけを明確化
+- **グリッドレイアウト調整**: `lg:grid-cols-5`から`lg:grid-cols-4`に変更
+
+---
+
+**作成者**: AI Assistant  
+**レビュー**: 未実施  
+**承認**: 未実施  
+**次回更新**: セッション4完了時

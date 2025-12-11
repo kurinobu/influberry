@@ -1,0 +1,385 @@
+<script setup>
+import { useRouter } from 'vue-router'
+import BriefcaseIcon from '@/components/icons/BriefcaseIcon.vue'
+import InvoiceIcon from '@/components/icons/InvoiceIcon.vue'
+import DashboardIcon from '@/components/icons/DashboardIcon.vue'
+import LightBulbIcon from '@/components/icons/LightBulbIcon.vue'
+import CalendarIcon from '@/components/icons/CalendarIcon.vue'
+import ScaleIcon from '@/components/icons/ScaleIcon.vue'
+import StarIcon from '@/components/icons/StarIcon.vue'
+import SmartphoneIcon from '@/components/icons/SmartphoneIcon.vue'
+import ClockIcon from '@/components/icons/ClockIcon.vue'
+import DiamondIcon from '@/components/icons/DiamondIcon.vue'
+import NumberOneIcon from '@/components/icons/NumberOneIcon.vue'
+import NumberTwoIcon from '@/components/icons/NumberTwoIcon.vue'
+import NumberThreeIcon from '@/components/icons/NumberThreeIcon.vue'
+
+const router = useRouter()
+
+// トップページに戻る
+const goHome = () => {
+  router.push('/')
+}
+
+// アプリ機能一覧
+const features = [
+  {
+    iconComponent: BriefcaseIcon,
+    title: 'スポンサー案件管理',
+    description: '案件の進捗管理から納期管理まで、お仕事を整理して効率アップ！'
+  },
+  {
+    iconComponent: InvoiceIcon,
+    title: '請求書自動生成',
+    description: '案件情報から請求書を自動作成PDF印刷。近い将来、メール送信、会計ソフト連携予定！'
+  },
+  {
+    iconComponent: DashboardIcon,
+    title: 'ダッシュボード',
+    description: '収益や案件状況が一目でわかる。あなたの成長が見える化されます。'
+  }
+]
+
+// 将来追加予定機能
+const comingSoonFeatures = [
+  {
+    iconComponent: LightBulbIcon,
+    title: 'ブランド提案文ジェネレーター',
+    description: 'AIがあなたにぴったりのブランド提案文を自動生成。'
+  },
+  {
+    iconComponent: CalendarIcon,
+    title: '投稿アイデアカレンダー',
+    description: 'コンテンツアイデアをカレンダーで管理。投稿スケジュールもバッチリ。'
+  },
+  {
+    iconComponent: ScaleIcon,
+    title: '案件単価計算ツール',
+    description: '適正な単価設定をサポート。あなたの価値を正しく評価します。'
+  }
+]
+
+// ターゲット説明アイコン
+const targetFeatures = [
+  {
+    iconComponent: StarIcon,
+    title: 'インフルエンサー初心者',
+    description: '案件管理や請求書作成などの事務作業に慣れていない方'
+  },
+  {
+    iconComponent: SmartphoneIcon,
+    title: 'Z世代クリエイター',
+    description: 'TikTok、Instagram、YouTubeなどで活動中の方'
+  },
+  {
+    iconComponent: ClockIcon,
+    title: '効率化したい方',
+    description: '事務作業の時間を減らして、コンテンツ作りに集中したい方'
+  },
+  {
+    iconComponent: DiamondIcon,
+    title: '収益アップを目指す方',
+    description: '案件の見える化で収益管理を徹底したい方'
+  }
+]
+
+// ステップアイコン
+const steps = [
+  {
+    iconComponent: NumberOneIcon,
+    text: '無料でアカウント作成'
+  },
+  {
+    iconComponent: NumberTwoIcon,
+    text: '案件情報を登録'
+  },
+  {
+    iconComponent: NumberThreeIcon,
+    text: '請求書を自動生成'
+  }
+]
+</script>
+
+<template>
+  <div class="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
+    <!-- ヘッダー -->
+    <header class="berry-header">
+      <div class="max-w-4xl mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <img src="/favicon512.png" alt="InfluBerry" class="w-8 h-8 mr-3">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              InfluBerry
+            </h1>
+          </div>
+          <button 
+            @click="goHome"
+            class="px-4 py-2 bg-pink-500 text-white rounded-full hover:bg-pink-600 transition-colors text-sm font-medium"
+          >
+            ログインに戻る
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="max-w-4xl mx-auto px-4 py-8">
+      <!-- ヒーローセクション -->
+      <section class="text-center mb-16">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">
+          インフルエンサー・クリエイター向け
+          <br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
+            案件管理・請求書自動生成SaaS
+          </span>
+        </h1>
+        <p class="text-xl text-gray-600 mb-8">
+          案件管理から請求書作成まで、面倒な事務作業はInfluBerryにお任せ！<br>
+          あなたはコンテンツ作りに集中できます。
+        </p>
+        
+        <!-- 画像配置予定エリア（将来実装） -->
+        <div class="berry-card-placeholder">
+          <p class="text-gray-500">アプリスクリーンショット（近日公開）</p>
+        </div>
+      </section>
+
+      <!-- 現在の機能セクション -->
+      <section class="mb-16">
+        <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">
+          今すぐ使える機能 - 効率化・省力化でDXを推進
+        </h2>
+        <div class="grid md:grid-cols-3 gap-8">
+          <div
+            v-for="feature in features"
+            :key="feature.title"
+            class="berry-card"
+          >
+            <div class="mb-4 flex justify-center">
+              <component :is="feature.iconComponent" :size="48" color="#ec4899" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ feature.title }}</h3>
+            <p class="text-gray-600">{{ feature.description }}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 将来追加予定機能セクション -->
+      <section class="mb-16">
+        <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">
+          これから追加される機能 - さらなる効率化・省力化
+        </h2>
+        <div class="grid md:grid-cols-3 gap-8">
+          <div
+            v-for="feature in comingSoonFeatures"
+            :key="feature.title"
+            class="berry-card opacity-75 relative"
+          >
+            <div class="absolute top-4 right-4">
+              <span class="bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded">
+                準備中
+              </span>
+            </div>
+            <div class="mb-4 flex justify-center">
+              <component :is="feature.iconComponent" :size="48" color="#a855f7" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">{{ feature.title }}</h3>
+            <p class="text-gray-500">{{ feature.description }}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ターゲット説明セクション -->
+      <section class="berry-card p-8 mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
+          こんな方におすすめ - Z世代女子・クリエイター向け
+        </h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div
+            v-for="target in targetFeatures"
+            :key="target.title"
+            class="flex items-start space-x-4"
+          >
+            <div class="flex-shrink-0">
+              <component :is="target.iconComponent" :size="32" color="#ec4899" />
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900 mb-2">{{ target.title }}</h3>
+              <p class="text-gray-600">{{ target.description }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 使い方セクション -->
+      <section class="rounded-lg p-8 text-center usage-section">
+        <h2 class="text-2xl font-bold mb-4 usage-section-title">
+          使い方はとってもシンプル！ - 3ステップで始められるSaaS
+        </h2>
+        <div class="grid md:grid-cols-3 gap-6 mb-6">
+          <div
+            v-for="step in steps"
+            :key="step.text"
+          >
+            <div class="flex justify-center mb-2">
+              <component :is="step.iconComponent" :size="48" color="#ffffff" />
+            </div>
+            <p class="usage-section-text">{{ step.text }}</p>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <button
+            @click="goHome"
+            class="bg-white text-pink-500 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label="InfluBerryにログインして案件管理・請求書自動生成SaaSを開始"
+          >
+            今すぐ始める
+          </button>
+          
+          <!-- ソーシャルシェア -->
+          <div class="flex justify-center gap-4 mt-6">
+            <a
+              href="https://x.com/intent/tweet?text=InfluBerryでインフルエンサー・クリエイターの効率化・省力化を実現！案件管理・請求書自動生成SaaS&url=https://influberry.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-black px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium whitespace-nowrap sns-share-button"
+              aria-label="X（旧Twitter）でシェア"
+            >
+              X
+            </a>
+            <a
+              href="https://www.facebook.com/sharer/sharer.php?u=https://influberry.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium whitespace-nowrap sns-share-button"
+              aria-label="Facebookでシェア"
+            >
+              Facebook
+            </a>
+            <a
+              href="https://line.me/R/msg/text/?InfluBerryでインフルエンサー・クリエイターの効率化・省力化を実現！案件管理・請求書自動生成SaaS https://influberry.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-green-500 px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm font-medium whitespace-nowrap sns-share-button"
+              aria-label="LINEでシェア"
+            >
+              LINE
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- フッター -->
+      <div class="text-center mt-12 py-8">
+        <button 
+          @click="goHome"
+          class="px-8 py-3 text-white rounded-full hover:from-pink-600 hover:to-purple-700 transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl footer-cta-button"
+        >
+          今すぐInfluBerryを始める
+        </button>
+        <p class="text-gray-500 text-sm mt-4">© 2025 InfluBerry - Air Edison. All rights reserved.</p>
+      </div>
+    </main>
+  </div>
+</template>
+
+<style scoped>
+/* Z世代向けモダンデザイン */
+.font-poppins {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* スムーズなトランジション */
+.transition-colors {
+  transition-property: color, background-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+.transition-shadow {
+  transition-property: box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* レスポンシブ調整 */
+@media (max-width: 768px) {
+  .text-4xl {
+    font-size: 2rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+}
+
+/* Phase 4 berry化CSS - TodoApp.vue成功パターン移植 */
+.berry-header {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-bottom: 2px solid #f9a8d4;
+  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
+}
+
+.berry-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(244, 114, 182, 0.12);
+  border: 2px solid #f9a8d4;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.berry-card:hover {
+  box-shadow: 0 12px 30px rgba(244, 114, 182, 0.2);
+  transform: scale(1.02) translateY(-2px);
+}
+
+.berry-card-placeholder {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border: 2px solid #d1d5db;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* ヘッダータイトル強制カラフル表示 */
+h1.text-2xl.font-bold {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-weight: 700 !important;
+}
+
+/* フッターCTAボタン - 背景グラデーション強制適用 */
+.footer-cta-button {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  background-color: transparent !important;
+}
+
+.footer-cta-button:hover {
+  background: linear-gradient(to right, #db2777, #7c3aed) !important;
+}
+
+/* 使い方セクション - 背景グラデーションとテキストカラー（TermsPage.vueパターンに統一） */
+.usage-section {
+  background: linear-gradient(to right, #ec4899, #8b5cf6) !important;
+  color: #ffffff !important;
+}
+
+.usage-section-title {
+  color: #ffffff !important;
+}
+
+.usage-section-text {
+  color: #ffffff !important;
+}
+
+/* SNSシェアボタン - テキストカラー強制適用（グローバルスタイル上書き） */
+.usage-section .sns-share-button {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+</style>

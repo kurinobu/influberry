@@ -1,16 +1,14 @@
 """
 User model for InfluBerry v2
-Flask-Login完全対応版
+Flask-Login完全対応版 + TikTok OAuth対応
 """
-
 from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 
-
 class User(UserMixin, db.Model):
-    """ユーザーモデル（Flask-Login対応）"""
+    """ユーザーモデル（Flask-Login対応 + TikTok OAuth対応）"""
     __tablename__ = 'users'
     
     # Primary Key
@@ -21,6 +19,12 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     influencer_name = db.Column(db.String(100), nullable=True)
+    
+    # TikTok OAuth用フィールド（新規追加）
+    tiktok_id = db.Column(db.String(100), unique=True, nullable=True, index=True)
+    tiktok_username = db.Column(db.String(100), nullable=True)
+    tiktok_avatar_url = db.Column(db.String(500), nullable=True)
+    oauth_provider = db.Column(db.String(20), nullable=True)  # 'email' or 'tiktok'
     
     # User Status
     is_active = db.Column(db.Boolean, default=True, nullable=False)
@@ -36,7 +40,6 @@ class User(UserMixin, db.Model):
     )
     
     # Relationships
-
     # PDF印刷設定
     pdf_layout = db.Column(db.String(20), default='business', nullable=False)  # business, modern, classic
     pdf_paper_color = db.Column(db.String(7), default='#ffffff', nullable=False)  # HEXカラー
@@ -49,20 +52,35 @@ class User(UserMixin, db.Model):
     account_type = db.Column(db.String(20), nullable=True)  # 普通、当座
     account_number = db.Column(db.String(20), nullable=True)  # 口座番号
     account_holder = db.Column(db.String(100), nullable=True)  # 口座名義
+    
     # 請求者情報設定（PDF出力用）
     issuer_name = db.Column(db.String(100), nullable=False, default='')  # 請求者名（必須）
     office_address = db.Column(db.String(200), nullable=True)  # オフィス所在地（任意）
     contact_info = db.Column(db.String(100), nullable=True)  # 連絡先（任意）
+    
     projects = db.relationship('Project', backref='user', lazy=True, cascade='all, delete-orphan')
     
-    def __init__(self, username, email, password, influencer_name=None, **kwargs):
-        """ユーザー初期化"""
+    def __init__(self, username, email, password=None, influencer_name=None, **kwargs):
+        """ユーザー初期化（TikTok OAuth対応）"""
         self.username = username
         self.email = email
-        self.set_password(password)
+        
+        # パスワードはTikTokログイン時はNoneの場合がある
+        if password:
+            self.set_password(password)
+        else:
+            # TikTokログイン時はダミーパスワードを設定（ログインには使用されない）
+            self.password_hash = generate_password_hash('OAUTH_USER_NO_PASSWORD')
+        
         self.influencer_name = influencer_name
         self.is_active = kwargs.get('is_active', True)
         self.plan_type = kwargs.get('plan_type', 'free')
+        
+        # TikTok OAuth情報の設定
+        self.tiktok_id = kwargs.get('tiktok_id')
+        self.tiktok_username = kwargs.get('tiktok_username')
+        self.tiktok_avatar_url = kwargs.get('tiktok_avatar_url')
+        self.oauth_provider = kwargs.get('oauth_provider', 'email')
     
     def set_password(self, password):
         """パスワードハッシュ化"""
@@ -73,6 +91,7 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
     
     def to_dict(self):
+        """ユーザー情報を辞書形式で返す（TikTok情報含む）"""
         return {
             'id': self.id,
             'username': self.username,
@@ -83,16 +102,45 @@ class User(UserMixin, db.Model):
             'contact_info': self.contact_info,
             'is_active': self.is_active,
             'plan_type': self.plan_type,
+            'oauth_provider': self.oauth_provider,
+            'tiktok_username': self.tiktok_username,
+            'tiktok_avatar_url': self.tiktok_avatar_url,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
     
-    
+    @classmethod
+    def create(cls, username, email, password=None, influencer_name=None, **kwargs):
+        """ユーザー作成クラスメソッド（TikTok OAuth対応）"""
+        user = cls(username, email, password, influencer_name, **kwargs)
+        db.session.add(user)
+        try:
+            db.session.commit()
+            return user
+        except Exception as e:
+            db.session.rollback()
+            raise e
     
     @classmethod
-    def create(cls, username, email, password, influencer_name=None, **kwargs):
-        """ユーザー作成クラスメソッド"""
-        user = cls(username, email, password, influencer_name, **kwargs)
+    def create_from_tiktok(cls, tiktok_id, tiktok_username, tiktok_avatar_url):
+        """TikTokユーザーからアカウント作成"""
+        # 一意なユーザー名生成（tiktok_id の最初の8文字を使用）
+        username = f"tiktok_{tiktok_id[:8]}"
+        
+        # メールアドレスは必須だが、TikTokは提供しないのでダミーを使用
+        email = f"{username}@tiktok.influberry.local"
+        
+        user = cls(
+            username=username,
+            email=email,
+            password=None,  # パスワード不要（OAuth認証）
+            influencer_name=tiktok_username,
+            tiktok_id=tiktok_id,
+            tiktok_username=tiktok_username,
+            tiktok_avatar_url=tiktok_avatar_url,
+            oauth_provider='tiktok'
+        )
+        
         db.session.add(user)
         try:
             db.session.commit()

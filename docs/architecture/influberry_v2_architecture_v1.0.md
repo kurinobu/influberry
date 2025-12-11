@@ -3,9 +3,9 @@
 ---
 
 **作成日**: 2025年10月16日  
-**更新日**: 2025年10月23日  
-**バージョン**: 1.0 → ロールバック完了 → 月次管理機能動的実装 → 請求書ステータス修正完了  
-**対象**: InfluBerry v2 プロジェクト全体 → 月次管理機能実装 → 請求書ステータス変更履歴記録・月次統計修正
+**更新日**: 2025年11月7日  
+**バージョン**: 1.0 → ロールバック完了 → 月次管理機能動的実装 → 請求書ステータス修正完了 → 請求書作成エラーメッセージ・UI改善完了 → 請求書ステータス統一修正完了 → 案件一覧表示遅延問題の改善完了 → 請求書一覧表示遅延問題の改善完了 → 絵文字アイコン削除完了  
+**対象**: InfluBerry v2 プロジェクト全体 → 月次管理機能実装 → 請求書ステータス変更履歴記録・月次統計修正 → 請求書作成エラーメッセージ修正・既存請求書発行済み時のUI改善 → 請求書ステータス統一修正（cancelled → canceled） → 案件一覧表示遅延問題の改善（Phase 1-4） → 請求書一覧表示遅延問題の改善（Phase 1-2） → 絵文字アイコン削除
 
 ---
 
@@ -1606,7 +1606,214 @@ watch(() => invoicesStore.invoices, () => {
 
 ---
 
+---
+
+## 📝 **請求書作成エラーメッセージ・UI改善（2025年11月6日完了）**
+
+### 実装内容
+
+#### **1. エラーメッセージの修正**
+- **ファイル**: `app/blueprints/invoices.py`
+- **変更内容**: `'このプロジェクトの請求書は既に作成されています'` → `'請求書は既に以前発行されてます。二度の発行はできません。'`
+- **目的**: ユーザーに分かりやすいエラーメッセージを提供
+
+#### **2. 既存請求書情報の追加**
+- **ファイル**: `app/blueprints/projects.py`
+- **変更内容**: プロジェクト一覧取得時に各プロジェクトの既存請求書情報を取得し、`has_invoice`フラグと`invoice_id`を追加
+- **実装方法**: `Invoice.query.filter()`で一括取得し、プロジェクトデータに付与
+- **目的**: フロントエンド側で既存請求書の存在を判定可能に
+
+#### **3. UIスタイルの改善**
+- **ファイル**: `frontend/src/components/ProjectList.vue`
+- **変更内容**: 
+  - 既存請求書発行済みの場合、ボタンを薄いグリーン色（`#86efac`）で表示
+  - ツールチップの条件付き表示を追加（`'請求書は既に発行済みです'` / `'請求書作成'`）
+- **実装方法**: 条件付きクラスバインディング（`invoice-disabled`クラス）とスタイル追加
+- **目的**: 視覚的に既存請求書の状態を明確に表示
+
+### 修正ファイル一覧
+1. `app/blueprints/invoices.py` - エラーメッセージ修正
+2. `app/blueprints/projects.py` - 既存請求書情報追加
+3. `frontend/src/components/ProjectList.vue` - UIスタイル修正
+
+### デプロイ状況
+- ✅ ステージング環境デプロイ完了（2025年11月6日）
+- ✅ 本番環境デプロイ完了（2025年11月6日）
+- ✅ コミットハッシュ: `f00f142`
+
+### 技術的詳細
+
+#### **バックエンド実装**
+```python
+# app/blueprints/projects.py
+# 各プロジェクトの既存請求書情報を取得
+project_ids = [project.id for project in projects]
+existing_invoices = {}
+if project_ids:
+    existing_invoices = {inv.project_id: inv.id for inv in Invoice.query.filter(
+        Invoice.project_id.in_(project_ids),
+        Invoice.user_id == current_user.id
+    ).all()}
+
+# プロジェクトデータに既存請求書情報を追加
+for project in projects:
+    project_dict = project.to_dict()
+    project_dict['has_invoice'] = project.id in existing_invoices
+    project_dict['invoice_id'] = existing_invoices.get(project.id)
+```
+
+#### **フロントエンド実装**
+```vue
+<!-- frontend/src/components/ProjectList.vue -->
+<button @click.stop="createInvoiceFromProject(project)" 
+        :class="['berry-action-button', 'invoice', { 'invoice-disabled': project.has_invoice === true }]"
+        :title="project.has_invoice === true ? '請求書は既に発行済みです' : '請求書作成'">
+```
+
+#### **スタイル定義**
+```css
+/* 既存請求書発行済みの場合の薄いグリーン */
+.berry-action-button.invoice.invoice-disabled {
+  color: #86efac;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  opacity: 0.7;
+}
+```
+
+### 影響範囲
+- **バックエンド**: プロジェクト一覧取得APIのレスポンス構造に新フィールド追加（後方互換性あり）
+- **フロントエンド**: 請求書ボタンの表示ロジックとスタイルのみ変更
+- **データベース**: 変更なし
+
+### パフォーマンスへの影響
+- **軽微**: プロジェクト一覧取得時に既存請求書を一括取得（JOINクエリで最適化可能）
+- **期待される影響**: 数ミリ秒〜数十ミリ秒の追加（プロジェクト数に依存）
+
+---
+
+## 案件一覧表示遅延問題の改善（2025年11月7日完了）
+
+### 問題の定義
+案件管理ページ（BerryWork）の案件一覧を表示する時、表示に遅延が生じる場合がある問題を改善しました。
+
+### 根本原因の特定
+1. **重複データ取得**: `ProjectApp.vue`と`ProjectList.vue`の両方で`fetchProjects()`が呼ばれる可能性
+2. **バックエンドの追加クエリ**: `joinedload`で取得済みのInvoiceを別途`Invoice.query.filter()`で取得している
+3. **認証チェックの重複**: `checkAuthStatus()`と`getCurrentUser()`の両方が呼ばれる可能性
+4. **ループ処理**: プロジェクトごとに`to_dict()`を実行するループ処理
+
+### 実装内容（Phase 1-4）
+
+#### Phase 1: 重複データ取得の完全防止
+- **修正ファイル**: `frontend/src/views/ProjectApp.vue`
+- **修正内容**: `onMounted()`から`fetchProjects()`を削除
+- **効果**: 不要なAPI呼び出しを最大1回削減
+
+#### Phase 2: バックエンドのクエリ最適化
+- **修正ファイル**: `app/blueprints/projects.py`
+- **修正内容**: 
+  - `Invoice.query.filter()`の呼び出しを削除
+  - `joinedload`で取得済みの`project.invoices`から既存請求書情報を取得
+- **効果**: データベースクエリを1回削減
+
+#### Phase 3: 認証チェックの最適化
+- **修正ファイル**: `frontend/src/views/ProjectApp.vue`
+- **修正内容**: `checkAuthStatus()`を`getCurrentUser()`に統一
+- **効果**: キャッシュ機能を活用（5分間のキャッシュ）
+
+#### Phase 4: ループ処理の最適化
+- **修正ファイル**: `app/blueprints/projects.py`
+- **修正内容**: リスト内包表記に最適化
+- **効果**: コードの簡潔性と可読性を向上
+
+### 期待される改善効果
+- **API呼び出し**: 最大2回削減（重複取得 + 認証チェック）
+- **データベースクエリ**: 1回削減（追加クエリの削除）
+- **レスポンスタイム**: 10-100ms改善（データ量による）
+- **表示遅延**: 重複取得時の遅延を解消
+
+### デプロイ状況
+- ✅ ステージング環境へのデプロイ完了（2025年11月7日）
+- ✅ 本番環境へのデプロイ完了（2025年11月7日）
+- ✅ ローカル環境・ステージング環境での動作確認完了
+
+### バックアップファイル
+- `frontend/src/views/ProjectApp.vue.backup_remove_duplicate_fetch_20251107_092503`
+- `frontend/src/views/ProjectApp.vue.backup_auth_optimization_20251107_093001`
+- `app/blueprints/projects.py.backup_query_optimization_20251107_092813`
+- `app/blueprints/projects.py.backup_loop_optimization_20251107_093138`
+
+---
+
+## 請求書一覧表示遅延問題の改善（2025年11月7日完了）
+
+### 問題の定義
+請求書管理ページ（BerryPay）の請求書一覧を表示する時、表示に遅延が生じる場合がある問題を改善しました。
+
+### 根本原因の特定
+1. **重複データ取得**: `InvoiceApp.vue`と`InvoiceList.vue`の両方で`fetchInvoices()`が呼ばれる可能性
+2. **バックエンドのN+1問題**: `invoice.to_dict()`内で`self.project.notes`にアクセスする際、リレーション先が遅延読み込みされる
+3. **認証チェックの重複**: `checkAuthStatus()`と`getCurrentUser()`の両方が呼ばれる可能性
+
+### 実装内容（Phase 1-2）
+
+#### Phase 1: 重複データ取得の完全防止
+- **修正ファイル**: `frontend/src/views/InvoiceApp.vue`
+- **修正内容**: 
+  - `onMounted()`から`fetchInvoices()`を削除
+  - 認証チェックを`getCurrentUser()`に統一（キャッシュ機能を活用）
+- **効果**: 不要なAPI呼び出しを最大1回削減
+
+#### Phase 2: バックエンドのクエリ最適化（N+1問題の解決）
+- **修正ファイル**: `app/blueprints/invoices.py`
+- **修正内容**: 
+  - `joinedload(Invoice.project)`を使用してリレーション先を一括取得
+  - `invoice.to_dict()`内の`self.project.notes`アクセス時の追加クエリを削減
+- **効果**: データベースクエリをN回削減（例: 100件の請求書で101回 → 1回）
+
+### 期待される改善効果
+- **API呼び出し**: 最大1回削減（重複取得の防止）
+- **データベースクエリ**: N回削減（N+1問題の解決、例: 100件の請求書で101回 → 1回）
+- **レスポンスタイム**: データ量に依存するが、大幅な改善が期待できる
+- **表示遅延**: 重複取得時の遅延を解消
+
+### デプロイ状況
+- ✅ ステージング環境へのデプロイ完了（2025年11月7日）
+- ✅ 本番環境へのデプロイ完了（2025年11月7日）
+- ✅ ローカル環境・ステージング環境での動作確認完了
+
+### バックアップファイル
+- `frontend/src/views/InvoiceApp.vue.backup_remove_duplicate_fetch_20251107_104122`
+- `app/blueprints/invoices.py.backup_query_optimization_20251107_105032`
+
+### 参考事例
+- 案件管理ページ（BerryWork）の改善事例（Phase 1-4）を参考に実装
+
+---
+
+## 請求書一覧タイトルから絵文字アイコン削除（2025年11月7日完了）
+
+### 問題の定義
+請求書一覧のタイトル欄に絵文字アイコン（📄）が使用されている問題を修正しました。アプリのルールでは絵文字アイコンの使用が禁止されています。
+
+### 実装内容
+- **修正ファイル**: `frontend/src/components/InvoiceList.vue`
+- **修正内容**: 
+  - 515行目: `📄 請求書一覧` → `請求書一覧`
+  - 絵文字アイコン「📄」を削除
+- **効果**: アプリのルールに準拠
+
+### デプロイ状況
+- ✅ ステージング環境へのデプロイ完了（2025年11月7日）
+- ✅ 本番環境へのデプロイ完了（2025年11月7日）
+
+### バックアップファイル
+- `frontend/src/components/InvoiceList.vue.backup_emoji_removal_20251107_110918`
+
+---
+
 **作成者**: AI Assistant  
 **レビュー**: 未実施  
 **承認**: 未実施  
-**次回更新**: セッション4完了時
+**最終更新**: 2025年11月7日（請求書一覧表示遅延問題の改善完了、絵文字アイコン削除完了）
