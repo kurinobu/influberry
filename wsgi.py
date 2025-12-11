@@ -7,12 +7,21 @@ import os
 from dotenv import load_dotenv
 from app import create_app
 
+print(f"[WSGI] Using FLASK_ENV = {os.environ.get('FLASK_ENV')}")
+print(f"[WSGI] Using INFLUBERRY_ENV = {os.environ.get('INFLUBERRY_ENV')}")
+
 # Load environment variables
 load_dotenv()
 
 # Create Flask application
 config_name = os.environ.get('FLASK_ENV', 'development')
 app = create_app(config_name)
+
+print("=== ENV CHECK START ===")
+print("FLASK_ENV:", os.environ.get("FLASK_ENV"))
+print("INFLUBERRY_ENV:", os.environ.get("INFLUBERRY_ENV"))
+print("CONFIG_NAME USED:", config_name)
+print("=== ENV CHECK END ===")
 
 if __name__ == '__main__':
     # Development server configuration
