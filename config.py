@@ -32,13 +32,10 @@ class Config:
     # CORS Configuration
     # REST API CORS Configuration (Backend分離対応)
     CORS_ORIGINS = [
-    'https://influberry-app.onrender.com',
     'https://influberry.jp',
+    'https://www.influberry.jp',
+    'https://influberry-app.onrender.com',
     'https://influberry-staging.onrender.com',
-    'http://127.0.0.1:5173'
-    'https://influberry-staging.onrender.com',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:5001'
     ]
     
     # Development Configuration
