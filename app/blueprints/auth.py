@@ -225,7 +225,7 @@ def tiktok_callback():
         session.pop('oauth_state', None)
         
         # フロントエンドにリダイレクト
-        return redirect('/dashboard')
+        return redirect('https://influberry.jp/?login=success')
         
     except requests.exceptions.RequestException as e:
         print(f"TikTok API request error: {str(e)}")
