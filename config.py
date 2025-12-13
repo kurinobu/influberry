@@ -65,6 +65,7 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_DOMAIN = None
 
 class TestConfig(Config):
     """Test configuration"""
