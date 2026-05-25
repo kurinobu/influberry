@@ -10,6 +10,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
+COPY --from=frontend-build /app/frontend/dist /app/frontend/dist
 RUN mkdir -p app/static && cp -r frontend/dist/* app/static/
 ENV PORT=5001
 EXPOSE 5001

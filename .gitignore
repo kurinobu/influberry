@@ -77,3 +77,4 @@ Thumbs.db
 *_dev.db
 *_test.db
 *_prod.db
+Dockerfile.bak_*
